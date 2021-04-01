@@ -18,10 +18,21 @@ inputs:
     required: false
     default: "/pocketmine/phpstan.neon" # this file is already present in the container and will work fine for plugins
 
-runs:
-  using: "docker"
-  image: "/Dockerfile"
-  env:
-    PHPSTAN_CONFIG: ${{ inputs.phpstan-config }}
-  args:
-    - ${{ inputs.source }}
+jobs:
+  phpstan:
+    name: PHPStan
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+        - name: "Checkout"
+          uses: actions/checkout@v2
+
+        - name: PHPStan
+          uses: "docker://nxtlvlsoftware/pmmp-phpstan:master"
+          image: "/Dockerfile"
+          env:
+            PHPSTAN_CONFIG: ${{ inputs.phpstan-config }}
+          with:
+            args:
+              - ${{ inputs.source }}
