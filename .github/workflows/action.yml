@@ -11,6 +11,6 @@ jobs:
         - name: "Checkout"
           uses: actions/checkout@v2
         - name: Run PHPStan
-          uses: NxtLvLSoftware/pmmp-phpstan-action@master
+          uses: poggit/poggit-phpstan@master
           with:
             phpstan-config: phpstan.neon.dist
