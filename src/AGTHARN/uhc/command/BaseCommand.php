@@ -6,7 +6,8 @@ namespace AGTHARN\uhc\command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\PluginCommand;
 use pocketmine\Player;
-use uhc\Loader;
+
+use AGTHARN\uhc\Loader;
 
 class BaseCommand extends PluginCommand{
 

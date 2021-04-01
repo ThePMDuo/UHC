@@ -3,16 +3,11 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
-use uhc\command\GlobalMuteCommand;
-use uhc\command\HealCommand;
-use uhc\command\ScenariosCommand;
-use uhc\command\SpectatorCommand;
-use uhc\command\TpallCommand;
-use uhc\command\UHCCommand;
-use uhc\game\GameHeartbeat;
-use uhc\game\Scenario;
+use pocketmine\Player;
+
+use AGTHARN\uhc\game\GameHeartbeat;
+use AGTHARN\uhc\game\Scenario;
 
 class Loader extends PluginBase
 {

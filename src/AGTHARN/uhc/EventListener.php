@@ -1,18 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace uhc;
+namespace AGTHARN\uhc;
 
-use uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\inventory\InventoryTransactionEvent;
-use pocketmine\item\Item;
-use pocketmine\block\Block;
-use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerJoinEvent;
@@ -21,15 +17,21 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
+use pocketmine\event\Listener;
+use pocketmine\utils\TextFormat as TF;
+use pocketmine\block\Block;
 use pocketmine\item\ItemFactory;
 use pocketmine\item\ItemIds;
+use pocketmine\item\Item;
 use pocketmine\level\Position;
 use pocketmine\Player;
-use pocketmine\utils\TextFormat as TF;
-use uhc\event\PhaseChangeEvent;
-use uhc\game\type\GameTimer;
-use uhc\Loader;
-use uhc\game\Border;
+
+use AGTHARN\uhc\event\PhaseChangeEvent;
+use AGTHARN\uhc\game\type\GameTimer;
+use AGTHARN\uhc\game\Border;
+use AGTHARN\uhc\Loader;
+
+use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 
 class EventListener implements Listener
 {

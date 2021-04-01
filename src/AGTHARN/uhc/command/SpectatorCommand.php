@@ -8,7 +8,8 @@ use pocketmine\command\PluginCommand;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
-use uhc\Loader;
+
+use AGTHARN\uhc\Loader;
 
 class SpectatorCommand extends BaseCommand
 {

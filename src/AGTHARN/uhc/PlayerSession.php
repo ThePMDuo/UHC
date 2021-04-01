@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\Player;
 use pocketmine\utils\UUID;
+use pocketmine\Player;
 
 class PlayerSession
 {

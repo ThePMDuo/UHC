@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\game;
 
-use uhc\libs\JackMD\ScoreFactory\ScoreFactory;
-use pocketmine\math\Vector3;
-use pocketmine\level\Position;
-use pocketmine\level\sound\ClickSound;
 use pocketmine\level\sound\BlazeShootSound;
-use pocketmine\Player;
-use pocketmine\scheduler\Task;
-use pocketmine\utils\TextFormat as TF;
-use uhc\event\PhaseChangeEvent;
-use uhc\game\type\GameTimer;
-use pocketmine\entity\Effect;
+use pocketmine\level\sound\ClickSound;
+use pocketmine\level\Position;
 use pocketmine\entity\EffectInstance;
-use pocketmine\item\Item;
-use pocketmine\item\enchantment\Enchantment;
+use pocketmine\entity\Effect;
 use pocketmine\item\enchantment\EnchantmentInstance;
-use uhc\Loader;
+use pocketmine\item\enchantment\Enchantment;
+use pocketmine\item\Item;
+use pocketmine\utils\TextFormat as TF;
+use pocketmine\scheduler\Task;
+use pocketmine\math\Vector3;
+use pocketmine\Player;
+
+use AGTHARN\uhc\event\PhaseChangeEvent;
+use AGTHARN\uhc\game\type\GameTimer;
+use AGTHARN\uhc\Loader;
+
+use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 
 class GameHeartbeat extends Task
 {
