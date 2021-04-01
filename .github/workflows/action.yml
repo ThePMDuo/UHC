@@ -10,8 +10,7 @@ jobs:
     steps:
         - name: "Checkout"
           uses: actions/checkout@v2
-
         - name: Run PHPStan
-          uses: larryTheCoder/pmmp-phpstan-action@master
+          uses: NxtLvLSoftware/pmmp-phpstan-action@master
           with:
             phpstan-config: phpstan.neon.dist
