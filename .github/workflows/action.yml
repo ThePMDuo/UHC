@@ -24,7 +24,7 @@ jobs:
         - name: PHPStan
           uses: "docker://nxtlvlsoftware/pmmp-phpstan:master"
           env:
-            PHPSTAN_CONFIG: ${{ inputs.phpstan-config }}
+            phpstan-config: ${{ inputs.phpstan-config }}
           with:
             args:
               - ${{ inputs.source }}
