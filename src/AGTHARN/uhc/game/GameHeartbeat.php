@@ -21,7 +21,7 @@ use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\game\type\GameTimer;
 use AGTHARN\uhc\Loader;
 
-use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
+use AGTHARN\uhc\libs\ScoreFactory\ScoreFactory\src\jackmd\scorefactory\ScoreFactory;
 
 class GameHeartbeat extends Task
 {
