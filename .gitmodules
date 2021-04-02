@@ -1,4 +1,0 @@
-[submodule "src/AGTHARN/uhc/libs/ScoreFactory/ScoreFactory"]
-	path = src/AGTHARN/uhc/libs/ScoreFactory/ScoreFactory
-	url = https://github.com/buchwasa/ScoreFactory/
-	branch = pm3

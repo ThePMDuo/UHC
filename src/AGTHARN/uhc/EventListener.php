@@ -30,7 +30,7 @@ use AGTHARN\uhc\game\type\GameTimer;
 use AGTHARN\uhc\game\Border;
 use AGTHARN\uhc\Loader;
 
-use AGTHARN\uhc\libs\ScoreFactory\ScoreFactory\src\jackmd\scorefactory\ScoreFactory;
+use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 
 class EventListener implements Listener
 {
