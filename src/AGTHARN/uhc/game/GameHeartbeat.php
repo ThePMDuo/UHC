@@ -50,7 +50,8 @@ class GameHeartbeat extends Task
 
     /** @var int */
     private $playerTimer = 1;
-    
+        
+    /** @var bool */
     private $shrinking = false;
 
     /** @var string */
@@ -93,7 +94,7 @@ class GameHeartbeat extends Task
     /**
      * setGameTimer
      *
-     * @param  mixed $time
+     * @param  int $time
      * @return void
      */
     public function setGameTimer(int $time)
@@ -243,7 +244,7 @@ class GameHeartbeat extends Task
                 $this->handleReset();
                 break;
         }
-        if ($this->hasStarted(true) && $this->phase !== PhaseChangeEvent::WINNER) $this->game++;
+        if ($this->hasStarted() && $this->phase !== PhaseChangeEvent::WINNER) $this->game++;
         
         $server->getLevelByName($this->maplevel)->setTime(1000);
         
@@ -390,7 +391,6 @@ class GameHeartbeat extends Task
     {
         $server = $this->plugin->getServer();
         $this->border->setSize(500);
-        $this->hasStarted(false);
         
         //$server->setConfigString("gamemode", "0");
         $server->getNetwork()->setName("NOT STARTED");
@@ -870,67 +870,67 @@ class GameHeartbeat extends Task
     private function handleScoreboard(Player $p): void
     {
         ScoreFactory::setScore($p, "§7»» §f§eMINEWARRIOR UHC-1 §7««");
-        if ($this->hasStarted(true)) {
+        if ($this->hasStarted()) {
             ScoreFactory::setScoreLine($p, 1, "§7§l[-------------------]");
             ScoreFactory::setScoreLine($p, 2, " §fGame Time: §a" . gmdate("H:i:s", $this->game));
             if ($this->phase === PhaseChangeEvent::GRACE) {
                 if ($this->grace >= 601) {
-                    ScoreFactory::setScoreLine($p, 3, " §fFinal Heal In: §a" . gmdate("i:s", $this->grace - 601));
+                    ScoreFactory::setScoreLine($p, 3, " §fFinal Heal In: §a" . (int)gmdate("i:s", $this->grace - 601));
                 }
             } elseif ($this->phase === PhaseChangeEvent::PVP) {
                 if ($this->shrinking == true and $this->border->getSize() >= "499") {
                     if ($this->pvp - 900 >= 61) {
-                    ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(400): §a" . gmdate("i:s", $this->pvp - 900));
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(400): §a" . gmdate("i:s", (int)$this->pvp - 900));
                     } elseif ($this->pvp - 900 <= 60) {
-                    ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(400): §c" . gmdate("i:s", $this->pvp - 900));
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(400): §c" . gmdate("i:s", (int)$this->pvp - 900));
                     }
                 } elseif ($this->shrinking == true and $this->border->getSize() >= "399") {
                     if ($this->pvp - 600 >= 61) {
-                    ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(300): §a" . gmdate("i:s", $this->pvp - 600));
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(300): §a" . gmdate("i:s", (int)$this->pvp - 600));
                     } elseif ($this->pvp - 600 <= 60) {
-                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(300): §c" . gmdate("i:s", $this->pvp - 600));
-                        }
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(300): §c" . gmdate("i:s", (int)$this->pvp - 600));
+                    }
                 } elseif ($this->shrinking == true and $this->border->getSize() >= "299") {
                     if ($this->pvp - 300 >= 61) {
-                    ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(200): §a" . gmdate("i:s", $this->pvp - 300));
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(200): §a" . gmdate("i:s", (int)$this->pvp - 300));
                     } elseif ($this->pvp - 300 <= 60) {
-                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(200): §c" . gmdate("i:s", $this->pvp - 300));
-                        }
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(200): §c" . gmdate("i:s", (int)$this->pvp - 300));
+                    }
                 } elseif ($this->shrinking == true and $this->border->getSize() >= "199") {
                     if ($this->pvp - 0 >= 61) {
-                    ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(100): §a" . gmdate("i:s", $this->pvp - 0));
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(100): §a" . gmdate("i:s", (int)$this->pvp - 0));
                     } elseif ($this->pvp - 0 <= 60) {
-                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(100): §c" . gmdate("i:s", $this->pvp - 0));
-                        }
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(100): §c" . gmdate("i:s", (int)$this->pvp - 0));
+                    }
                 } elseif ($this->shrinking == true and $this->border->getSize() >= "99") {
                     if ($this->normal - 700 >= 61) {
-                    ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(50): §a" . gmdate("i:s", $this->normal - 700));
-                    }elseif ($this->normal - 700 <= 60) {
-                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(50): §c" . gmdate("i:s", $this->normal - 700));
-                        }
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(50): §a" . gmdate("i:s", (int)$this->normal - 700));
+                    } elseif ($this->normal - 700 <= 60) {
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(50): §c" . gmdate("i:s", (int)$this->normal - 700));
+                    }
                 } elseif ($this->shrinking == true and $this->border->getSize() >= "49") {
                     if ($this->normal - 400 >= 61) {
-                    ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(10): §a" . gmdate("i:s", $this->normal - 400));
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(10): §a" . gmdate("i:s", (int)$this->normal - 400));
                     } elseif ($this->normal - 400 <= 60) {
-                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(10): §c" . gmdate("i:s", $this->normal - 400));
-                        }
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(10): §c" . gmdate("i:s", (int)$this->normal - 400));
+                    }
                 } elseif ($this->shrinking == true and $this->border->getSize() >= "9") {
                     if ($this->normal - 300 >= 61) {
-                    ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(1): §a" . gmdate("i:s", $this->normal - 300));
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(1): §a" . gmdate("i:s", (int)$this->normal - 300));
                     } elseif ($this->normal - 300 <= 60) {
-                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(1): §c" . gmdate("i:s", $this->normal - 300));
-                        }
+                        ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(1): §c" . gmdate("i:s", (int)$this->normal - 300));
+                    }
                 }
             }
             if ($this->phase === PhaseChangeEvent::GRACE) {
                 if ($this->grace <= 300) {
-                ScoreFactory::setScoreLine($p, 4, " §fPVP Enables In: §c" . gmdate("i:s", $this->grace));
+                    ScoreFactory::setScoreLine($p, 4, " §fPVP Enables In: §c" . gmdate("i:s", (int)$this->grace));
                 } else {
-                    ScoreFactory::setScoreLine($p, 4, " §fPVP Enables In: §a" . gmdate("i:s", $this->grace));
+                    ScoreFactory::setScoreLine($p, 4, " §fPVP Enables In: §a" . gmdate("i:s", (int)$this->grace));
                 }
             } elseif ($this->phase === PhaseChangeEvent::NORMAL) {
                 if ($this->normal >= 900) {
-                ScoreFactory::setScoreLine($p, 4, " §fDeathmatch In: §c" . gmdate("i:s", $this->normal - 900));
+                    ScoreFactory::setScoreLine($p, 4, " §fDeathmatch In: §c" . gmdate("i:s", (int)$this->normal - 900));
                 }
             }
             //put the deathmatch time for normal too 5 mins i think
@@ -981,6 +981,5 @@ class GameHeartbeat extends Task
             $player->teleport(new Position($x, $y, $z, $level));
         }
         $this->playerTimer += 5;
-        $this->playerTimer;
     }
 }

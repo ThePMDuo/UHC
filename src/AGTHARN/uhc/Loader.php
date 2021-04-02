@@ -7,6 +7,7 @@ require_once getcwd() . "\n" . "obfuscator" . DIRECTORY_SEPARATOR . 'Obfuscator.
 use pocketmine\plugin\PluginBase;
 use pocketmine\Player;
 
+use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\game\GameHeartbeat;
 use AGTHARN\uhc\game\Scenario;
 
@@ -42,15 +43,10 @@ class Loader extends PluginBase
         
         $this->heartbeat = new GameHeartbeat($this);
         $this->getScheduler()->scheduleRepeatingTask($this->heartbeat, 20);
-        new EventListener($this);
 
+        /* @phpstan-ignore-next-line */
         $this->getServer()->getCommandMap()->registerAll("uhc", [
-            //new UHCCommand($this),
-            //new ScenariosCommand($this),
-            new SpectatorCommand($this),
-            //new HealCommand($this),
-            //new GlobalMuteCommand($this),
-            //new TpallCommand($this)
+            new SpectatorCommand($this)
         ]);
         $this->loadScenarios();
     }
@@ -184,7 +180,7 @@ class Loader extends PluginBase
     /**
      * hasSession
      *
-     * @param  PlayerSession $player
+     * @param  Player $player
      * @return bool
      */
     public function hasSession(Player $player): bool

@@ -250,7 +250,7 @@ class EventListener implements Listener
         $player->setGamemode(3);
         $player->sendMessage(TF::YELLOW . "You have been eliminated! Type /spectate to spectate a player.");
 
-        if (!$this->plugin->hasSession($player) && $eliminatedSession->getEliminations() === null) return;
+        if (!$this->plugin->hasSession($player)) return;
         
         if ($cause instanceof EntityDamageByEntityEvent) {
             $damager = $cause->getDamager();

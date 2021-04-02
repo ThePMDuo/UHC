@@ -9,7 +9,8 @@ use pocketmine\Player;
 
 use AGTHARN\uhc\Loader;
 
-class BaseCommand extends PluginCommand{
+class BaseCommand extends PluginCommand
+{
 
     /**
      * __construct
