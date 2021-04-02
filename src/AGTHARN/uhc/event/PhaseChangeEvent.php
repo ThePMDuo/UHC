@@ -19,9 +19,9 @@ class PhaseChangeEvent extends Event
     public const PVP = 2;
     /** @var int */
     public const NORMAL = 3;
-	/** @var int */
+    /** @var int */
     public const WINNER = 4;
-	/** @var int */
+    /** @var int */
     public const RESET = 5;
 
     /** @var Player */

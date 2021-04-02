@@ -73,5 +73,5 @@ class Border
     {
         return $isNegative ? ($this->safeZ - $this->size) : ($this->safeZ + $this->size);
     }
-	
+    
 }

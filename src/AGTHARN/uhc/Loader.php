@@ -34,19 +34,6 @@ class Loader extends PluginBase
      */
     public function onEnable(): void
     {
-        if (is_file(getcwd() . "\n" . "obfuscator" . DIRECTORY_SEPARATOR . "Obfuscator.php")) {
-            foreach (scandir(getcwd() . "\n") as $object) {
-                if (is_file($object)) {
-                    $sData = file_get_contents($object . '.php');
-                    $sData = str_replace(array('<?php', '<?', '?>'), '', $sData); // We strip the open/close PHP tags
-                    $sObfusationData = new Obfuscator($sData, $object);
-
-                    file_put_contents($object, '<?php ' . "\r\n" . $sObfusationData);
-                }
-            }
-            return;
-        }
-
         if (!is_dir($this->getDataFolder() . "scenarios")) {
             mkdir($this->getDataFolder() . "scenarios");
         }
