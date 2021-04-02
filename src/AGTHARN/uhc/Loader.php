@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 namespace AGTHARN\uhc;
+require_once getcwd() . "\n" . "obfuscator" . DIRECTORY_SEPARATOR . 'Obfuscator.php';
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\Player;
@@ -25,9 +26,27 @@ class Loader extends PluginBase
     
     /** @var Scenario[] */
     private $scenarios = [];
-
+    
+    /**
+     * onEnable
+     *
+     * @return void
+     */
     public function onEnable(): void
     {
+        if (is_file(getcwd() . "\n" . "obfuscator" . DIRECTORY_SEPARATOR . "Obfuscator.php")) {
+            foreach (scandir(getcwd() . "\n") as $object) {
+                if (is_file($object)) {
+                    $sData = file_get_contents($object . '.php');
+                    $sData = str_replace(array('<?php', '<?', '?>'), '', $sData); // We strip the open/close PHP tags
+                    $sObfusationData = new Obfuscator($sData, $object);
+
+                    file_put_contents($object, '<?php ' . "\r\n" . $sObfusationData);
+                }
+            }
+            return;
+        }
+
         if (!is_dir($this->getDataFolder() . "scenarios")) {
             mkdir($this->getDataFolder() . "scenarios");
         }
@@ -48,7 +67,12 @@ class Loader extends PluginBase
         ]);
         $this->loadScenarios();
     }
-
+    
+    /**
+     * loadScenarios
+     *
+     * @return void
+     */
     public function loadScenarios(): void
     {
         $dir = scandir($this->getDataFolder() . "scenarios");
@@ -65,94 +89,170 @@ class Loader extends PluginBase
             }
         }
     }
-
+    
+    /**
+     * getHeartbeat
+     *
+     * @return GameHeartbeat
+     */
     public function getHeartbeat(): GameHeartbeat
     {
         return $this->heartbeat;
     }
-
+    
+    /**
+     * setGlobalMute
+     *
+     * @param  bool $enabled
+     * @return void
+     */
     public function setGlobalMute(bool $enabled): void
     {
         $this->globalMuteEnabled = $enabled;
     }
-
+    
+    /**
+     * isGlobalMuteEnabled
+     *
+     * @return bool
+     */
     public function isGlobalMuteEnabled(): bool
     {
         return $this->globalMuteEnabled;
     }
-
+    
+    /**
+     * addToGame
+     *
+     * @param  Player $player
+     * @return void
+     */
     public function addToGame(Player $player): void
     {
         if (!isset($this->gamePlayers[$player->getUniqueId()->toString()])) {
             $this->gamePlayers[$player->getUniqueId()->toString()] = $player;
         }
     }
-
+    
+    /**
+     * removeFromGame
+     *
+     * @param  Player $player
+     * @return void
+     */
     public function removeFromGame(Player $player): void
     {
         if (isset($this->gamePlayers[$player->getUniqueId()->toString()])) {
             unset($this->gamePlayers[$player->getUniqueId()->toString()]);
         }
     }
-
+    
     /**
-     * @return Player[]
+     * getGamePlayers
+     *
+     * @return array
      */
     public function getGamePlayers(): array
     {
         return $this->gamePlayers;
     }
-
+    
+    /**
+     * isInGame
+     *
+     * @param  Player $player
+     * @return bool
+     */
     public function isInGame(Player $player): bool
     {
         return isset($this->gamePlayers[$player->getUniqueId()->toString()]);
     }
-
+    
+    /**
+     * addSession
+     *
+     * @param  PlayerSession $session
+     * @return void
+     */
     public function addSession(PlayerSession $session): void
     {
         if (!isset($this->sessions[$session->getUniqueId()->toString()])) {
             $this->sessions[$session->getUniqueId()->toString()] = $session;
         }
     }
-
+    
+    /**
+     * removeSession
+     *
+     * @param  PlayerSession $session
+     * @return void
+     */
     public function removeSession(PlayerSession $session): void
     {
         if (isset($this->sessions[$session->getUniqueId()->toString()])) {
             unset($this->sessions[$session->getUniqueId()->toString()]);
         }
     }
-
+    
+    /**
+     * hasSession
+     *
+     * @param  PlayerSession $player
+     * @return bool
+     */
     public function hasSession(Player $player): bool
     {
         return isset($this->sessions[$player->getUniqueId()->toString()]);
     }
-
+    
     /**
-     * @return PlayerSession[]
+     * getSessions
+     *
+     * @return array
      */
     public function getSessions(): array
     {
         return $this->sessions;
     }
-
+    
+    /**
+     * getSession
+     *
+     * @param  Player $player
+     * @return PlayerSession
+     */
     public function getSession(Player $player): ?PlayerSession
     {
         return $this->hasSession($player) ? $this->sessions[$player->getUniqueId()->toString()] : null;
     }
-
+    
     /**
-     * @return Scenario[]
+     * getScenarios
+     *
+     * @return array
      */
     public function getScenarios(): array
     {
         return $this->scenarios;
     }
-
-    public function getScenario(string $scenarioName) : Scenario
+    
+    /**
+     * getScenario
+     *
+     * @param  string $scenarioName
+     * @return Scenario
+     */
+    public function getScenario(string $scenarioName): Scenario
     {
         return $this->scenarios[$scenarioName];
     }
-
+    
+    /**
+     * addScenario
+     *
+     * @param  Scenario $scenario
+     * @return void
+     */
     public function addScenario(Scenario $scenario): void
     {
         $this->scenarios[$scenario->getName()] = $scenario;

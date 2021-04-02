@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\command;
 
-use pocketmine\command\CommandSender;
-use pocketmine\command\PluginCommand;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
@@ -15,14 +13,27 @@ class SpectatorCommand extends BaseCommand
 {
     /** @var Loader */
     private $plugin;
-
+    
+    /**
+     * __construct
+     *
+     * @param  Loader $plugin
+     * @return void
+     */
     public function __construct(Loader $plugin)
     {
         parent::__construct("spectate", $plugin);
         $this->plugin = $plugin;
         $this->setUsage("/spectate <playerName>");
     }
-
+    
+    /**
+     * onExecute
+     *
+     * @param  Player $sender
+     * @param  array $args
+     * @return void
+     */
     public function onExecute(Player $sender, array $args) : void
     {
         if ($sender->getGamemode() !== 3) {

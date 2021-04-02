@@ -25,13 +25,11 @@ use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 
 class GameHeartbeat extends Task
 {
-	
-    /** @var int */
-    private $phase = PhaseChangeEvent::WAITING;
-
     /** @var int */
     private $game = 0;
 
+	/** @var int */
+    private $phase = PhaseChangeEvent::WAITING;
     /** @var int */
     private $countdown = GameTimer::TIMER_COUNTDOWN;
     /** @var float|int */
@@ -57,79 +55,166 @@ class GameHeartbeat extends Task
 
 	/** @var string */
 	private $maplevel = "UHC";
-
+    
+    /**
+     * __construct
+     *
+     * @param  Loader $plugin
+     * @return void
+     */
     public function __construct(Loader $plugin)
     {
         $this->plugin = $plugin;
         //$this->level = $this->plugin->getServer()->getLevelByName($maplevel);
         $this->border = new Border($plugin->getServer()->getDefaultLevel());
     }
-
+    
+    /**
+     * getPhase
+     *
+     * @return int
+     */
     public function getPhase(): int
     {
         return $this->phase;
     }
-
+    
+    /**
+     * setPhase
+     *
+     * @param  int $phase
+     * @return void
+     */
     public function setPhase(int $phase): void
     {
         $this->phase = $phase;
     }
-    
-    public function setGameTimer($time)
+        
+    /**
+     * setGameTimer
+     *
+     * @param  mixed $time
+     * @return void
+     */
+    public function setGameTimer(int $time)
     {
         $this->game = $time;
     }
-	
-	public function setCountdownTimer($time)
+		
+	/**
+	 * setCountdownTimer
+	 *
+	 * @param  int $time
+	 * @return void
+	 */
+	public function setCountdownTimer(int $time): void
     {
         $this->countdown = $time;
     }
-	
-	public function setGraceTimer($time)
+		
+	/**
+	 * setGraceTimer
+	 *
+	 * @param  int $time
+	 * @return void
+	 */
+	public function setGraceTimer(int $time): void
     {
         $this->grace = $time;
     }
-	
-	public function setPVPTimer($time)
+		
+	/**
+	 * setPVPTimer
+	 *
+	 * @param  int $time
+	 * @return void
+	 */
+	public function setPVPTimer(int $time): void
     {
         $this->pvp = $time;
     }
-	
-	public function setNormalTimer($time)
+		
+	/**
+	 * setNormalTimer
+	 *
+	 * @param  int $time
+	 * @return void
+	 */
+	public function setNormalTimer(int $time): void
     {
         $this->normal = $time;
     }
-	
-	public function setWinnerTimer($time)
+		
+	/**
+	 * setWinnerTimer
+	 *
+	 * @param  int $time
+	 * @return void
+	 */
+	public function setWinnerTimer(int $time): void
     {
         $this->winner = $time;
     }
-	
-	public function setResetTimer($time)
+		
+	/**
+	 * setResetTimer
+	 *
+	 * @param  int $time
+	 * @return void
+	 */
+	public function setResetTimer(int $time): void
     {
         $this->reset = $time;
     }
-
+    
+    /**
+     * hasStarted
+     *
+     * @return bool
+     */
     public function hasStarted(): bool
     {
         return $this->getPhase() >= PhaseChangeEvent::GRACE;
     }
-	
+		
+	/**
+	 * setShrinking
+	 *
+	 * @param  bool $shrinking
+	 * @return void
+	 */
 	public function setShrinking(bool $shrinking)
 	{
 		$this->shrinking = $shrinking;
 	}
-
+	
+	/**
+	 * setMap
+	 *
+	 * @param  string $maplevel
+	 * @return void
+	 */
 	public function setMap(string $maplevel)
 	{
 		$this->maplevel = $maplevel;
 	}
-
+	
+	/**
+	 * getMap
+	 *
+	 * @return string
+	 */
 	public function getMap(): string
     {
         return $this->maplevel;
     }
-
+    
+    /**
+     * onRun
+     *
+     * @param  int $currentTick
+     * @return void
+     */
     public function onRun(int $currentTick): void
     {
 		$server = $this->plugin->getServer();
@@ -295,7 +380,12 @@ class GameHeartbeat extends Task
             }
         }
     }
-	
+		
+	/**
+	 * handleWaiting
+	 *
+	 * @return void
+	 */
 	private function handleWaiting(): void
     {
 		$server = $this->plugin->getServer();
@@ -346,7 +436,12 @@ class GameHeartbeat extends Task
 				$p->getInventory()->setItem(0, $item2);
 			}
 	}
-
+    
+    /**
+     * handleCountdown
+     *
+     * @return void
+     */
     private function handleCountdown(): void
     {
         $server = $this->plugin->getServer();
@@ -426,7 +521,12 @@ class GameHeartbeat extends Task
         }
         $this->countdown--;
     }
-
+    
+    /**
+     * handleGrace
+     *
+     * @return void
+     */
     private function handleGrace(): void
     {
         $server = $this->plugin->getServer();
@@ -507,7 +607,12 @@ class GameHeartbeat extends Task
         }
         $this->grace--;
     }
-
+    
+    /**
+     * handlePvP
+     *
+     * @return void
+     */
     private function handlePvP(): void
     {
         $server = $this->plugin->getServer();
@@ -557,7 +662,12 @@ class GameHeartbeat extends Task
         }
         $this->pvp--;
     }
-
+    
+    /**
+     * handleNormal
+     *
+     * @return void
+     */
     public function handleNormal(): void
     {
         $server = $this->plugin->getServer();
@@ -615,7 +725,12 @@ class GameHeartbeat extends Task
         }
         $this->normal--;
     }
-	
+		
+	/**
+	 * handleWinner
+	 *
+	 * @return void
+	 */
 	private function handleWinner(): void
     {
 		$server = $this->plugin->getServer();
@@ -690,7 +805,12 @@ class GameHeartbeat extends Task
 		}
 		$this->winner--;
 	}
-	
+		
+	/**
+	 * handleReset
+	 *
+	 * @return void
+	 */
 	private function handleReset(): void
     {
 		$server = $this->plugin->getServer();
@@ -740,7 +860,13 @@ class GameHeartbeat extends Task
 		}
 		$this->reset--;
 	}
-	
+	    
+    /**
+     * handleScoreboard
+     *
+     * @param  Player $p
+     * @return void
+     */
     private function handleScoreboard(Player $p): void
     {
         ScoreFactory::setScore($p, "§7»» §f§eMINEWARRIOR UHC-1 §7««");
@@ -751,47 +877,47 @@ class GameHeartbeat extends Task
 				if ($this->grace >= 601) {
 					ScoreFactory::setScoreLine($p, 3, " §fFinal Heal In: §a" . gmdate("i:s", $this->grace - 601));
 				}
-			}elseif ($this->phase === PhaseChangeEvent::PVP) {
+			} elseif ($this->phase === PhaseChangeEvent::PVP) {
 				if ($this->shrinking == true and $this->border->getSize() >= "499") {
 					if ($this->pvp - 900 >= 61) {
 					ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(400): §a" . gmdate("i:s", $this->pvp - 900));
-					}elseif ($this->pvp - 900 <= 60) {
+					} elseif ($this->pvp - 900 <= 60) {
 					ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(400): §c" . gmdate("i:s", $this->pvp - 900));
 					}
-				}elseif ($this->shrinking == true and $this->border->getSize() >= "399") {
+				} elseif ($this->shrinking == true and $this->border->getSize() >= "399") {
 					if ($this->pvp - 600 >= 61) {
 					ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(300): §a" . gmdate("i:s", $this->pvp - 600));
-					}elseif ($this->pvp - 600 <= 60) {
+					} elseif ($this->pvp - 600 <= 60) {
 						ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(300): §c" . gmdate("i:s", $this->pvp - 600));
 						}
-				}elseif ($this->shrinking == true and $this->border->getSize() >= "299") {
+				} elseif ($this->shrinking == true and $this->border->getSize() >= "299") {
 					if ($this->pvp - 300 >= 61) {
 					ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(200): §a" . gmdate("i:s", $this->pvp - 300));
-					}elseif ($this->pvp - 300 <= 60) {
+					} elseif ($this->pvp - 300 <= 60) {
 						ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(200): §c" . gmdate("i:s", $this->pvp - 300));
 						}
-				}elseif ($this->shrinking == true and $this->border->getSize() >= "199") {
+				} elseif ($this->shrinking == true and $this->border->getSize() >= "199") {
 					if ($this->pvp - 0 >= 61) {
 					ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(100): §a" . gmdate("i:s", $this->pvp - 0));
-					}elseif ($this->pvp - 0 <= 60) {
+					} elseif ($this->pvp - 0 <= 60) {
 						ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(100): §c" . gmdate("i:s", $this->pvp - 0));
 						}
-				}elseif ($this->shrinking == true and $this->border->getSize() >= "99") {
+				} elseif ($this->shrinking == true and $this->border->getSize() >= "99") {
 					if ($this->normal - 700 >= 61) {
 					ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(50): §a" . gmdate("i:s", $this->normal - 700));
 					}elseif ($this->normal - 700 <= 60) {
 						ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(50): §c" . gmdate("i:s", $this->normal - 700));
 						}
-				}elseif ($this->shrinking == true and $this->border->getSize() >= "49") {
+				} elseif ($this->shrinking == true and $this->border->getSize() >= "49") {
 					if ($this->normal - 400 >= 61) {
 					ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(10): §a" . gmdate("i:s", $this->normal - 400));
-					}elseif ($this->normal - 400 <= 60) {
+					} elseif ($this->normal - 400 <= 60) {
 						ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(10): §c" . gmdate("i:s", $this->normal - 400));
 						}
-				}elseif ($this->shrinking == true and $this->border->getSize() >= "9") {
+				} elseif ($this->shrinking == true and $this->border->getSize() >= "9") {
 					if ($this->normal - 300 >= 61) {
 					ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(1): §a" . gmdate("i:s", $this->normal - 300));
-					}elseif ($this->normal - 300 <= 60) {
+					} elseif ($this->normal - 300 <= 60) {
 						ScoreFactory::setScoreLine($p, 3, " §fBorder Shrinks(1): §c" . gmdate("i:s", $this->normal - 300));
 						}
 				}
@@ -802,7 +928,7 @@ class GameHeartbeat extends Task
 				} else {
 					ScoreFactory::setScoreLine($p, 4, " §fPVP Enables In: §a" . gmdate("i:s", $this->grace));
 				}
-			}elseif ($this->phase === PhaseChangeEvent::NORMAL) {
+			} elseif ($this->phase === PhaseChangeEvent::NORMAL) {
 				if ($this->normal >= 900) {
 				ScoreFactory::setScoreLine($p, 4, " §fDeathmatch In: §c" . gmdate("i:s", $this->normal - 900));
 				}
@@ -830,8 +956,19 @@ class GameHeartbeat extends Task
 			ScoreFactory::setScoreLine($p, 8, " §eplay.minewarrior.xyz");
         }
     }
-
-    public function randomizeCoordinates($x1, $x2, $y1, $y2, $z1, $z2): void
+    
+    /**
+     * randomizeCoordinates
+     *
+     * @param  int $x1
+     * @param  int $x2
+     * @param  int $y1
+     * @param  int $y2
+     * @param  int $z1
+     * @param  int $z2
+     * @return void
+     */
+    public function randomizeCoordinates(int $x1, int $x2, int $y1, int $y2, int $z1, int $z2): void
     {
         $server = $this->plugin->getServer();
 		foreach ($this->plugin->getGamePlayers() as $player) {
@@ -843,8 +980,7 @@ class GameHeartbeat extends Task
 			//$player->teleport(new Vector3($x, $y, $z));
 			$player->teleport(new Position($x, $y, $z, $level));
 		}
-
-            $this->playerTimer += 5;
-			$this->playerTimer;
+        $this->playerTimer += 5;
+		$this->playerTimer;
     }
 }

@@ -3,12 +3,10 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\event\block\BlockBreakEvent;
-use pocketmine\event\block\BlockPlaceEvent;
+use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
-use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerJoinEvent;
@@ -17,6 +15,8 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
+use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\block\Block;
@@ -61,24 +61,47 @@ class EventListener implements Listener
     private $phase = PhaseChangeEvent::WAITING;
     /** @var int */
     private $reset = PhaseChangeEvent::RESET;
-
+    
+    /**
+     * __construct
+     *
+     * @param  Loader $plugin
+     * @return void
+     */
     public function __construct(Loader $plugin)
     {
         $this->plugin = $plugin;
         $plugin->getServer()->getPluginManager()->registerEvents($this, $plugin);
         $this->border = new Border($plugin->getServer()->getDefaultLevel());
     }
-    
+        
+    /**
+     * getPhase
+     *
+     * @return int
+     */
     public function getPhase(): int
     {
         return $this->phase;
     }
-
+    
+    /**
+     * setPhase
+     *
+     * @param  int $phase
+     * @return void
+     */
     public function setPhase(int $phase): void
     {
         $this->phase = $phase;
     }
-
+    
+    /**
+     * handleChat
+     *
+     * @param  PlayerChatEvent $ev
+     * @return void
+     */
     public function handleChat(PlayerChatEvent $ev): void
     {
         $player = $ev->getPlayer();
@@ -87,7 +110,13 @@ class EventListener implements Listener
             $ev->setCancelled();
         }
     }
-
+    
+    /**
+     * handleJoin
+     *
+     * @param  PlayerJoinEvent $ev
+     * @return void
+     */
     public function handleJoin(PlayerJoinEvent $ev): void
     {
         $player = $ev->getPlayer();
@@ -123,7 +152,13 @@ class EventListener implements Listener
 
         //$ev->setJoinMessage("");
     }
-
+    
+    /**
+     * handlePhaseChange
+     *
+     * @param  PhaseChangeEvent $ev
+     * @return void
+     */
     public function handlePhaseChange(PhaseChangeEvent $ev): void
     {
         $player = $ev->getPlayer();
@@ -132,7 +167,13 @@ class EventListener implements Listener
             $player->getInventory()->addItem(Item::get(6, 0, 1));
         }
     }
-
+    
+    /**
+     * handleQuit
+     *
+     * @param  PlayerQuitEvent $ev
+     * @return void
+     */
     public function handleQuit(PlayerQuitEvent $ev): void
     {
         $player = $ev->getPlayer();
@@ -143,42 +184,63 @@ class EventListener implements Listener
         ScoreFactory::removeScore($player);
         //$ev->setQuitMessage("");
     }
-
+    
+    /**
+     * handleEntityRegain
+     *
+     * @param  EntityRegainHealthEvent $ev
+     * @return void
+     */
     public function handleEntityRegain(EntityRegainHealthEvent $ev): void
     {
         if ($ev->getRegainReason() === EntityRegainHealthEvent::CAUSE_SATURATION) {
             $ev->setCancelled(true);
         }
     }
-
+    
+    /**
+     * handleDamage
+     *
+     * @param  EntityDamageEvent $ev
+     * @return void
+     */
     public function handleDamage(EntityDamageEvent $ev): void
     {
         $cause = $ev->getEntity()->getLastDamageCause();
         $entity = $ev->getEntity();
-    
-    if($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WINNER) {
-        if ($ev->getCause() === EntityDamageEvent::CAUSE_MAGIC) return;
-        $ev->setCancelled();
-    }
-    if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::GRACE) {
-        if (!$entity instanceof Player) return;
-        if ($ev->getCause() === EntityDamageEvent::CAUSE_MAGIC) return;
-        $ev->setCancelled();
-    }
-    }
-    
-    public function onRespawn(PlayerRespawnEvent $event){
-        $player = $event->getPlayer();
-        $server = $this->plugin->getServer();
         
-            $x = 265;
-            $y = 70;
-            $z = 265;
-            $level = $server->getLevelByName($this->plugin->getHeartbeat()->getMap());
-            
-            $player->teleport(new Position($x, $y, $z, $level));
-        }
+        if ($ev->getCause() !== EntityDamageEvent::CAUSE_MAGIC) {
+            if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WINNER) {
+                $ev->setCancelled();
+            }
 
+            if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::GRACE) {
+                if ($entity instanceof Player) {
+                    $ev->setCancelled();
+                }
+            }
+        }
+    }
+        
+    /**
+     * onRespawn
+     *
+     * @param  PlayerRespawnEvent $event
+     * @return void
+     */
+    public function onRespawn(PlayerRespawnEvent $event): void
+    {
+        $level = $this->plugin->getServer()->getLevelByName($this->plugin->getHeartbeat()->getMap());
+        
+        $event->getPlayer()->teleport(new Position(265, 70, 265, $level));
+    }
+    
+    /**
+     * handleDeath
+     *
+     * @param  PlayerDeathEvent $ev
+     * @return void
+     */
     public function handleDeath(PlayerDeathEvent $ev): void
     {
         $player = $ev->getPlayer();
@@ -204,30 +266,55 @@ class EventListener implements Listener
             $ev->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " has been eliminated!");
         }
     }
-
+    
+    /**
+     * handleBreak
+     *
+     * @param  BlockBreakEvent $ev
+     * @return void
+     */
     public function handleBreak(BlockBreakEvent $ev): void
     {
         if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WINNER) {
             $ev->setCancelled();
         }
     }
-
+    
+    /**
+     * handlePlace
+     *
+     * @param  BlockPlaceEvent $ev
+     * @return void
+     */
     public function handlePlace(BlockPlaceEvent $ev): void
     {
         if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WINNER) {
             $ev->setCancelled();
         }
     }
-    
-    public function handleFallDamage(EntityDamageEvent $event)
+        
+    /**
+     * handleFallDamage
+     *
+     * @param  EntityDamageEvent $event
+     * @return void
+     */
+    public function handleFallDamage(EntityDamageEvent $event): void
     {
         //grace falling handled by grace period
         if($event->getCause() === EntityDamageEvent::CAUSE_FALL && $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $event->getCause() === EntityDamageEvent::CAUSE_FALL && $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN || $event->getCause() === EntityDamageEvent::CAUSE_FALL && $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::NORMAL && $this->normal >= 800) {
             $event->setCancelled();
         }
     }
-    
-    public function dropChance(BlockBreakEvent $event){
+        
+    /**
+     * dropChance
+     *
+     * @param  BlockBreakEvent $event
+     * @return void
+     */
+    public function dropChance(BlockBreakEvent $event): void
+    {
         $player = $event->getPlayer();
         $block = $event->getBlock();
         if($block->getId() === Block::LEAVES || $block->getId() === Block::LEAVES2) {
@@ -254,8 +341,15 @@ class EventListener implements Listener
             $event->setDrops($drops);
         }
     }
-    
-    public function onInteract(PlayerInteractEvent $event) {
+        
+    /**
+     * onInteract
+     *
+     * @param  PlayerInteractEvent $event
+     * @return void
+     */
+    public function onInteract(PlayerInteractEvent $event): void
+    {
         $player = $event->getPlayer();
         $item = $event->getItem();
         $itemID = $item->getId();
@@ -269,8 +363,15 @@ class EventListener implements Listener
             $this->plugin->getServer()->dispatchCommand($player, "report");
         }
     }
-    
-    public function onInventoryTransaction(InventoryTransactionEvent $event){
+        
+    /**
+     * onInventoryTransaction
+     *
+     * @param  InventoryTransactionEvent $event
+     * @return void
+     */
+    public function onInventoryTransaction(InventoryTransactionEvent $event): void
+    {
         $transaction = $event->getTransaction();
         foreach($transaction->getActions() as $action){
             $item = $action->getSourceItem();
@@ -278,37 +379,22 @@ class EventListener implements Listener
             
             if ($itemID === 355 && $item->hasEnchantment(17) || $itemID === 35 && $item->hasEnchantment(17)) {
                 $event->setCancelled(true);
-            }else{
-                return;
             }
         }
     }
-
+    
+    /**
+     * onPlayerDropItem
+     *
+     * @param  PlayerDropItemEvent $event
+     * @return void
+     */
     public function onPlayerDropItem(PlayerDropItemEvent $event){
         $item = $event->getItem();
         $itemID = $item->getId();
 
         if ($itemID === 355 && $item->hasEnchantment(17) || $itemID === 35 && $item->hasEnchantment(17)) {
-                $event->setCancelled(true);
-            }else{
-                return;
-            }
+            $event->setCancelled(true);
         }
-    
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    
-    //public function onBorder(PlayerMoveEvent $event)
-    //{
-        //$player = $event->getPlayer();
-        //$server = $this->plugin->getServer();
-            //$distance = $server->getDefaultLevel()->getSpawnLocation()->distance($player);
-            //if($distance >= $this->border->getSize()) {
-                //$event->setCancelled();
-                //$player->addTitle(TF::RED . "You are not allowed to exit the border!");
-            //}elseif($distance >= $this->border->getSize() - 10) {
-                //$player->addTitle(TF::RED . "You are too close to the border!");
-            //}
-    //}
+    }
 }
