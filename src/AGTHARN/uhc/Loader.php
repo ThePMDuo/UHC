@@ -44,7 +44,6 @@ class Loader extends PluginBase
         $this->heartbeat = new GameHeartbeat($this);
         $this->getScheduler()->scheduleRepeatingTask($this->heartbeat, 20);
 
-        /* @phpstan-ignore-next-line */
         $this->getServer()->getCommandMap()->registerAll("uhc", [
             new SpectatorCommand($this)
         ]);

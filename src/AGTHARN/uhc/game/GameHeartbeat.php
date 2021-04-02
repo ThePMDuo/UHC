@@ -875,7 +875,7 @@ class GameHeartbeat extends Task
             ScoreFactory::setScoreLine($p, 2, " §fGame Time: §a" . gmdate("H:i:s", $this->game));
             if ($this->phase === PhaseChangeEvent::GRACE) {
                 if ($this->grace >= 601) {
-                    ScoreFactory::setScoreLine($p, 3, " §fFinal Heal In: §a" . (int)gmdate("i:s", $this->grace - 601));
+                    ScoreFactory::setScoreLine($p, 3, " §fFinal Heal In: §a" . (int)gmdate("i:s", (int)$this->grace - 601));
                 }
             } elseif ($this->phase === PhaseChangeEvent::PVP) {
                 if ($this->shrinking == true and $this->border->getSize() >= "499") {
