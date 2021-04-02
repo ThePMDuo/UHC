@@ -7,7 +7,7 @@ use pocketmine\network\mcpe\protocol\RemoveObjectivePacket;
 use pocketmine\network\mcpe\protocol\SetDisplayObjectivePacket;
 use pocketmine\network\mcpe\protocol\SetScorePacket;
 use pocketmine\network\mcpe\protocol\types\ScorePacketEntry;
-use pocketmine\player\Player;
+use pocketmine\Player;
 use BadFunctionCallException;
 use OutOfBoundsException;
 use function mb_strtolower;
@@ -61,7 +61,7 @@ class ScoreFactory{
 		$pk->displayName = $displayName;
 		$pk->criteriaName = $criteriaName;
 		$pk->sortOrder = $slotOrder;
-		$player->getNetworkSession()->sendDataPacket($pk);
+		$player->sendDataPacket($pk);
 
 		self::$scoreboards[mb_strtolower($player->getName())] = $objectiveName;
 	}
@@ -76,7 +76,7 @@ class ScoreFactory{
 
 		$pk = new RemoveObjectivePacket();
 		$pk->objectiveName = $objectiveName;
-		$player->getNetworkSession()->sendDataPacket($pk);
+		$player->sendDataPacket($pk);
 
 		unset(self::$scoreboards[mb_strtolower($player->getName())]);
 	}
@@ -84,7 +84,7 @@ class ScoreFactory{
 	/**
 	 * Returns an array consisting of a list of the players using scoreboard.
 	 *
-	 * @return string[]
+	 * @return array
 	 */
 	public static function getScoreboards(): array{
 		return self::$scoreboards;
@@ -127,6 +127,6 @@ class ScoreFactory{
 		$pk = new SetScorePacket();
 		$pk->type = $pk::TYPE_CHANGE;
 		$pk->entries[] = $entry;
-		$player->getNetworkSession()->sendDataPacket($pk);
+		$player->sendDataPacket($pk);
 	}
 }
