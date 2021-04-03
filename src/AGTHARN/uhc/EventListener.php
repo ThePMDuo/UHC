@@ -98,126 +98,126 @@ class EventListener implements Listener
     /**
      * handleChat
      *
-     * @param  PlayerChatEvent $ev
+     * @param  PlayerChatEvent $event
      * @return void
      */
-    public function handleChat(PlayerChatEvent $ev): void
+    public function handleChat(PlayerChatEvent $event): void
     {
-        $player = $ev->getPlayer();
+        $player = $event->getPlayer();
         if ($this->plugin->isGlobalMuteEnabled() && !$player->isOp()) {
             $player->sendMessage(TF::RED . "You cannot talk right now!");
-            $ev->setCancelled();
+            $event->setCancelled();
         }
     }
     
     /**
      * handleJoin
      *
-     * @param  PlayerJoinEvent $ev
+     * @param  PlayerJoinEvent $event
      * @return void
      */
-    public function handleJoin(PlayerJoinEvent $ev): void
+    public function handleJoin(PlayerJoinEvent $event): void
     {
-        $player = $ev->getPlayer();
+        $player = $event->getPlayer();
         $server = $this->plugin->getServer();
-        
-        if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN && $this->countdown >= 31) {
-            if (!$this->plugin->hasSession($player)) {
-                $this->plugin->addSession(PlayerSession::create($player));
-                $player->setGamemode(Player::SURVIVAL);
-                } else {
-                    $this->plugin->getSession($player)->setPlayer($player);
-                    $player->setGamemode(Player::SURVIVAL);
+
+        switch ($this->plugin->getManager()->getPhase()) {
+            case PhaseChangeEvent::WAITING:
+            case PhaseChangeEvent::COUNTDOWN:
+                if ($this->countdown >= 31) {
+                    if ($this->plugin->hasSession($player)) {
+                        $this->plugin->getSession($player)->setPlayer($player);
+                        $player->setGamemode(Player::SURVIVAL);
+                    } else {
+                        $this->plugin->addSession(PlayerSession::create($player));
+                        $player->setGamemode(Player::SURVIVAL);
+                    }
                 }
-        } else {
-            if ($this->plugin->hasSession($player)) {
-                $this->plugin->removeFromGame($player);
-            }
-            $player->setGamemode(3);
-            $player->sendMessage(TF::YELLOW . "Type /spectate to spectate a player.");
+                break;
+            default:
+                if ($this->plugin->hasSession($player)) {
+                    $this->plugin->removeFromGame($player);
+                }
+                $player->setGamemode(3);
+                $player->sendMessage(TF::YELLOW . "Type /spectate to spectate a player.");
+                break;
         }
-
-        //if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING) {
-            //$player->teleport($player->getLevel()->getSafeSpawn());
-            //$player->setGamemode(Player::SURVIVAL);
-        //}
-        
-        $x = 265;
-        $y = 70;
-        $z = 265;
-        $level = $server->getLevelByName($this->plugin->getHeartbeat()->getMap());
-        
-        $player->teleport(new Position($x, $y, $z, $level));
-
-        //$ev->setJoinMessage("");
+        $player->teleport(new Position(265, 70, 265, $server->getLevelByName($this->plugin->getManager()->getMap())));
     }
     
     /**
      * handlePhaseChange
      *
-     * @param  PhaseChangeEvent $ev
+     * @param  PhaseChangeEvent $event
      * @return void
      */
-    public function handlePhaseChange(PhaseChangeEvent $ev): void
+    public function handlePhaseChange(PhaseChangeEvent $event): void
     {
-        $player = $ev->getPlayer();
-        if ($ev->getOldPhase() === PhaseChangeEvent::COUNTDOWN) {
-            $player->getInventory()->addItem(ItemFactory::get(ItemIds::BAKED_POTATO, 0, 15));
-            $player->getInventory()->addItem(Item::get(6, 0, 1));
+        $player = $event->getPlayer();
+
+        switch ($event->getOldPhase()) {
+            case PhaseChangeEvent::COUNTDOWN:
+                $player->getInventory()->addItem(ItemFactory::get(ItemIds::BAKED_POTATO, 0, 16));
+                $player->getInventory()->addItem(Item::get(6, 0, 1));
+                break;
         }
     }
     
     /**
      * handleQuit
      *
-     * @param  PlayerQuitEvent $ev
+     * @param  PlayerQuitEvent $event
      * @return void
      */
-    public function handleQuit(PlayerQuitEvent $ev): void
+    public function handleQuit(PlayerQuitEvent $event): void
     {
-        $player = $ev->getPlayer();
+        $player = $event->getPlayer();
+
         if ($this->plugin->hasSession($player)) {
-                $this->plugin->removeFromGame($player);
+            $this->plugin->removeFromGame($player);
         }
         $this->plugin->removeFromGame($player);
         ScoreFactory::removeScore($player);
-        //$ev->setQuitMessage("");
     }
     
     /**
      * handleEntityRegain
      *
-     * @param  EntityRegainHealthEvent $ev
+     * @param  EntityRegainHealthEvent $event
      * @return void
      */
-    public function handleEntityRegain(EntityRegainHealthEvent $ev): void
+    public function handleEntityRegain(EntityRegainHealthEvent $event): void
     {
-        if ($ev->getRegainReason() === EntityRegainHealthEvent::CAUSE_SATURATION) {
-            $ev->setCancelled(true);
+        switch ($event->getRegainReason()) {
+            case EntityRegainHealthEvent::CAUSE_SATURATION:
+                $event->setCancelled(true);
+                break;
         }
     }
     
     /**
      * handleDamage
      *
-     * @param  EntityDamageEvent $ev
+     * @param  EntityDamageEvent $event
      * @return void
      */
-    public function handleDamage(EntityDamageEvent $ev): void
+    public function handleDamage(EntityDamageEvent $event): void
     {
-        $cause = $ev->getEntity()->getLastDamageCause();
-        $entity = $ev->getEntity();
+        $cause = $event->getEntity()->getLastDamageCause();
+        $entity = $event->getEntity();
         
-        if ($ev->getCause() !== EntityDamageEvent::CAUSE_MAGIC) {
-            if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WINNER) {
-                $ev->setCancelled();
-            }
-
-            if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::GRACE) {
+        if ($event->getCause() === EntityDamageEvent::CAUSE_MAGIC) return;
+        switch ($this->plugin->getManager()->getPhase()) {
+            case PhaseChangeEvent::WAITING:
+            case PhaseChangeEvent::COUNTDOWN:
+            case PhaseChangeEvent::WINNER:
+                $event->setCancelled();
+                break;
+            case PhaseChangeEvent::GRACE:
                 if ($entity instanceof Player) {
-                    $ev->setCancelled();
+                    $event->setCancelled();
                 }
-            }
+                break;
         }
     }
         
@@ -229,21 +229,18 @@ class EventListener implements Listener
      */
     public function onRespawn(PlayerRespawnEvent $event): void
     {
-        $level = $this->plugin->getServer()->getLevelByName($this->plugin->getHeartbeat()->getMap());
-        
-        $event->getPlayer()->teleport(new Position(265, 70, 265, $level));
+        $event->getPlayer()->teleport(new Position(265, 70, 265, $this->plugin->getServer()->getLevelByName($this->plugin->getManager()->getMap())));
     }
     
     /**
      * handleDeath
      *
-     * @param  PlayerDeathEvent $ev
+     * @param  PlayerDeathEvent $event
      * @return void
      */
-    public function handleDeath(PlayerDeathEvent $ev): void
+    public function handleDeath(PlayerDeathEvent $event): void
     {
-        $player = $ev->getPlayer();
-        $server = $this->plugin->getServer();
+        $player = $event->getPlayer();
         $cause = $player->getLastDamageCause();
         $eliminatedSession = $this->plugin->getSession($player);
         
@@ -256,39 +253,48 @@ class EventListener implements Listener
             $damager = $cause->getDamager();
             if ($damager instanceof Player) {
                 if ($this->plugin->hasSession($damager)) {
-                $damagerSession = $this->plugin->getSession($damager);
-                $damagerSession->addElimination();
-                $ev->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " was eliminated by " . TF::RED . $damager->getName() . TF::GRAY . "(" . TF::WHITE . $damagerSession->getEliminations() . TF::GRAY . ")");
+                    $damagerSession = $this->plugin->getSession($damager);
+
+                    $damagerSession->addElimination();
+                    $event->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " was eliminated by " . TF::RED . $damager->getName() . TF::GRAY . "(" . TF::WHITE . $damagerSession->getEliminations() . TF::GRAY . ")");
                 }
             }
         } else {
-            $ev->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " has been eliminated!");
+            $event->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " has been eliminated somehow!");
         }
     }
     
     /**
      * handleBreak
      *
-     * @param  BlockBreakEvent $ev
+     * @param  BlockBreakEvent $event
      * @return void
      */
-    public function handleBreak(BlockBreakEvent $ev): void
+    public function handleBreak(BlockBreakEvent $event): void
     {
-        if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WINNER) {
-            $ev->setCancelled();
+        switch ($this->plugin->getManager()->getPhase()) {
+            case PhaseChangeEvent::WAITING:
+            case PhaseChangeEvent::COUNTDOWN:
+            case PhaseChangeEvent::WINNER:
+                $event->setCancelled();
+                break;
         }
     }
     
     /**
      * handlePlace
      *
-     * @param  BlockPlaceEvent $ev
+     * @param  BlockPlaceEvent $event
      * @return void
      */
-    public function handlePlace(BlockPlaceEvent $ev): void
+    public function handlePlace(BlockPlaceEvent $event): void
     {
-        if ($this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN || $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WINNER) {
-            $ev->setCancelled();
+        switch ($this->plugin->getManager()->getPhase()) {
+            case PhaseChangeEvent::WAITING:
+            case PhaseChangeEvent::COUNTDOWN:
+            case PhaseChangeEvent::WINNER:
+                $event->setCancelled();
+                break;
         }
     }
         
@@ -300,9 +306,14 @@ class EventListener implements Listener
      */
     public function handleFallDamage(EntityDamageEvent $event): void
     {
-        //grace falling handled by grace period
-        if($event->getCause() === EntityDamageEvent::CAUSE_FALL && $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::WAITING || $event->getCause() === EntityDamageEvent::CAUSE_FALL && $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::COUNTDOWN || $event->getCause() === EntityDamageEvent::CAUSE_FALL && $this->plugin->getHeartbeat()->getPhase() === PhaseChangeEvent::NORMAL && $this->normal >= 800) {
-            $event->setCancelled();
+        if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
+            switch ($this->plugin->getManager()->getPhase()) {
+                case PhaseChangeEvent::WAITING:
+                case PhaseChangeEvent::COUNTDOWN:
+                case PhaseChangeEvent::NORMAL && $this->normal >= 850:
+                    $event->setCancelled();
+                    break;
+            }
         }
     }
         
@@ -314,30 +325,31 @@ class EventListener implements Listener
      */
     public function dropChance(BlockBreakEvent $event): void
     {
-        $player = $event->getPlayer();
-        $block = $event->getBlock();
-        if($block->getId() === Block::LEAVES || $block->getId() === Block::LEAVES2) {
-            $chance = mt_rand(1,100); 
-            if($chance <= 10){ 
-               $drops = array();
-               $drops[] = Item::get(Item::APPLE, 0, 1);
-               $event->setDrops($drops);
-            }
-        }
-        if($block->getId() === Block::LOG || $block->getId() === Block::LOG2) {
-            $drops = array();
-            $drops[] = Item::get(Item::PLANKS, 0, 4);
-            $event->setDrops($drops);
-        }
-        if($block->getId() === Block::IRON_ORE) {
-            $drops = array();
-            $drops[] = Item::get(Item::IRON_INGOT, 0, 2);
-            $event->setDrops($drops);
-        }
-        if($block->getId() === Block::GOLD_ORE) {
-            $drops = array();
-            $drops[] = Item::get(Item::GOLD_INGOT, 0, 2);
-            $event->setDrops($drops);
+        switch ($event->getBlock()) {
+            case Block::LEAVES:
+            case Block::LEAVES2:
+                if (mt_rand(1, 100) <= 10){ 
+                    $drops = array();
+                    $drops[] = Item::get(Item::APPLE, 0, 1);
+                    $event->setDrops($drops);
+                }
+                break;
+            case Block::LOG:
+            case Block::LOG2:
+                $drops = array();
+                $drops[] = Item::get(Item::PLANKS, 0, 4);
+                $event->setDrops($drops);
+                break;
+            case Block::IRON_ORE:
+                $drops = array();
+                $drops[] = Item::get(Item::IRON_INGOT, 0, 2);
+                $event->setDrops($drops);
+                break;
+            case Block::GOLD_ORE:
+                $drops = array();
+                $drops[] = Item::get(Item::GOLD_INGOT, 0, 2);
+                $event->setDrops($drops);
+                break;
         }
     }
         
@@ -351,15 +363,19 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $item = $event->getItem();
-        $itemID = $item->getId();
-        
-        if ($itemID === 355 && $item->hasEnchantment(17)) {
-            $event->setCancelled(true);
-            $this->plugin->getServer()->dispatchCommand($player, "transfer hub");
-            //$player->kick();
-        }elseif ($itemID === 35 && $item->hasEnchantment(17)) {
-            $event->setCancelled(true);
-            $this->plugin->getServer()->dispatchCommand($player, "report");
+
+        // to do use waterdogpe api instead
+        if ($item->hasEnchantment(17)) {
+            switch ($item->getId()) {
+                case 355:
+                    $event->setCancelled(true);
+                    $this->plugin->getServer()->dispatchCommand($player, "transfer hub");
+                    break;
+                case 35:
+                    $event->setCancelled(true);
+                    $this->plugin->getServer()->dispatchCommand($player, "report");
+                    break;
+            }
         }
     }
         
@@ -372,12 +388,17 @@ class EventListener implements Listener
     public function onInventoryTransaction(InventoryTransactionEvent $event): void
     {
         $transaction = $event->getTransaction();
-        foreach($transaction->getActions() as $action){
+        foreach ($transaction->getActions() as $action) {
             $item = $action->getSourceItem();
             $itemID = $item->getId();
-            
-            if ($itemID === 355 && $item->hasEnchantment(17) || $itemID === 35 && $item->hasEnchantment(17)) {
-                $event->setCancelled(true);
+
+            if ($item->hasEnchantment(17)) {
+                switch ($item->getId()) {
+                    case 355:
+                    case 35:
+                        $event->setCancelled(true);
+                        break;
+                }
             }
         }
     }
@@ -392,8 +413,13 @@ class EventListener implements Listener
         $item = $event->getItem();
         $itemID = $item->getId();
 
-        if ($itemID === 355 && $item->hasEnchantment(17) || $itemID === 35 && $item->hasEnchantment(17)) {
-            $event->setCancelled(true);
+        if ($item->hasEnchantment(17)) {
+            switch ($item->getId()) {
+                case 355:
+                case 35:
+                    $event->setCancelled(true);
+                    break;
+            }
         }
     }
 }

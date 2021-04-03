@@ -2,19 +2,18 @@
 declare(strict_types=1);
 
 namespace AGTHARN\uhc;
-require_once getcwd() . "\n" . "obfuscator" . DIRECTORY_SEPARATOR . 'Obfuscator.php';
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\Player;
 
 use AGTHARN\uhc\command\SpectatorCommand;
-use AGTHARN\uhc\game\GameHeartbeat;
+use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\game\Scenario;
 
 class Loader extends PluginBase
 {
-    /** @var GameHeartbeat */
-    private $heartbeat;
+    /** @var GameManager */
+    private $gameManager;
 
     /** @var Player[] */
     private $gamePlayers = [];
@@ -41,8 +40,8 @@ class Loader extends PluginBase
         
         $this->getServer()->loadLevel("UHC");
         
-        $this->heartbeat = new GameHeartbeat($this);
-        $this->getScheduler()->scheduleRepeatingTask($this->heartbeat, 20);
+        $this->gameManager = new GameManager($this);
+        $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
 
         $this->getServer()->getCommandMap()->registerAll("uhc", [
             new SpectatorCommand($this)
@@ -73,13 +72,13 @@ class Loader extends PluginBase
     }
     
     /**
-     * getHeartbeat
+     * getManager
      *
-     * @return GameHeartbeat
+     * @return GameManager
      */
-    public function getHeartbeat(): GameHeartbeat
+    public function getManager(): GameManager
     {
-        return $this->heartbeat;
+        return $this->gameManager;
     }
     
     /**
