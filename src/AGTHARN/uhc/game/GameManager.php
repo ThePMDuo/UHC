@@ -307,7 +307,6 @@ class GameManager extends Task
                 case PhaseChangeEvent::WINNER:
                 case PhaseChangeEvent::RESET:
                     return;
-                    break;
                 default:
                     $this->border->setSize(500);
                     $this->setPhase(PhaseChangeEvent::WINNER);
@@ -426,13 +425,11 @@ class GameManager extends Task
                                 if ($player->getInventory()->getItemInHand()->hasEnchantment(17)) {
                                     $player->sendPopup("§aReturn To Hub");
                                     return;
-                                    break;
                                 }
                                 break;
                             case 35:
-                                    $player->sendPopup("§cReport");
-                                    return;
-                                    break;
+                                $player->sendPopup("§cReport");
+                                return;
                         }
                     }
                     $player->sendPopup(TF::RED . $playerstartcount . " more players required...");

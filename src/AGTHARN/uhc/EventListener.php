@@ -310,8 +310,10 @@ class EventListener implements Listener
             switch ($this->plugin->getManager()->getPhase()) {
                 case PhaseChangeEvent::WAITING:
                 case PhaseChangeEvent::COUNTDOWN:
-                case PhaseChangeEvent::NORMAL && $this->normal >= 850:
-                    $event->setCancelled();
+                case PhaseChangeEvent::NORMAL:
+                    if ($this->normal >= 850) {
+                        $event->setCancelled();
+                    }
                     break;
             }
         }

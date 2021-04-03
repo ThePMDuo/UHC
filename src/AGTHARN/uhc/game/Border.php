@@ -12,6 +12,11 @@ class Border
 
     /** @var Level */
     private $level;
+
+    /** @var int */
+    private $safeX;
+    /** @var int */
+    private $safeZ;
     
     /**
      * __construct
