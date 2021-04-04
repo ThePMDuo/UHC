@@ -6,14 +6,14 @@ namespace AGTHARN\uhc\game;
 use pocketmine\event\HandlerList;
 use pocketmine\event\Listener;
 
-use AGTHARN\uhc\Loader;
+use AGTHARN\uhc\Main;
 
 class Scenario implements Listener
 {
     /** @var string */
     private $name;
 
-    /** @var Loader */
+    /** @var Main */
     protected $plugin;
     
     /** @var bool */
@@ -22,11 +22,11 @@ class Scenario implements Listener
     /**
      * __construct
      *
-     * @param  Loader $plugin
+     * @param  Main $plugin
      * @param  string $name
      * @return void
      */
-    public function __construct(Loader $plugin, string $name)
+    public function __construct(Main $plugin, string $name)
     {
         $this->plugin = $plugin;
         $this->name = $name;

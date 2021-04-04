@@ -28,13 +28,13 @@ use pocketmine\Player;
 use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\game\type\GameTimer;
 use AGTHARN\uhc\game\Border;
-use AGTHARN\uhc\Loader;
+use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 
 class EventListener implements Listener
 {
-    /** @var Loader */
+    /** @var Main */
     private $plugin;
     
     /** @var int */
@@ -53,7 +53,7 @@ class EventListener implements Listener
     /** @var float|int */
     private $pvp = GameTimer::TIMER_PVP;
     /** @var float|int */
-    private $normal = GameTimer::TIMER_NORMAL;
+    private $deathmatch = GameTimer::TIMER_DEATHMATCH;
     /** @var int */
     private $winner = GameTimer::TIMER_WINNER;
     /** @var int */
@@ -64,10 +64,10 @@ class EventListener implements Listener
     /**
      * __construct
      *
-     * @param  Loader $plugin
+     * @param  Main $plugin
      * @return void
      */
-    public function __construct(Loader $plugin)
+    public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
         $plugin->getServer()->getPluginManager()->registerEvents($this, $plugin);
@@ -310,8 +310,8 @@ class EventListener implements Listener
             switch ($this->plugin->getManager()->getPhase()) {
                 case PhaseChangeEvent::WAITING:
                 case PhaseChangeEvent::COUNTDOWN:
-                case PhaseChangeEvent::NORMAL:
-                    if ($this->normal >= 850) {
+                case PhaseChangeEvent::DEATHMATCH:
+                    if ($this->deathmatch >= 850) {
                         $event->setCancelled();
                     }
                     break;

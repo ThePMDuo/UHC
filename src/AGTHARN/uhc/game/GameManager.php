@@ -19,7 +19,7 @@ use pocketmine\Player;
 
 use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\game\type\GameTimer;
-use AGTHARN\uhc\Loader;
+use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 
@@ -37,7 +37,7 @@ class GameManager extends Task
     /** @var float|int */
     private $pvp = GameTimer::TIMER_PVP;
     /** @var float|int */
-    private $normal = GameTimer::TIMER_NORMAL;
+    private $deathmatch = GameTimer::TIMER_DEATHMATCH;
     /** @var int */
     private $winner = GameTimer::TIMER_WINNER;
     /** @var int */
@@ -45,7 +45,7 @@ class GameManager extends Task
     
     /** @var Border */
     private $border;
-    /** @var Loader */
+    /** @var Main */
     private $plugin;
 
     /** @var int */
@@ -60,10 +60,10 @@ class GameManager extends Task
     /**
      * __construct
      *
-     * @param  Loader $plugin
+     * @param  Main $plugin
      * @return void
      */
-    public function __construct(Loader $plugin)
+    public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
         //$this->level = $this->plugin->getServer()->getLevelByName($maplevel);
@@ -136,14 +136,14 @@ class GameManager extends Task
     }
         
     /**
-     * setNormalTimer
+     * setDeathmatchTimer
      *
      * @param  int $time
      * @return void
      */
-    public function setNormalTimer(int $time): void
+    public function setDeathmatchTimer(int $time): void
     {
-        $this->normal = $time;
+        $this->deathmatch = $time;
     }
         
     /**
@@ -234,8 +234,8 @@ class GameManager extends Task
             case PhaseChangeEvent::PVP:
                 $this->handlePvP();
                 break;
-            case PhaseChangeEvent::NORMAL:
-                $this->handleNormal();
+            case PhaseChangeEvent::DEATHMATCH:
+                $this->handleDeathmatch();
                 break;
             case PhaseChangeEvent::WINNER:
                 $this->handleWinner();
@@ -327,17 +327,17 @@ class GameManager extends Task
                         $this->border->setSize($this->border->getSize() - 1);
                     }
                     break;
-                case PhaseChangeEvent::NORMAL:
-                    if ($this->normal >= 1101) {
+                case PhaseChangeEvent::DEATHMATCH:
+                    if ($this->deathmatch >= 1101) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
-                    if ($this->normal >= 651 && $this->normal <= 700) {
+                    if ($this->deathmatch >= 651 && $this->deathmatch <= 700) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
-                    if ($this->normal >= 361 && $this->normal <= 400) {
+                    if ($this->deathmatch >= 361 && $this->deathmatch <= 400) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
-                    if ($this->normal >= 291 && $this->normal <= 300) {
+                    if ($this->deathmatch >= 291 && $this->deathmatch <= 300) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
                     break;
@@ -655,7 +655,7 @@ class GameManager extends Task
                 break;
             case 0:
                 foreach ($this->plugin->getGamePlayers() as $playerSession) {
-                    $event = new PhaseChangeEvent($playerSession, PhaseChangeEvent::PVP, PhaseChangeEvent::NORMAL);
+                    $event = new PhaseChangeEvent($playerSession, PhaseChangeEvent::PVP, PhaseChangeEvent::DEATHMATCH);
                     $event->call();
                 }
                 foreach ($server->getOnlinePlayers() as $player) {
@@ -664,21 +664,21 @@ class GameManager extends Task
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "Deathmatch starts in " . TF::AQUA . "5 minutes" . ".\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "All players would be teleported before the Deathmatch starts.");
                 }
-                $this->setPhase(PhaseChangeEvent::NORMAL);
+                $this->setPhase(PhaseChangeEvent::DEATHMATCH);
                 break;
         }
         $this->pvp--;
     }
     
     /**
-     * handleNormal
+     * handleDeathmatch
      *
      * @return void
      */
-    public function handleNormal(): void
+    public function handleDeathmatch(): void
     {
         $server = $this->plugin->getServer();
-        switch ($this->normal) {
+        switch ($this->deathmatch) {
             case 960:
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "Deathmatch starts in " . TF::AQUA . "1 minute" . ".\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "All players would be teleported in 30 seconds.");
@@ -730,7 +730,7 @@ class GameManager extends Task
                 $this->setPhase(PhaseChangeEvent::WINNER);
                 break;
         }
-        $this->normal--;
+        $this->deathmatch--;
     }
         
     /**
@@ -844,7 +844,7 @@ class GameManager extends Task
                 $this->setCountdownTimer(60);
                 $this->setGraceTimer(60 * 20);
                 $this->setPVPTimer(60 * 20);
-                $this->setNormalTimer(60 * 20);
+                $this->setDeathmatchTimer(60 * 20);
                 $this->setWinnerTimer(60);
                 //$this->setResetTimer(30); //moved to countdown
             
@@ -906,22 +906,22 @@ class GameManager extends Task
                         ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(100): §c" . gmdate("i:s", (int)$this->pvp - 0));
                     }
                 } elseif ($this->shrinking == true && $this->border->getSize() >= "99") {
-                    if ($this->normal - 700 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(50): §a" . gmdate("i:s", (int)$this->normal - 700));
-                    } elseif ($this->normal - 700 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(50): §c" . gmdate("i:s", (int)$this->normal - 700));
+                    if ($this->deathmatch - 700 >= 61) {
+                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(50): §a" . gmdate("i:s", (int)$this->deathmatch - 700));
+                    } elseif ($this->deathmatch - 700 <= 60) {
+                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(50): §c" . gmdate("i:s", (int)$this->deathmatch - 700));
                     }
                 } elseif ($this->shrinking == true && $this->border->getSize() >= "49") {
-                    if ($this->normal - 400 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(10): §a" . gmdate("i:s", (int)$this->normal - 400));
-                    } elseif ($this->normal - 400 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(10): §c" . gmdate("i:s", (int)$this->normal - 400));
+                    if ($this->deathmatch - 400 >= 61) {
+                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(10): §a" . gmdate("i:s", (int)$this->deathmatch - 400));
+                    } elseif ($this->deathmatch - 400 <= 60) {
+                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(10): §c" . gmdate("i:s", (int)$this->deathmatch - 400));
                     }
                 } elseif ($this->shrinking == true && $this->border->getSize() >= "9") {
-                    if ($this->normal - 300 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(1): §a" . gmdate("i:s", (int)$this->normal - 300));
-                    } elseif ($this->normal - 300 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(1): §c" . gmdate("i:s", (int)$this->normal - 300));
+                    if ($this->deathmatch - 300 >= 61) {
+                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(1): §a" . gmdate("i:s", (int)$this->deathmatch - 300));
+                    } elseif ($this->deathmatch - 300 <= 60) {
+                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(1): §c" . gmdate("i:s", (int)$this->deathmatch - 300));
                     }
                 }
             }
@@ -931,9 +931,9 @@ class GameManager extends Task
                 } else {
                     ScoreFactory::setScoreLine($player, 4, " §fPVP Enables In: §a" . gmdate("i:s", (int)$this->grace));
                 }
-            } elseif ($this->phase === PhaseChangeEvent::NORMAL) {
-                if ($this->normal >= 900) {
-                    ScoreFactory::setScoreLine($player, 4, " §fDeathmatch In: §c" . gmdate("i:s", (int)$this->normal - 900));
+            } elseif ($this->phase === PhaseChangeEvent::DEATHMATCH) {
+                if ($this->deathmatch >= 900) {
+                    ScoreFactory::setScoreLine($player, 4, " §fDeathmatch In: §c" . gmdate("i:s", (int)$this->deathmatch - 900));
                 }
             }
             //put the deathmatch time for normal too 5 mins i think

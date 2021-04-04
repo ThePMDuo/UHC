@@ -18,7 +18,7 @@ class PhaseChangeEvent extends Event
     /** @var int */
     public const PVP = 2;
     /** @var int */
-    public const NORMAL = 3;
+    public const DEATHMATCH = 3;
     /** @var int */
     public const WINNER = 4;
     /** @var int */

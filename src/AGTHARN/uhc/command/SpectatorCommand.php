@@ -7,20 +7,20 @@ use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
-use AGTHARN\uhc\Loader;
+use AGTHARN\uhc\Main;
 
 class SpectatorCommand extends BaseCommand
 {
-    /** @var Loader */
+    /** @var Main */
     private $plugin;
     
     /**
      * __construct
      *
-     * @param  Loader $plugin
+     * @param  Main $plugin
      * @return void
      */
-    public function __construct(Loader $plugin)
+    public function __construct(Main $plugin)
     {
         parent::__construct("spectate", $plugin);
         $this->plugin = $plugin;

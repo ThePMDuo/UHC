@@ -10,7 +10,7 @@ use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\game\Scenario;
 
-class Loader extends PluginBase
+class Main extends PluginBase
 {
     /** @var GameManager */
     private $gameManager;
