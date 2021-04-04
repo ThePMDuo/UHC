@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace AGTHARN\uhc;
 
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\TextFormat as TF;
 use pocketmine\Player;
 
 use AGTHARN\uhc\command\SpectatorCommand;
@@ -11,7 +12,14 @@ use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\game\Scenario;
 
 class Main extends PluginBase
-{
+{   
+    /** @var int */
+    public $uhcServer = 0001;
+    /** @var int */
+    public $buildNumber = 1;
+    /** @var bool */
+    public $operational;
+
     /** @var GameManager */
     private $gameManager;
 
@@ -47,6 +55,14 @@ class Main extends PluginBase
             new SpectatorCommand($this)
         ]);
         $this->loadScenarios();
+
+        foreach ($this->getPluginManager()->getPlugins() as $plugin) {
+            if ($plugin->isEnabled()) {
+                $this->setOperational(true);
+            } else {
+                $this->setOperational(false);
+            }
+        }
     }
     
     /**
@@ -237,5 +253,38 @@ class Main extends PluginBase
     public function addScenario(Scenario $scenario): void
     {
         $this->scenarios[$scenario->getName()] = $scenario;
+    }
+    
+    /**
+     * setOperational
+     *
+     * @param  bool $operational
+     * @return bool
+     */
+    public function setOperational(bool $operational): bool {
+        if ($this->getOperational()) {
+            $this->getOperational = $operational;
+        }
+    }
+    
+    /**
+     * getOperational
+     *
+     * @return bool
+     */
+    public function getOperational(): bool {
+        return $this->operational;
+    }
+    
+    /**
+     * getOperationalMessage
+     *
+     * @return string
+     */
+    public function getOperationalMessage(): string {
+        if ($this->getOperational()) {
+            return TF::GREEN . "SERVER OPERATIONAL";
+        }
+        return TF::RED . "SERVER UNOPERATIONAL";
     }
 }

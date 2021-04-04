@@ -18,6 +18,7 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
 use pocketmine\utils\TextFormat as TF;
+use pocketmine\utils\Process;
 use pocketmine\block\Block;
 use pocketmine\item\ItemFactory;
 use pocketmine\item\ItemIds;
@@ -70,8 +71,9 @@ class EventListener implements Listener
     public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
-        $plugin->getServer()->getPluginManager()->registerEvents($this, $plugin);
         $this->border = new Border($plugin->getServer()->getDefaultLevel());
+
+        $plugin->getServer()->getPluginManager()->registerEvents($this, $plugin);
     }
         
     /**
@@ -120,6 +122,16 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $server = $this->plugin->getServer();
+        $mUsage = Process::getAdvancedMemoryUsage();
+
+        $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber);
+        $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalMessage());
+        $player->sendMessage("THREADS: " . Process::getThreadCount() . " RAM USAGE: " . number_format(round(($mUsage[1] / 1024) / 1024, 2), 2) . " MB");
+
+        if (!$this->getOperational()) {
+            $player->kick($this->plugin->getOperationalMessage() . ": UHC LOADER HAS FAILED! PLEASE CONTACT AN ADMIN!");
+            return;
+        }
 
         switch ($this->plugin->getManager()->getPhase()) {
             case PhaseChangeEvent::WAITING:

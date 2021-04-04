@@ -872,7 +872,7 @@ class GameManager extends Task
      */
     private function handleScoreboard(Player $player): void
     {
-        ScoreFactory::setScore($player, "§7»» §f§eMINEWARRIOR UHC-1 §7««");
+        ScoreFactory::setScore($player, "§7»» §f§eMineUHC UHC-" . $this->plugin->uhcServer . " §7««");
         if ($this->hasStarted()) {
             ScoreFactory::setScoreLine($player, 1, "§7§l[-------------------]");
             ScoreFactory::setScoreLine($player, 2, " §fGame Time: §a" . gmdate("H:i:s", $this->game));
