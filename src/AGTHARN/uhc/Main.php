@@ -263,7 +263,7 @@ class Main extends PluginBase
      */
     public function setOperational(bool $operational): void {
         if ($this->getOperational()) {
-            $this->getOperational() = $operational;
+            $this->operational = $operational;
         }
     }
     

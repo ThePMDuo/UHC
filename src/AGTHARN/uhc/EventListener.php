@@ -202,7 +202,7 @@ class EventListener implements Listener
     {
         switch ($event->getRegainReason()) {
             case EntityRegainHealthEvent::CAUSE_SATURATION:
-                $event->setCancelled(true);
+                $event->setCancelled();
                 break;
         }
     }
@@ -382,11 +382,11 @@ class EventListener implements Listener
         if ($item->hasEnchantment(17)) {
             switch ($item->getId()) {
                 case 355:
-                    $event->setCancelled(true);
+                    $event->setCancelled();
                     $this->plugin->getServer()->dispatchCommand($player, "transfer hub");
                     break;
                 case 35:
-                    $event->setCancelled(true);
+                    $event->setCancelled();
                     $this->plugin->getServer()->dispatchCommand($player, "report");
                     break;
             }
@@ -404,15 +404,18 @@ class EventListener implements Listener
         $transaction = $event->getTransaction();
         foreach ($transaction->getActions() as $action) {
             $item = $action->getSourceItem();
-            $itemID = $item->getId();
 
             if ($item->hasEnchantment(17)) {
                 switch ($item->getId()) {
                     case 355:
                     case 35:
-                        $event->setCancelled(true);
+                        $event->setCancelled();
                         break;
                 }
+            }
+
+            if ($item->getId() === 444) {
+                $event->setCancelled();
             }
         }
     }
@@ -431,7 +434,7 @@ class EventListener implements Listener
             switch ($item->getId()) {
                 case 355:
                 case 35:
-                    $event->setCancelled(true);
+                    $event->setCancelled();
                     break;
             }
         }

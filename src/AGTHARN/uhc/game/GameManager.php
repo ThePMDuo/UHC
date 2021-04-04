@@ -11,6 +11,8 @@ use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
 use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\enchantment\Enchantment;
+use pocketmine\item\ItemFactory;
+use pocketmine\item\ItemIds;
 use pocketmine\item\Item;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\scheduler\Task;
@@ -481,6 +483,8 @@ class GameManager extends Task
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The game will begin in " . TF::AQUA . "30 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+
+                    $player->getArmorInventory()->setChestplate(ItemFactory::get(ItemIds::ELYTRA, 0, 1));
                 }
                 break;
             case 10:
@@ -544,6 +548,10 @@ class GameManager extends Task
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
+            case 1180:
+                foreach ($server->getOnlinePlayers() as $player) {
+                    $player->getArmorInventory()->clearAll();
+                }
             case 601:
                 foreach ($server->getOnlinePlayers() as $player) {
                 $player->setHealth($player->getMaxHealth());
