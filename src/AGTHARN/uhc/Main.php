@@ -56,7 +56,7 @@ class Main extends PluginBase
         ]);
         $this->loadScenarios();
 
-        foreach ($this->getPluginManager()->getPlugins() as $plugin) {
+        foreach ($this->getServer()->getPluginManager()->getPlugins() as $plugin) {
             if ($plugin->isEnabled()) {
                 $this->setOperational(true);
             } else {
@@ -259,11 +259,11 @@ class Main extends PluginBase
      * setOperational
      *
      * @param  bool $operational
-     * @return bool
+     * @return void
      */
-    public function setOperational(bool $operational): bool {
+    public function setOperational(bool $operational): void {
         if ($this->getOperational()) {
-            $this->getOperational = $operational;
+            $this->getOperational() = $operational;
         }
     }
     
