@@ -7,7 +7,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\PluginCommand;
 use pocketmine\Player;
 
-use AGTHARN\uhc\Loader;
+use AGTHARN\uhc\Main;
 
 class BaseCommand extends PluginCommand
 {
@@ -16,10 +16,10 @@ class BaseCommand extends PluginCommand
      * __construct
      *
      * @param  string $name
-     * @param  Loader $plugin
+     * @param  Main $plugin
      * @return void
      */
-    public function __construct(string $name, Loader $plugin)
+    public function __construct(string $name, Main $plugin)
     {
         parent::__construct($name, $plugin);
     }
