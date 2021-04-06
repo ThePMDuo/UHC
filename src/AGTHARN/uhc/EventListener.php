@@ -326,13 +326,13 @@ class EventListener implements Listener
             case Block::LEAVES:
             case Block::LEAVES2:
                 $rand = mt_rand(0, 100);
-                if ($event->getItem()->equals(Item::APPLE, false, false)) {
+                if ($event->getItem()->equals(Item::get(Item::APPLE, 0, 1), false, false)) {
                     if ($rand <= 6) {
-                        $event->setDrops(Item::get(Item::APPLE, 0, 1));
+                        $event->setDrops([Item::get(Item::APPLE, 0, 1)]);
                     }
                 } else {
                     if ($rand <= 3) {
-                        $event->setDrops(Item::get(Item::APPLE, 0, 1));
+                        $event->setDrops([Item::get(Item::APPLE, 0, 1)]);
                     }
                 }
                 break;
@@ -474,7 +474,7 @@ class EventListener implements Listener
     /**
      * handleExhaust
      *
-     * @param  mixed $event
+     * @param  PlayerExhaustEvent $event
      * @return void
      */
     public function handleExhaust(PlayerExhaustEvent $event): void
