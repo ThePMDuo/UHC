@@ -79,7 +79,7 @@ class Team
     /**
      * getName
      *
-     * @return string
+     * @return int
      */
     public function getNumber(): int
     {
@@ -99,7 +99,7 @@ class Team
     /**
      * isLeader
      *
-     * @param  mixed $player
+     * @param  Player $player
      * @return bool
      */
     public function isLeader(Player $player): bool

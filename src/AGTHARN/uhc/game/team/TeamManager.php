@@ -25,7 +25,7 @@ class TeamManager
     /**
      * createTeam
      *
-     * @param  mixed $teamLeader
+     * @param  Player $teamLeader
      * @return Team
      */
     public function createTeam(Player $teamLeader): Team
