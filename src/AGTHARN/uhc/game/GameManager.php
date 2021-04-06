@@ -11,7 +11,6 @@ use pocketmine\level\sound\ClickSound;
 use pocketmine\level\Position;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
-use pocketmine\player\GameMode;
 use pocketmine\item\ItemIds;
 use pocketmine\item\Item;
 use pocketmine\utils\TextFormat as TF;
@@ -255,7 +254,7 @@ class GameManager extends Task
         $server->getLevelByName($this->maplevel)->setTime(1000);
         
         foreach ($server->getOnlinePlayers() as $player) {
-            $playerx = $player->getFloorX()();
+            $playerx = $player->getFloorX();
             $playery = $player->getFloorY();
             $playerz = $player->getFloorZ();
             
@@ -284,7 +283,7 @@ class GameManager extends Task
                 $player->teleport(new Position($playerx, $playery, $playerz, $level));
             }
             
-            if($player->getGamemode() === GameMode::SPECTATOR()) {
+            if($player->getGamemode() === Player::SPECTATOR) {
                 $inventory = $player->getInventory();
                 //if ($player->getInventory()->getItemInHand()->getId() === 355 && $player->getInventory()->getItemInHand()->hasEnchantment(17)) {
                         //$player->sendPopup("§aReturn To Hub");

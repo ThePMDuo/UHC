@@ -30,13 +30,13 @@ class Main extends PluginBase
     /** @var PlayerSession[] */
     private $sessions = [];
     /** @var TeamManager */
-	private TeamManager $teamManager;
+    private TeamManager $teamManager;
 
     /** @var bool */
     private $globalMuteEnabled = false;
     
     /** @var ScenarioManager */
-	private $scenarioManager;
+    private $scenarioManager;
     
     /**
      * onEnable
@@ -74,9 +74,9 @@ class Main extends PluginBase
      * @return ScenarioManager
      */
     public function getScenarioManager(): ScenarioManager
-	{
-		return $this->scenarioManager;
-	}
+    {
+        return $this->scenarioManager;
+    }
     
     /**
      * getManager
@@ -253,7 +253,7 @@ class Main extends PluginBase
      * @return TeamManager
      */
     public function getTeamManager(): TeamManager
-	{
-		return $this->teamManager;
-	}
+    {
+        return $this->teamManager;
+    }
 }

@@ -82,9 +82,9 @@ class PlayerSession
      * @return void
      */
     public function updatePlayer(Player $player)
-	{
-		$this->player = $player;
-	}
+    {
+        $this->player = $player;
+    }
     
     /**
      * getTeam
@@ -133,9 +133,9 @@ class PlayerSession
             $this->team = null;
             return true;
         } elseif($this->isTeamLeader()){
-			$this->team = null;
-			return true;
-		}
+            $this->team = null;
+            return true;
+        }
         return false;
     }
     
@@ -156,7 +156,7 @@ class PlayerSession
      * @return void
      */
     public function update(Player $player): void
-	{
-		$this->player = $player;
-	}
+    {
+        $this->player = $player;
+    }
 }

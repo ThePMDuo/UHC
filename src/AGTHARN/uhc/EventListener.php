@@ -195,8 +195,8 @@ class EventListener implements Listener
                 $session->removeFromTeam(); 
             } else {
                 foreach ($session->getTeam()->getMembers() as $member) {
-					$this->plugin->getSession($member)->removeFromTeam();
-				}
+                    $this->plugin->getSession($member)->removeFromTeam();
+                }
                 $this->plugin->getTeamManager()->disbandTeam($session->getTeam()->getNumber());
             }
         }
@@ -458,8 +458,8 @@ class EventListener implements Listener
         $itemID = $item->getId();
 
         if (!$this->plugin->getManager()->hasStarted()) {
-			$event->setCancelled();
-		}
+            $event->setCancelled();
+        }
 
         if ($item->hasEnchantment(17)) {
             switch ($item->getId()) {
@@ -478,9 +478,9 @@ class EventListener implements Listener
      * @return void
      */
     public function handleExhaust(PlayerExhaustEvent $event): void
-	{
-		if (!$this->plugin->getManager()->hasStarted()) {
-			$event->setCancelled();
-		}
-	}
+    {
+        if (!$this->plugin->getManager()->hasStarted()) {
+            $event->setCancelled();
+        }
+    }
 }

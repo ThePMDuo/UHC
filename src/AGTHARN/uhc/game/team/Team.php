@@ -8,7 +8,7 @@ use pocketmine\Player;
 class Team
 {
     /** @var int */
-	private int $teamNumber;
+    private int $teamNumber;
     /** @var Player */
     private $teamLeader;
     /** @var Player[] */
@@ -17,8 +17,8 @@ class Team
     public const TEAM_LIMIT = 2;
 
     public function __construct(int $teamNumber, Player $teamLeader)
-	{
-		$this->teamNumber = $teamNumber;
+    {
+        $this->teamNumber = $teamNumber;
         $this->teamLeader = $teamLeader;
 
         $this->members[$teamLeader->getUniqueId()->toString()] = $teamLeader;
@@ -82,9 +82,9 @@ class Team
      * @return string
      */
     public function getNumber(): int
-	{
-		return $this->teamNumber;
-	}
+    {
+        return $this->teamNumber;
+    }
     
     /**
      * getLeader
@@ -103,9 +103,9 @@ class Team
      * @return bool
      */
     public function isLeader(Player $player): bool
-	{
-		return $this->teamLeader->getUniqueId()->toString() === $player->getUniqueId()->toString();
-	}
+    {
+        return $this->teamLeader->getUniqueId()->toString() === $player->getUniqueId()->toString();
+    }
     
     /**
      * isFull
