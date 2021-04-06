@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\game;
 
+use pocketmine\item\enchantment\EnchantmentInstance;
+use pocketmine\item\enchantment\Enchantment;
 use pocketmine\level\sound\BlazeShootSound;
 use pocketmine\level\sound\ClickSound;
 use pocketmine\level\Position;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
-use pocketmine\item\enchantment\EnchantmentInstance;
-use pocketmine\item\enchantment\Enchantment;
-use pocketmine\item\ItemFactory;
+use pocketmine\player\GameMode;
 use pocketmine\item\ItemIds;
 use pocketmine\item\Item;
 use pocketmine\utils\TextFormat as TF;
@@ -90,6 +90,10 @@ class GameManager extends Task
      */
     public function setPhase(int $phase): void
     {
+        foreach ($this->plugin->getGamePlayers() as $playerSession) {
+            $event = new PhaseChangeEvent($playerSession, $this->phase, $phase);
+            $event->call();
+        }
         $this->phase = $phase;
     }
         
@@ -251,9 +255,9 @@ class GameManager extends Task
         $server->getLevelByName($this->maplevel)->setTime(1000);
         
         foreach ($server->getOnlinePlayers() as $player) {
-            $playerx = $player->getX();
-            $playery = $player->getY();
-            $playerz = $player->getZ();
+            $playerx = $player->getFloorX()();
+            $playery = $player->getFloorY();
+            $playerz = $player->getFloorZ();
             
             if (!$player->hasEffect(16)) {
                 $player->addEffect(new EffectInstance(Effect::getEffect(16), 1000000, 1, false));
@@ -261,17 +265,14 @@ class GameManager extends Task
             
             if ($playerx >= $this->border->getSize() || -$playerx >= $this->border->getSize() || $playery >= $this->border->getSize() || $playerz >= $this->border->getSize() || -$playerz >= $this->border->getSize()) {
                 if ($this->phase === PhaseChangeEvent::WAITING || $this->phase === PhaseChangeEvent::COUNTDOWN) {
-                    $x = 265;
-                    $y = 70;
-                    $z = 265;
                     $level = $server->getLevelByName($this->maplevel);
                     
-                    $player->teleport(new Position($x, $y, $z, $level));
+                    $player->teleport(new Position(265, 70, 265, $level));
                 } else {
-                $player->addEffect(new EffectInstance(Effect::getEffect(19), 60, 1, false));
-                if ($player->getHealth() <= 2) {
-                    $player->addEffect(new EffectInstance(Effect::getEffect(7), 100, 1, false));
-                }
+                    $player->addEffect(new EffectInstance(Effect::getEffect(19), 60, 1, false));
+                    if ($player->getHealth() <= 2) {
+                        $player->addEffect(new EffectInstance(Effect::getEffect(7), 100, 1, false));
+                    }
                 }
             }
             if ($playerx >= $this->border->getSize() - 20 || -$playerx >= $this->border->getSize() - 20 || $playery >= $this->border->getSize() - 20 || $playerz >= $this->border->getSize() - 20 || -$playerz >= $this->border->getSize() - 20) {
@@ -279,14 +280,11 @@ class GameManager extends Task
             }
             
             if($player->getLevel()->getName() == $server->getLevelByName($this->maplevel)){
-                $x = $player->getX();
-                $y = $player->getY();
-                $z = $player->getZ();
                 $level = $server->getLevelByName($this->maplevel);
-                $player->teleport(new Position($x, $y, $z, $level));
+                $player->teleport(new Position($playerx, $playery, $playerz, $level));
             }
             
-            if($player->getGamemode() === 3) {
+            if($player->getGamemode() === GameMode::SPECTATOR()) {
                 $inventory = $player->getInventory();
                 //if ($player->getInventory()->getItemInHand()->getId() === 355 && $player->getInventory()->getItemInHand()->hasEnchantment(17)) {
                         //$player->sendPopup("§aReturn To Hub");
@@ -360,6 +358,11 @@ class GameManager extends Task
         }
 
         foreach ($this->plugin->getGamePlayers() as $player) {
+            $session = $this->plugin->getSession($player);
+            if ($session !== null) {
+                $name = $session->getTeam() !== null ? (string)$session->getTeam()->getNumber() : "NO TEAM";
+                $player->setNameTag(TF::GOLD . "[$name] " . $player->getDisplayName());
+            }
             switch ($this->getPhase()) {
                 case PhaseChangeEvent::COUNTDOWN:
                     $player->setFood($player->getMaxFood());
@@ -484,7 +487,7 @@ class GameManager extends Task
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The game will begin in " . TF::AQUA . "30 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
 
-                    $player->getArmorInventory()->setChestplate(ItemFactory::get(ItemIds::ELYTRA, 0, 1));
+                    $player->getArmorInventory()->setChestplate(Item::get(ItemIds::ELYTRA));
                 }
                 break;
             case 10:
@@ -518,10 +521,6 @@ class GameManager extends Task
                     }
                 }
 
-                foreach ($this->plugin->getGamePlayers() as $playerSession) {
-                    $event = new PhaseChangeEvent($playerSession, PhaseChangeEvent::COUNTDOWN, PhaseChangeEvent::GRACE);
-                    $event->call();
-                }
                 foreach ($server->getOnlinePlayers() as $player) {
                 $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . TF::BOLD . "The match has begun!");
                 $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
@@ -609,10 +608,6 @@ class GameManager extends Task
                 }
                 break;
             case 0:
-                foreach ($this->plugin->getGamePlayers() as $playerSession) {
-                    $event = new PhaseChangeEvent($playerSession, PhaseChangeEvent::GRACE, PhaseChangeEvent::PVP);
-                    $event->call();
-                }
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PvP has been enabled!");
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
@@ -662,10 +657,6 @@ class GameManager extends Task
                 }
                 break;
             case 0:
-                foreach ($this->plugin->getGamePlayers() as $playerSession) {
-                    $event = new PhaseChangeEvent($playerSession, PhaseChangeEvent::PVP, PhaseChangeEvent::DEATHMATCH);
-                    $event->call();
-                }
                 foreach ($server->getOnlinePlayers() as $player) {
                     //$this->border->setSize(100);
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border is now shrinking to " . TF::AQUA . "100.");
@@ -854,6 +845,7 @@ class GameManager extends Task
                 $this->setPVPTimer(60 * 20);
                 $this->setDeathmatchTimer(60 * 20);
                 $this->setWinnerTimer(60);
+                $this->setShrinking(false);
                 //$this->setResetTimer(30); //moved to countdown
             
                 $server->getLogger()->info("Timers have been reset");

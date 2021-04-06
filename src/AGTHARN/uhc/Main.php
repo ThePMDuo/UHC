@@ -9,7 +9,8 @@ use pocketmine\Player;
 
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\game\GameManager;
-use AGTHARN\uhc\game\Scenario;
+use AGTHARN\uhc\game\scenario\ScenarioManager;
+use AGTHARN\uhc\game\team\TeamManager;
 
 class Main extends PluginBase
 {   
@@ -28,12 +29,14 @@ class Main extends PluginBase
 
     /** @var PlayerSession[] */
     private $sessions = [];
+    /** @var TeamManager */
+	private TeamManager $teamManager;
 
     /** @var bool */
     private $globalMuteEnabled = false;
     
-    /** @var Scenario[] */
-    private $scenarios = [];
+    /** @var ScenarioManager */
+	private $scenarioManager;
     
     /**
      * onEnable
@@ -54,7 +57,7 @@ class Main extends PluginBase
         $this->getServer()->getCommandMap()->registerAll("uhc", [
             new SpectatorCommand($this)
         ]);
-        $this->loadScenarios();
+        $this->scenarioManager = new ScenarioManager($this);
 
         foreach ($this->getServer()->getPluginManager()->getPlugins() as $plugin) {
             if ($plugin->isEnabled()) {
@@ -64,28 +67,16 @@ class Main extends PluginBase
             }
         }
     }
-    
+        
     /**
-     * loadScenarios
+     * getScenarioManager
      *
-     * @return void
+     * @return ScenarioManager
      */
-    public function loadScenarios(): void
-    {
-        $dir = scandir($this->getDataFolder() . "scenarios");
-        if (is_array($dir)) {
-            foreach ($dir as $file) {
-                $fileLocation = $this->getDataFolder() . "scenarios/" . $file;
-                if (substr($file, -4) === ".php") {
-                    require($fileLocation);
-                    $class = "\\" . str_replace(".php", "", $file);
-                    if (($scenario = new $class($this)) instanceof Scenario) {
-                        $this->addScenario($scenario);
-                    }
-                }
-            }
-        }
-    }
+    public function getScenarioManager(): ScenarioManager
+	{
+		return $this->scenarioManager;
+	}
     
     /**
      * getManager
@@ -224,38 +215,6 @@ class Main extends PluginBase
     }
     
     /**
-     * getScenarios
-     *
-     * @return array
-     */
-    public function getScenarios(): array
-    {
-        return $this->scenarios;
-    }
-    
-    /**
-     * getScenario
-     *
-     * @param  string $scenarioName
-     * @return Scenario
-     */
-    public function getScenario(string $scenarioName): Scenario
-    {
-        return $this->scenarios[$scenarioName];
-    }
-    
-    /**
-     * addScenario
-     *
-     * @param  Scenario $scenario
-     * @return void
-     */
-    public function addScenario(Scenario $scenario): void
-    {
-        $this->scenarios[$scenario->getName()] = $scenario;
-    }
-    
-    /**
      * setOperational
      *
      * @param  bool $operational
@@ -287,4 +246,14 @@ class Main extends PluginBase
         }
         return TF::RED . "SERVER UNOPERATIONAL";
     }
+    
+    /**
+     * getTeamManager
+     *
+     * @return TeamManager
+     */
+    public function getTeamManager(): TeamManager
+	{
+		return $this->teamManager;
+	}
 }

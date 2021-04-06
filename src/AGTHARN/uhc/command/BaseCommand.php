@@ -3,25 +3,22 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\command;
 
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
-use pocketmine\command\PluginCommand;
 use pocketmine\Player;
 
-use AGTHARN\uhc\Main;
-
-class BaseCommand extends PluginCommand
+class BaseCommand extends Command
 {
 
     /**
      * __construct
      *
      * @param  string $name
-     * @param  Main $plugin
      * @return void
      */
-    public function __construct(string $name, Main $plugin)
+    public function __construct(string $name)
     {
-        parent::__construct($name, $plugin);
+        parent::__construct($name);
     }
     
     /**

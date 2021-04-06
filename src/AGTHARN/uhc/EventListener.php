@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
+use pocketmine\network\mcpe\protocol\types\BoolGameRule;
+use pocketmine\network\mcpe\protocol\GameRulesChangedPacket;
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -14,6 +16,7 @@ use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
+use pocketmine\event\player\PlayerExhaustEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
@@ -122,6 +125,7 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $server = $this->plugin->getServer();
+        $session = $this->plugin->getSession($player);
         $mUsage = Process::getAdvancedMemoryUsage();
 
         $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber);
@@ -132,18 +136,24 @@ class EventListener implements Listener
             $player->kick($this->plugin->getOperationalMessage() . ": UHC LOADER HAS FAILED! PLEASE CONTACT AN ADMIN!");
             return;
         }
+        
+		$pk = new GameRulesChangedPacket();
+		$pk->gameRules = ["showcoordinates" => new BoolGameRule(true)];
+		$player->getNetworkSession()->sendDataPacket($pk);
 
         switch ($this->plugin->getManager()->getPhase()) {
             case PhaseChangeEvent::WAITING:
             case PhaseChangeEvent::COUNTDOWN:
                 if ($this->countdown >= 31) {
                     if ($this->plugin->hasSession($player)) {
-                        $this->plugin->getSession($player)->setPlayer($player);
+                        $session->updatePlayer($player);
                         $player->setGamemode(Player::SURVIVAL);
                     } else {
-                        $this->plugin->addSession(PlayerSession::create($player));
+                        $this->plugin->addSession(new PlayerSession($player));
                         $player->setGamemode(Player::SURVIVAL);
                     }
+                    // since solo we wont handle joining available teams
+                    $session->addToTeam($this->plugin->getTeamManager()->createTeam($sender));
                 }
                 break;
             default:
@@ -184,6 +194,18 @@ class EventListener implements Listener
     public function handleQuit(PlayerQuitEvent $event): void
     {
         $player = $event->getPlayer();
+        $session = $this->plugin->getSession($player);
+
+        if ($session->isInTeam()) {
+            if (!$session->isTeamLeader()) {
+                $session->removeFromTeam(); 
+            } else {
+                foreach ($session->getTeam()->getMembers() as $member) {
+					$this->plugin->getSession($member)->removeFromTeam();
+				}
+                $this->plugin->getTeamManager()->disbandTeam($session->getTeam()->getNumber());
+            }
+        }
 
         if ($this->plugin->hasSession($player)) {
             $this->plugin->removeFromGame($player);
@@ -230,6 +252,20 @@ class EventListener implements Listener
                     $event->setCancelled();
                 }
                 break;
+            default:
+                if ($event instanceof EntityDamageByEntityEvent) {
+                    $damager = $event->getDamager();
+                    $victim = $event->getEntity();
+    
+                    if ($damager instanceof Player && $victim instanceof Player) {
+                        $damagerSession = $this->plugin->getSession($damager);
+                        $victimSession = $this->plugin->getSession($victim);
+                        if ($damagerSession->isInTeam() && $victimSession->isInTeam() && $damagerSession->getTeam()->memberExists($victim)) {
+                            $event->cancel();
+                        }
+                    }
+                }
+                break;
         }
     }
         
@@ -267,7 +303,7 @@ class EventListener implements Listener
                 if ($this->plugin->hasSession($damager)) {
                     $damagerSession = $this->plugin->getSession($damager);
 
-                    $damagerSession->addElimination();
+                    $damagerSession->addEliminations();
                     $event->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " was eliminated by " . TF::RED . $damager->getName() . TF::GRAY . "(" . TF::WHITE . $damagerSession->getEliminations() . TF::GRAY . ")");
                 }
             }
@@ -289,6 +325,38 @@ class EventListener implements Listener
             case PhaseChangeEvent::COUNTDOWN:
             case PhaseChangeEvent::WINNER:
                 $event->setCancelled();
+                return;
+        }
+
+        switch ($event->getBlock()) {
+            case Block::LEAVES:
+            case Block::LEAVES2:
+                $rand = mt_rand(0, 100);
+                if ($event->getItem()->equals(Item::APPLE, false, false)) {
+                    if ($rand <= 6) {
+                        $event->setDrops(Item::get(Item::APPLE, 0, 1));
+                    }
+                } else {
+                    if ($rand <= 3) {
+                        $event->setDrops(Item::get(Item::APPLE, 0, 1));
+                    }
+                }
+                break;
+            case Block::LOG:
+            case Block::LOG2:
+                $drops = array();
+                $drops[] = Item::get(Item::PLANKS, 0, 4);
+                $event->setDrops($drops);
+                break;
+            case Block::IRON_ORE:
+                $drops = array();
+                $drops[] = Item::get(Item::IRON_INGOT, 0, 2);
+                $event->setDrops($drops);
+                break;
+            case Block::GOLD_ORE:
+                $drops = array();
+                $drops[] = Item::get(Item::GOLD_INGOT, 0, 2);
+                $event->setDrops($drops);
                 break;
         }
     }
@@ -328,42 +396,6 @@ class EventListener implements Listener
                     }
                     break;
             }
-        }
-    }
-        
-    /**
-     * dropChance
-     *
-     * @param  BlockBreakEvent $event
-     * @return void
-     */
-    public function dropChance(BlockBreakEvent $event): void
-    {
-        switch ($event->getBlock()) {
-            case Block::LEAVES:
-            case Block::LEAVES2:
-                if (mt_rand(1, 100) <= 10){ 
-                    $drops = array();
-                    $drops[] = Item::get(Item::APPLE, 0, 1);
-                    $event->setDrops($drops);
-                }
-                break;
-            case Block::LOG:
-            case Block::LOG2:
-                $drops = array();
-                $drops[] = Item::get(Item::PLANKS, 0, 4);
-                $event->setDrops($drops);
-                break;
-            case Block::IRON_ORE:
-                $drops = array();
-                $drops[] = Item::get(Item::IRON_INGOT, 0, 2);
-                $event->setDrops($drops);
-                break;
-            case Block::GOLD_ORE:
-                $drops = array();
-                $drops[] = Item::get(Item::GOLD_INGOT, 0, 2);
-                $event->setDrops($drops);
-                break;
         }
     }
         
@@ -426,9 +458,14 @@ class EventListener implements Listener
      * @param  PlayerDropItemEvent $event
      * @return void
      */
-    public function onPlayerDropItem(PlayerDropItemEvent $event){
+    public function onPlayerDropItem(PlayerDropItemEvent $event)
+    {
         $item = $event->getItem();
         $itemID = $item->getId();
+
+        if (!$this->plugin->getManager()->hasStarted()) {
+			$ev->cancel();
+		}
 
         if ($item->hasEnchantment(17)) {
             switch ($item->getId()) {
@@ -439,4 +476,17 @@ class EventListener implements Listener
             }
         }
     }
+    
+    /**
+     * handleExhaust
+     *
+     * @param  mixed $event
+     * @return void
+     */
+    public function handleExhaust(PlayerExhaustEvent $event): void
+	{
+		if (!$this->plugin->getHeartbeat()->hasStarted()) {
+			$event->cancel();
+		}
+	}
 }

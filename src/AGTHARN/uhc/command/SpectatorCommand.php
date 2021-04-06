@@ -4,8 +4,9 @@ declare(strict_types=1);
 namespace AGTHARN\uhc\command;
 
 use pocketmine\command\utils\InvalidCommandSyntaxException;
-use pocketmine\Player;
+use pocketmine\player\GameMode;
 use pocketmine\utils\TextFormat;
+use pocketmine\Player;
 
 use AGTHARN\uhc\Main;
 
@@ -36,7 +37,7 @@ class SpectatorCommand extends BaseCommand
      */
     public function onExecute(Player $sender, array $args) : void
     {
-        if ($sender->getGamemode() !== 3) {
+        if ($sender->getGamemode() !== GameMode::SPECTATOR()) {
             $sender->sendMessage(TextFormat::RED . "You must be eliminated to use this command!");
             return;
         }

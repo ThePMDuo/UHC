@@ -6,6 +6,8 @@ namespace AGTHARN\uhc;
 use pocketmine\utils\UUID;
 use pocketmine\Player;
 
+use AGTHARN\uhc\game\Team;
+
 class PlayerSession
 {
     /** @var UUID */
@@ -13,9 +15,12 @@ class PlayerSession
 
     /** @var Player */
     private $player;
+
+    /** @var Team|null */
+    private $team = null;
     
-    /** @var int[] */
-    private $eliminations = [];
+    /** @var int */
+    private $eliminations = 0;
     
     /**
      * __construct
@@ -27,7 +32,6 @@ class PlayerSession
     {
         $this->player = $player;
         $this->uuid = $player->getUniqueId();
-        $this->eliminations[$player->getName()] = 0;
     }
     
     /**
@@ -51,24 +55,14 @@ class PlayerSession
     }
     
     /**
-     * setPlayer
+     * addEliminations
      *
-     * @param  Player $player
+     * @param  int $amount
      * @return void
      */
-    public function setPlayer(Player $player): void
+    public function addEliminations(int $amount = 1): void
     {
-        $this->player = $player;
-    }
-    
-    /**
-     * addElimination
-     *
-     * @return void
-     */
-    public function addElimination(): void
-    {
-        $this->eliminations[$this->player->getName()] = $this->eliminations[$this->player->getName()] + 1;
+        $this->eliminations += $amount;
     }
     
     /**
@@ -78,17 +72,80 @@ class PlayerSession
      */
     public function getEliminations(): int
     {
-        return $this->eliminations[$this->player->getName()];
+        return $this->eliminations;
     }
     
     /**
-     * create
+     * updatePlayer
      *
      * @param  Player $player
-     * @return self
+     * @return void
      */
-    public static function create(Player $player): self
+    public function updatePlayer(Player $player)
+	{
+		$this->player = $player;
+	}
+    
+    /**
+     * getTeam
+     *
+     * @return Team
+     */
+    public function getTeam(): ?Team
     {
-        return new self($player);
+        return $this->team;
+    }
+    
+    /**
+     * isInTeam
+     *
+     * @return bool
+     */
+    public function isInTeam(): bool
+    {
+        return $this->team !== null;
+    }
+    
+    /**
+     * addToTeam
+     *
+     * @param  Team $team
+     * @return bool
+     */
+    public function addToTeam(Team $team): bool
+    {
+        if ($team->isLeader($this->player) || $team->addMember($this->getPlayer())) {
+            $this->team = $team;
+            return true;
+        }
+
+        return false;
+    }
+    
+    /**
+     * removeFromTeam
+     *
+     * @return bool
+     */
+    public function removeFromTeam(): bool
+    {
+        if ($this->team->removeMember($this->getPlayer())) {
+            $this->team = null;
+            return true;
+        } elseif($this->isTeamLeader()){
+			$this->team = null;
+			return true;
+		}
+        return false;
+    }
+    
+    /**
+     * isTeamLeader
+     *
+     * @return bool
+     */
+    public function isTeamLeader(): bool
+    {
+        return $this->isInTeam() && $this->team->isLeader($this->getPlayer());
     }
 }
