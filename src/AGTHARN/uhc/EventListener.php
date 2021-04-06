@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\network\mcpe\protocol\types\BoolGameRule;
-use pocketmine\network\mcpe\protocol\GameRulesChangedPacket;
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -136,10 +134,6 @@ class EventListener implements Listener
             $player->kick($this->plugin->getOperationalMessage() . ": UHC LOADER HAS FAILED! PLEASE CONTACT AN ADMIN!");
             return;
         }
-        
-		$pk = new GameRulesChangedPacket();
-		$pk->gameRules = ["showcoordinates" => new BoolGameRule(true)];
-		$player->getNetworkSession()->sendDataPacket($pk);
 
         switch ($this->plugin->getManager()->getPhase()) {
             case PhaseChangeEvent::WAITING:
@@ -153,7 +147,7 @@ class EventListener implements Listener
                         $player->setGamemode(Player::SURVIVAL);
                     }
                     // since solo we wont handle joining available teams
-                    $session->addToTeam($this->plugin->getTeamManager()->createTeam($sender));
+                    $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
                 }
                 break;
             default:
@@ -261,7 +255,7 @@ class EventListener implements Listener
                         $damagerSession = $this->plugin->getSession($damager);
                         $victimSession = $this->plugin->getSession($victim);
                         if ($damagerSession->isInTeam() && $victimSession->isInTeam() && $damagerSession->getTeam()->memberExists($victim)) {
-                            $event->cancel();
+                            $event->setCancelled();
                         }
                     }
                 }
@@ -464,7 +458,7 @@ class EventListener implements Listener
         $itemID = $item->getId();
 
         if (!$this->plugin->getManager()->hasStarted()) {
-			$ev->cancel();
+			$event->setCancelled();
 		}
 
         if ($item->hasEnchantment(17)) {
@@ -485,8 +479,8 @@ class EventListener implements Listener
      */
     public function handleExhaust(PlayerExhaustEvent $event): void
 	{
-		if (!$this->plugin->getHeartbeat()->hasStarted()) {
-			$event->cancel();
+		if (!$this->plugin->getManager()->hasStarted()) {
+			$event->setCancelled();
 		}
 	}
 }

@@ -6,7 +6,7 @@ namespace AGTHARN\uhc;
 use pocketmine\utils\UUID;
 use pocketmine\Player;
 
-use AGTHARN\uhc\game\Team;
+use AGTHARN\uhc\game\team\Team;
 
 class PlayerSession
 {
@@ -148,4 +148,15 @@ class PlayerSession
     {
         return $this->isInTeam() && $this->team->isLeader($this->getPlayer());
     }
+    
+    /**
+     * update
+     *
+     * @param  Player $player
+     * @return void
+     */
+    public function update(Player $player): void
+	{
+		$this->player = $player;
+	}
 }
