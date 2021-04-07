@@ -3,15 +3,12 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\utils\UUID;
 use pocketmine\Player;
 
 use AGTHARN\uhc\game\team\Team;
 
 class PlayerSession
 {
-    /** @var UUID */
-    private $uuid;
 
     /** @var Player */
     private $player;
@@ -31,17 +28,6 @@ class PlayerSession
     public function __construct(Player $player)
     {
         $this->player = $player;
-        $this->uuid = $player->getUniqueId();
-    }
-    
-    /**
-     * getUniqueId
-     *
-     * @return UUID
-     */
-    public function getUniqueId(): UUID
-    {
-        return $this->uuid;
     }
     
     /**
@@ -91,7 +77,7 @@ class PlayerSession
      *
      * @return Team
      */
-    public function getTeam(): ?Team
+    public function getTeam(): Team
     {
         return $this->team;
     }
@@ -118,7 +104,6 @@ class PlayerSession
             $this->team = $team;
             return true;
         }
-
         return false;
     }
     
@@ -147,16 +132,5 @@ class PlayerSession
     public function isTeamLeader(): bool
     {
         return $this->isInTeam() && $this->team->isLeader($this->getPlayer());
-    }
-    
-    /**
-     * update
-     *
-     * @param  Player $player
-     * @return void
-     */
-    public function update(Player $player): void
-    {
-        $this->player = $player;
     }
 }

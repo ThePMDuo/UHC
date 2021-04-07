@@ -30,19 +30,19 @@ class GameManager extends Task
     private $game = 0;
 
     /** @var int */
-    private $phase = PhaseChangeEvent::WAITING;
+    public $phase = PhaseChangeEvent::WAITING;
     /** @var int */
-    private $countdown = GameTimer::TIMER_COUNTDOWN;
+    public $countdown = GameTimer::TIMER_COUNTDOWN;
     /** @var float|int */
-    private $grace = GameTimer::TIMER_GRACE;
+    public $grace = GameTimer::TIMER_GRACE;
     /** @var float|int */
-    private $pvp = GameTimer::TIMER_PVP;
+    public $pvp = GameTimer::TIMER_PVP;
     /** @var float|int */
-    private $deathmatch = GameTimer::TIMER_DEATHMATCH;
+    public $deathmatch = GameTimer::TIMER_DEATHMATCH;
     /** @var int */
-    private $winner = GameTimer::TIMER_WINNER;
+    public $winner = GameTimer::TIMER_WINNER;
     /** @var int */
-    private $reset = GameTimer::TIMER_RESET;
+    public $reset = GameTimer::TIMER_RESET;
     
     /** @var Border */
     private $border;
@@ -54,9 +54,6 @@ class GameManager extends Task
         
     /** @var bool */
     private $shrinking = false;
-
-    /** @var string */
-    private $maplevel = "UHC";
     
     /**
      * __construct
@@ -67,7 +64,6 @@ class GameManager extends Task
     public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
-        //$this->level = $this->plugin->getServer()->getLevelByName($maplevel);
         $this->border = new Border($plugin->getServer()->getDefaultLevel());
     }
     
@@ -230,7 +226,7 @@ class GameManager extends Task
         }
         if ($this->hasStarted() && $this->phase !== PhaseChangeEvent::WINNER) $this->game++;
         
-        $server->getLevelByName($this->maplevel)->setTime(1000);
+        $server->getLevelByName($this->plugin->map)->setTime(1000);
         
         foreach ($server->getOnlinePlayers() as $player) {
             $playerx = $player->getFloorX();
@@ -243,7 +239,7 @@ class GameManager extends Task
             
             if ($playerx >= $this->border->getSize() || -$playerx >= $this->border->getSize() || $playery >= $this->border->getSize() || $playerz >= $this->border->getSize() || -$playerz >= $this->border->getSize()) {
                 if ($this->phase === PhaseChangeEvent::WAITING || $this->phase === PhaseChangeEvent::COUNTDOWN) {
-                    $level = $server->getLevelByName($this->maplevel);
+                    $level = $server->getLevelByName($this->plugin->map);
                     
                     $player->teleport(new Position(265, 70, 265, $level));
                 } else {
@@ -257,8 +253,8 @@ class GameManager extends Task
                 $player->sendPopup(TF::RED . "BORDER IS CLOSE!");
             }
             
-            if($player->getLevel()->getName() == $server->getLevelByName($this->maplevel)){
-                $level = $server->getLevelByName($this->maplevel);
+            if($player->getLevel()->getName() == $server->getLevelByName($this->plugin->map)){
+                $level = $server->getLevelByName($this->plugin->map);
                 $player->teleport(new Position($playerx, $playery, $playerz, $level));
             }
             
@@ -736,7 +732,7 @@ class GameManager extends Task
                     }
                     foreach ($server->getOnlinePlayers() as $player) {
                         $this->plugin->removeFromGame($player);
-                        $player->teleport($server->getLevelByName($this->maplevel)->getSafeSpawn());
+                        $player->teleport($server->getLevelByName($this->plugin->map)->getSafeSpawn());
                         $player->setGamemode(Player::SURVIVAL);
                         }
                     $this->setShrinking(false);
@@ -951,7 +947,7 @@ class GameManager extends Task
             $x = mt_rand($x1, $x2);
             $y = mt_rand($y1, $y2);
             $z = mt_rand($z1, $z2);
-            $level = $server->getLevelByName($this->maplevel);
+            $level = $server->getLevelByName($this->plugin->map);
             
             //$player->teleport(new Vector3($x, $y, $z));
             $player->teleport(new Position($x, $y, $z, $level));

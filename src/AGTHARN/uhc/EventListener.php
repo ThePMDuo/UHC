@@ -28,7 +28,6 @@ use pocketmine\level\Position;
 use pocketmine\Player;
 
 use AGTHARN\uhc\event\PhaseChangeEvent;
-use AGTHARN\uhc\game\type\GameTimer;
 use AGTHARN\uhc\game\Border;
 use AGTHARN\uhc\Main;
 
@@ -48,21 +47,6 @@ class EventListener implements Listener
     /** @var int */
     private $game = 0;
     
-    /** @var int */
-    private $countdown = GameTimer::TIMER_COUNTDOWN;
-    /** @var float|int */
-    private $grace = GameTimer::TIMER_GRACE;
-    /** @var float|int */
-    private $pvp = GameTimer::TIMER_PVP;
-    /** @var float|int */
-    private $deathmatch = GameTimer::TIMER_DEATHMATCH;
-    /** @var int */
-    private $winner = GameTimer::TIMER_WINNER;
-    /** @var int */
-    private $phase = PhaseChangeEvent::WAITING;
-    /** @var int */
-    private $reset = PhaseChangeEvent::RESET;
-    
     /**
      * __construct
      *
@@ -75,27 +59,6 @@ class EventListener implements Listener
         $this->border = new Border($plugin->getServer()->getDefaultLevel());
 
         $plugin->getServer()->getPluginManager()->registerEvents($this, $plugin);
-    }
-        
-    /**
-     * getPhase
-     *
-     * @return int
-     */
-    public function getPhase(): int
-    {
-        return $this->phase;
-    }
-    
-    /**
-     * setPhase
-     *
-     * @param  int $phase
-     * @return void
-     */
-    public function setPhase(int $phase): void
-    {
-        $this->phase = $phase;
     }
     
     /**
@@ -123,7 +86,6 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $server = $this->plugin->getServer();
-        $session = $this->plugin->getSession($player);
         $mUsage = Process::getAdvancedMemoryUsage();
 
         $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber);
@@ -137,18 +99,10 @@ class EventListener implements Listener
 
         switch ($this->plugin->getManager()->getPhase()) {
             case PhaseChangeEvent::WAITING:
-            case PhaseChangeEvent::COUNTDOWN:
-                if ($this->countdown >= 31) {
-                    if ($this->plugin->hasSession($player)) {
-                        $session->updatePlayer($player);
-                        $player->setGamemode(Player::SURVIVAL);
-                    } else {
-                        $this->plugin->addSession(new PlayerSession($player));
-                        $player->setGamemode(Player::SURVIVAL);
-                    }
-                    // since solo we wont handle joining available teams
-                    $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
-                }
+                $this->plugin->addSession($player);
+                $player->setGamemode(Player::SURVIVAL);
+                // since solo we wont handle joining available teams
+                $this->plugin->getSession($player)->addToTeam($this->plugin->getTeamManager()->createTeam($player));
                 break;
             default:
                 if ($this->plugin->hasSession($player)) {
@@ -158,7 +112,37 @@ class EventListener implements Listener
                 $player->sendMessage(TF::YELLOW . "Type /spectate to spectate a player.");
                 break;
         }
-        $player->teleport(new Position(265, 70, 265, $server->getLevelByName($this->plugin->getManager()->getMap())));
+        $player->teleport(new Position(265, 70, 265, $server->getLevelByName($this->plugin->map)));
+    }
+
+    /**
+     * handleQuit
+     *
+     * @param  PlayerQuitEvent $event
+     * @return void
+     */
+    public function handleQuit(PlayerQuitEvent $event): void
+    {
+        $player = $event->getPlayer();
+        $session = $this->plugin->getSession($player);
+
+        if ($session->isInTeam()) {
+            if (!$session->isTeamLeader()) {
+                $session->removeFromTeam(); 
+            } else {
+                $teamNumber = $session->getTeam()->getNumber();
+                foreach ($session->getTeam()->getMembers() as $member) {
+                    $this->plugin->getSession($member)->removeFromTeam();
+                }
+                $this->plugin->getTeamManager()->disbandTeam($teamNumber);
+            }
+        }
+
+        if ($this->plugin->hasSession($player)) {
+            $this->plugin->removeFromGame($player);
+        }
+        $this->plugin->removeFromGame($player);
+        ScoreFactory::removeScore($player);
     }
     
     /**
@@ -177,35 +161,6 @@ class EventListener implements Listener
                 $player->getInventory()->addItem(Item::get(6, 0, 1));
                 break;
         }
-    }
-    
-    /**
-     * handleQuit
-     *
-     * @param  PlayerQuitEvent $event
-     * @return void
-     */
-    public function handleQuit(PlayerQuitEvent $event): void
-    {
-        $player = $event->getPlayer();
-        $session = $this->plugin->getSession($player);
-
-        if ($session->isInTeam()) {
-            if (!$session->isTeamLeader()) {
-                $session->removeFromTeam(); 
-            } else {
-                foreach ($session->getTeam()->getMembers() as $member) {
-                    $this->plugin->getSession($member)->removeFromTeam();
-                }
-                $this->plugin->getTeamManager()->disbandTeam($session->getTeam()->getNumber());
-            }
-        }
-
-        if ($this->plugin->hasSession($player)) {
-            $this->plugin->removeFromGame($player);
-        }
-        $this->plugin->removeFromGame($player);
-        ScoreFactory::removeScore($player);
     }
     
     /**
@@ -271,7 +226,7 @@ class EventListener implements Listener
      */
     public function onRespawn(PlayerRespawnEvent $event): void
     {
-        $event->getPlayer()->teleport(new Position(265, 70, 265, $this->plugin->getServer()->getLevelByName($this->plugin->getManager()->getMap())));
+        $event->getPlayer()->teleport(new Position(265, 70, 265, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
     }
     
     /**
@@ -324,7 +279,6 @@ class EventListener implements Listener
 
         switch ($event->getBlock()) {
             case Block::LEAVES:
-            case Block::LEAVES2:
                 $rand = mt_rand(0, 100);
                 if ($event->getItem()->equals(Item::get(Item::APPLE, 0, 1), false, false)) {
                     if ($rand <= 6) {
@@ -337,7 +291,6 @@ class EventListener implements Listener
                 }
                 break;
             case Block::LOG:
-            case Block::LOG2:
                 $drops = array();
                 $drops[] = Item::get(Item::PLANKS, 0, 4);
                 $event->setDrops($drops);
@@ -362,7 +315,7 @@ class EventListener implements Listener
      * @return void
      */
     public function handlePlace(BlockPlaceEvent $event): void
-    {
+    {   
         switch ($this->plugin->getManager()->getPhase()) {
             case PhaseChangeEvent::WAITING:
             case PhaseChangeEvent::COUNTDOWN:
@@ -385,7 +338,7 @@ class EventListener implements Listener
                 case PhaseChangeEvent::WAITING:
                 case PhaseChangeEvent::COUNTDOWN:
                 case PhaseChangeEvent::DEATHMATCH:
-                    if ($this->deathmatch >= 850) {
+                    if ($this->plugin->getManager()->deathmatch >= 850) {
                         $event->setCancelled();
                     }
                     break;

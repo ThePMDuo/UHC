@@ -8,10 +8,11 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\Player;
 
-use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\game\scenario\ScenarioManager;
 use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
+use AGTHARN\uhc\command\SpectatorCommand;
+use AGTHARN\uhc\EventListener;
 
 class Main extends PluginBase
 {   
@@ -20,9 +21,11 @@ class Main extends PluginBase
     /** @var int */
     public $buildNumber = 1;
     /** @var bool */
-    public $operational;
+    public $operational = true;
     /** @var int */
     public $seed;
+    /** @var string */
+    public $map = "UHC";
 
     /** @var GameManager */
     private $gameManager;
@@ -33,7 +36,7 @@ class Main extends PluginBase
     /** @var PlayerSession[] */
     private $sessions = [];
     /** @var TeamManager */
-    private TeamManager $teamManager;
+    private $teamManager;
 
     /** @var bool */
     private $globalMuteEnabled = false;
@@ -54,20 +57,16 @@ class Main extends PluginBase
         $this->prepareLevels();
         
         $this->gameManager = new GameManager($this);
+        $this->teamManager = new TeamManager();
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
+        $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
         $this->getServer()->getCommandMap()->registerAll("uhc", [
             new SpectatorCommand($this)
         ]);
         $this->scenarioManager = new ScenarioManager($this);
 
-        foreach ($this->getServer()->getPluginManager()->getPlugins() as $plugin) {
-            if ($plugin->isEnabled()) {
-                $this->setOperational(true);
-            } else {
-                $this->setOperational(false);
-            }
-        }
+        
     }
     
     /**
@@ -79,10 +78,14 @@ class Main extends PluginBase
     {
         $level = $this->getServer()->getLevelByName("UHC");
         $levelName = "UHC";
-        
-        if ($this->getServer()->isLevelGenerated($level)) {
-            $this->getServer()->unloadLevel($level, true);
-            rmdir($level->getProvider()->getPath());
+        $levelPath = $this->getServer()->getDataPath() . "worlds/UHC";
+
+        if (is_dir($levelPath)) {
+            if ($level !== null) {
+                $this->getServer()->unloadLevel($level);
+            }
+            $this->rrmdir($levelPath);
+            $this->prepareLevels();
         } else {
             $betterGen = $this->getServer()->getPluginManager()->getPlugin("BetterGen");
             
@@ -95,7 +98,31 @@ class Main extends PluginBase
                 $this->seed = $this->generateRandomSeed();
             }
             $this->getServer()->generateLevel($levelName, $this->seed, $generator, []);
-            $this->getServer()->loadLevel($level);
+            $this->getServer()->loadLevel("UHC");
+        }
+    }
+    
+    /**
+     * rrmdir
+     *
+     * @param  mixed $dir
+     * @return void
+     */
+    public function rrmdir($dir): void
+    {
+        if (is_dir($dir)) {
+            $objects = scandir($dir);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (filetype($dir."/".$object) == "dir") {
+                        $this->rrmdir($dir."/".$object); 
+                    } else {
+                        unlink($dir."/".$object);
+                    }
+                }
+            }
+            reset($objects);
+            rmdir($dir);
         }
     }
         
@@ -190,15 +217,17 @@ class Main extends PluginBase
     /**
      * addSession
      *
-     * @param  PlayerSession $session
+     * @param  Player $player
      * @return void
      */
-    public function addSession(PlayerSession $session): void
-    {
-        if (!isset($this->sessions[$session->getUniqueId()->toString()])) {
-            $this->sessions[$session->getUniqueId()->toString()] = $session;
-        }
-    }
+    public function addSession(Player $player): void
+	{
+		if (!$this->hasSession($player)) {
+			$this->sessions[$player->getUniqueId()->toString()] = new PlayerSession($player);
+		} else {
+			$this->getSession($player)->updatePlayer($player);
+		}
+	}
     
     /**
      * removeSession
@@ -208,7 +237,7 @@ class Main extends PluginBase
      */
     public function removeSession(PlayerSession $session): void
     {
-        if (isset($this->sessions[$session->getUniqueId()->toString()])) {
+        if ($this->hasSession($player)) {
             unset($this->sessions[$session->getUniqueId()->toString()]);
         }
     }
