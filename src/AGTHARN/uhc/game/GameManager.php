@@ -334,7 +334,7 @@ class GameManager extends Task
         foreach ($this->plugin->getGamePlayers() as $player) {
             $session = $this->plugin->getSession($player);
             if ($session !== null) {
-                $name = $session->getTeam() !== null ? (string)$session->getTeam()->getNumber() : "NO TEAM";
+                $name = (string)$session->getTeam()->getNumber() ?? "NO TEAM";
                 $player->setNameTag(TF::GOLD . "[$name] " . $player->getDisplayName());
             }
             switch ($this->getPhase()) {
