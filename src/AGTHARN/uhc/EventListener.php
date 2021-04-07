@@ -139,6 +139,7 @@ class EventListener implements Listener
         }
 
         if ($this->plugin->hasSession($player)) {
+            $this->plugin->removeSession($player);
             $this->plugin->removeFromGame($player);
         }
         $this->plugin->removeFromGame($player);

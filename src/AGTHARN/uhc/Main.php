@@ -86,10 +86,8 @@ class Main extends PluginBase
             }
             $this->rrmdir($levelPath);
             $this->prepareLevels();
-        } else {
-            $betterGen = $this->getServer()->getPluginManager()->getPlugin("BetterGen");
-            
-            $this->seed = $betterGen->generateRandomSeed();
+        } else {  
+            $this->seed = $this->generateRandomSeed();
 
             $generator = GeneratorManager::getGenerator("betternormal");
             $generatorName = "betternormal";
@@ -103,6 +101,16 @@ class Main extends PluginBase
     }
     
     /**
+     * generateRandomSeed
+     *
+     * @return int
+     */
+    public function generateRandomSeed(): int
+    {
+		return intval(rand(0, intval(time() / memory_get_usage(true) * (int) str_shuffle("127469453645108") / (int) str_shuffle("12746945364"))));
+	}
+    
+    /**
      * rrmdir
      *
      * @param  mixed $dir
@@ -112,7 +120,7 @@ class Main extends PluginBase
     {
         if (is_dir($dir)) {
             $objects = scandir($dir);
-            foreach ($objects as $object) {
+            foreach ($objects as $object) { /* @phpstan-ignore-line */
                 if ($object != "." && $object != "..") {
                     if (filetype($dir."/".$object) == "dir") {
                         $this->rrmdir($dir."/".$object); 
@@ -121,7 +129,7 @@ class Main extends PluginBase
                     }
                 }
             }
-            reset($objects);
+            reset($objects); /* @phpstan-ignore-line */
             rmdir($dir);
         }
     }
@@ -232,13 +240,13 @@ class Main extends PluginBase
     /**
      * removeSession
      *
-     * @param  PlayerSession $session
+     * @param  Player $player
      * @return void
      */
-    public function removeSession(PlayerSession $session): void
+    public function removeSession(Player $player): void
     {
         if ($this->hasSession($player)) {
-            unset($this->sessions[$session->getUniqueId()->toString()]);
+            unset($this->sessions[$player->getUniqueId()->toString()]);
         }
     }
     
