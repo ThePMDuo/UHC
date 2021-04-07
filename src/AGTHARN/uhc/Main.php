@@ -3,23 +3,26 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
+use pocketmine\level\generator\GeneratorManager;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\Player;
 
 use AGTHARN\uhc\command\SpectatorCommand;
-use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\game\scenario\ScenarioManager;
 use AGTHARN\uhc\game\team\TeamManager;
+use AGTHARN\uhc\game\GameManager;
 
 class Main extends PluginBase
 {   
     /** @var int */
-    public $uhcServer = 0001;
+    public $uhcServer = 1;
     /** @var int */
     public $buildNumber = 1;
     /** @var bool */
     public $operational;
+    /** @var int */
+    public $seed;
 
     /** @var GameManager */
     private $gameManager;
@@ -48,8 +51,7 @@ class Main extends PluginBase
         if (!is_dir($this->getDataFolder() . "scenarios")) {
             mkdir($this->getDataFolder() . "scenarios");
         }
-        
-        $this->getServer()->loadLevel("UHC");
+        $this->prepareLevels();
         
         $this->gameManager = new GameManager($this);
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
@@ -65,6 +67,35 @@ class Main extends PluginBase
             } else {
                 $this->setOperational(false);
             }
+        }
+    }
+    
+    /**
+     * prepareLevels
+     *
+     * @return void
+     */
+    public function prepareLevels(): void
+    {
+        $level = $this->getServer()->getLevelByName("UHC");
+        $levelName = "UHC";
+        
+        if ($this->getServer()->isLevelGenerated($level)) {
+            $this->getServer()->unloadLevel($level, true);
+            rmdir($level->getProvider()->getPath());
+        } else {
+            $betterGen = $this->getServer()->getPluginManager()->getPlugin("BetterGen");
+            
+            $this->seed = $betterGen->generateRandomSeed();
+
+            $generator = GeneratorManager::getGenerator("betternormal");
+            $generatorName = "betternormal";
+
+            if ((int)$this->seed === 0) {
+                $this->seed = $this->generateRandomSeed();
+            }
+            $this->getServer()->generateLevel($levelName, $this->seed, $generator, []);
+            $this->getServer()->loadLevel($level);
         }
     }
         

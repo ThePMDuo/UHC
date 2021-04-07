@@ -195,27 +195,6 @@ class GameManager extends Task
     }
     
     /**
-     * setMap
-     *
-     * @param  string $maplevel
-     * @return void
-     */
-    public function setMap(string $maplevel)
-    {
-        $this->maplevel = $maplevel;
-    }
-    
-    /**
-     * getMap
-     *
-     * @return string
-     */
-    public function getMap(): string
-    {
-        return $this->maplevel;
-    }
-    
-    /**
      * onRun
      *
      * @param  int $currentTick
@@ -342,7 +321,7 @@ class GameManager extends Task
                     break;
             }
         }
-        $server->getLevelByName($this->getMap())->setAutoSave(false);
+        $server->getLevelByName("UHC")->setAutoSave(false);
     }
 
     private function handlePlayers(): void
@@ -832,10 +811,9 @@ class GameManager extends Task
                     }
                 }
             
-                $server->unloadLevel($server->getLevelByName($this->maplevel));
-                $server->loadLevel($this->maplevel);
+                $this->plugin->prepareLevels();
             
-                $server->getLogger()->info("Reset completed");
+                $server->getLogger()->info("World reset completed");
                 break;
             case 2:
                 $this->setGameTimer(0);
@@ -848,10 +826,6 @@ class GameManager extends Task
                 //$this->setResetTimer(30); //moved to countdown
             
                 $server->getLogger()->info("Timers have been reset");
-                break;
-            case 1:
-                if (mt_rand(1,1) === 1) $this->setMap("UHC");
-                $server->getLogger()->info("Map has been randomized to " . $this->maplevel);
                 break;
             case 0:
                 $this->setPhase(PhaseChangeEvent::WAITING);
