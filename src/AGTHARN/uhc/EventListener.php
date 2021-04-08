@@ -101,7 +101,7 @@ class EventListener implements Listener
 
         switch ($this->plugin->getManager()->getPhase()) {
             case PhaseChangeEvent::WAITING:
-                $this->plugin->addSession($player);
+                $sessionManager->createSession($player);
                 $player->setGamemode(Player::SURVIVAL);
                 // since solo we wont handle joining available teams
                 $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
@@ -127,6 +127,7 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $session = $this->plugin->getSessionManager()->getSession($player);
+        $sessionManager = $this->plugin->getSessionManager();
 
         if ($session->isInTeam()) {
             if (!$session->isTeamLeader()) {
@@ -134,14 +135,14 @@ class EventListener implements Listener
             } else {
                 $teamNumber = $session->getTeam()->getNumber();
                 foreach ($session->getTeam()->getMembers() as $member) {
-                    $this->plugin->getSession($member)->removeFromTeam();
+                    $this->plugin->getSessionManager()->getSession($member)->removeFromTeam();
                 }
                 $this->plugin->getTeamManager()->disbandTeam($teamNumber);
             }
         }
 
-        if ($this->plugin->hasSession($player)) {
-            $this->plugin->removeSession($player);
+        if ($sessionManager->hasSession($player)) {
+            $this->plugin->getSessionManager()->removeSession($player);
             $session->setPlaying(false);
         }
         ScoreFactory::removeScore($player);
@@ -209,8 +210,8 @@ class EventListener implements Listener
                     $victim = $event->getEntity();
     
                     if ($damager instanceof Player && $victim instanceof Player) {
-                        $damagerSession = $this->plugin->getSession($damager);
-                        $victimSession = $this->plugin->getSession($victim);
+                        $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
+                        $victimSession = $this->plugin->getSessionManager()->getSession($victim);
                         if ($damagerSession->isInTeam() && $victimSession->isInTeam() && $damagerSession->getTeam()->memberExists($victim)) {
                             $event->setCancelled();
                         }
@@ -242,17 +243,18 @@ class EventListener implements Listener
         $player = $event->getPlayer();
         $cause = $player->getLastDamageCause();
         $eliminatedSession = $this->plugin->getSessionManager()->getSession($player);
+        $sessionManager = $this->plugin->getSessionManager();
         
         $player->setGamemode(3);
         $player->sendMessage(TF::YELLOW . "You have been eliminated! Type /spectate to spectate a player.");
 
-        if (!$this->plugin->hasSession($player)) return;
+        if (!$sessionManager->hasSession($player)) return;
         
         if ($cause instanceof EntityDamageByEntityEvent) {
             $damager = $cause->getDamager();
             if ($damager instanceof Player) {
-                if ($this->plugin->hasSession($damager)) {
-                    $damagerSession = $this->plugin->getSession($damager);
+                if ($sessionManager->hasSession($damager)) {
+                    $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
 
                     $damagerSession->addEliminations();
                     $event->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " was eliminated by " . TF::RED . $damager->getName() . TF::GRAY . "(" . TF::WHITE . $damagerSession->getEliminations() . TF::GRAY . ")");

@@ -719,6 +719,7 @@ class GameManager extends Task
     private function handleWinner(): void
     {
         $server = $this->plugin->getServer();
+        $sessionManager = $this->plugin->getSessionManager();
         //$this->hasStarted(false);
         
         switch ($this->winner) {
@@ -736,7 +737,7 @@ class GameManager extends Task
                     $this->handleScoreboard($player);
                     }
                     foreach ($server->getOnlinePlayers() as $player) {
-                        $this->plugin->removeFromGame($player);
+                        $sessionManager->removeFromGame($player);
                         $player->teleport($server->getLevelByName($this->plugin->map)->getSafeSpawn());
                         $player->setGamemode(Player::SURVIVAL);
                         }
@@ -914,7 +915,7 @@ class GameManager extends Task
             ScoreFactory::setScoreLine($player, 5, " ");
             ScoreFactory::setScoreLine($player, 6, " §fPlayers: §a" . count($this->plugin->getSessionManager()->getPlaying()) . "§f§7/50");
             ScoreFactory::setScoreLine($player, 7, "  ");
-            ScoreFactory::setScoreLine($player, 8, $this->plugin->hasSession($player) !== true ? " §fKills: §a0" : " §fKills: §a" . $this->plugin->getSessionManager()->getSession($player)->getEliminations());
+            ScoreFactory::setScoreLine($player, 8, $this->plugin->getSessionManager()->hasSession($player) !== true ? " §fKills: §a0" : " §fKills: §a" . $this->plugin->getSessionManager()->getSession($player)->getEliminations());
             ScoreFactory::setScoreLine($player, 9, " §fTPS: §a" . $this->plugin->getServer()->getTicksPerSecond());
             ScoreFactory::setScoreLine($player, 10, "   ");
             ScoreFactory::setScoreLine($player, 11, " §fBorder: §a± " . $this->border->getSize());
