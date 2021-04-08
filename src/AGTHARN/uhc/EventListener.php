@@ -17,6 +17,7 @@ use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
+use pocketmine\nbt\tag\StringTag;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\utils\Process;
 use pocketmine\block\Block;
@@ -127,6 +128,14 @@ class EventListener implements Listener
         $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber);
         $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalMessage());
         $player->sendMessage("THREADS: " . Process::getThreadCount() . " RAM USAGE: " . number_format(round(($mUsage[1] / 1024) / 1024, 2), 2) . " MB");
+
+        $inv = $player->getInventory();
+        $hub = Item::get(Item::COMPASS);
+        $hub->setNamedTagEntry(new StringTag("Hub"));
+        $inv->setItem(0 , $hub);
+        $report = Item::get(Item::BED);
+        $report->setNamedTagEntry(new StringTag("Report"));
+        $inv->setItem(8 , $report);
 
         if (!$this->plugin->getOperational()) {
             $player->kick($this->plugin->getOperationalMessage() . ": UHC LOADER HAS FAILED! PLEASE CONTACT AN ADMIN!");
@@ -379,17 +388,20 @@ class EventListener implements Listener
         $item = $event->getItem();
 
         // to do use waterdogpe api instead
-        if ($item->hasEnchantment(17)) {
-            switch ($item->getId()) {
-                case 355:
+
+        switch ($item->getId()){
+            case Item::BED:
+                if($item->getNamedTagEntry("Report")) {
                     $event->setCancelled();
                     $this->plugin->getServer()->dispatchCommand($player, "transfer hub");
-                    break;
-                case 35:
+                }
+                break;
+            case Item::COMPASS:
+                if($item->getNamedTagEntry("Hub")) {
                     $event->setCancelled();
                     $this->plugin->getServer()->dispatchCommand($player, "report");
-                    break;
-            }
+                }
+                break;
         }
     }
         
@@ -405,13 +417,8 @@ class EventListener implements Listener
         foreach ($transaction->getActions() as $action) {
             $item = $action->getSourceItem();
 
-            if ($item->hasEnchantment(17)) {
-                switch ($item->getId()) {
-                    case 355:
-                    case 35:
-                        $event->setCancelled();
-                        break;
-                }
+            if($item->getNamedTagEntry("Report") || $item->getNamedTagEntry("Hub")) {
+                $event->setCancelled();
             }
 
             if ($item->getId() === 444) {
