@@ -601,7 +601,6 @@ class GameManager extends Task
     private function handleWinner(): void
     {
         $server = $this->plugin->getServer();
-        $sessionManager = $this->plugin->getSessionManager();
         
         switch ($this->winner) {
             case 60:
@@ -616,9 +615,9 @@ class GameManager extends Task
                     $player->getCursorInventory()->clearAll();
                     $player->setImmobile(false);
                     $this->handleScoreboard($player);
-                }
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $sessionManager->getPlaying($player);
+
+                    $session = $this->plugin->getSessionManager()->getSession($player);
+                    $session->setPlaying(false);
                     $player->teleport($server->getLevelByName($this->plugin->map)->getSafeSpawn());
                     $player->setGamemode(Player::SURVIVAL);
                 }
