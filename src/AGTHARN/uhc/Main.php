@@ -8,10 +8,11 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\Player;
 
+use AGTHARN\uhc\command\SpectatorCommand;
+use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\scenario\ScenarioManager;
 use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
-use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\EventListener;
 
 class Main extends PluginBase
@@ -29,20 +30,15 @@ class Main extends PluginBase
 
     /** @var GameManager */
     private $gameManager;
-
-    /** @var Player[] */
-    private $gamePlayers = [];
-
-    /** @var PlayerSession[] */
-    private $sessions = [];
     /** @var TeamManager */
     private $teamManager;
+    /** @var SessionManager */
+    private $sessionManager;
+    /** @var ScenarioManager */
+    private $scenarioManager;
 
     /** @var bool */
     private $globalMuteEnabled = false;
-    
-    /** @var ScenarioManager */
-    private $scenarioManager;
     
     /**
      * onEnable
@@ -58,15 +54,14 @@ class Main extends PluginBase
         
         $this->gameManager = new GameManager($this);
         $this->teamManager = new TeamManager();
+        $this->sessionManager = new SessionManager();
+        $this->scenarioManager = new ScenarioManager($this);
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
         $this->getServer()->getCommandMap()->registerAll("uhc", [
             new SpectatorCommand($this)
         ]);
-        $this->scenarioManager = new ScenarioManager($this);
-
-        
     }
     
     /**
@@ -107,8 +102,8 @@ class Main extends PluginBase
      */
     public function generateRandomSeed(): int
     {
-		return intval(rand(0, intval(time() / memory_get_usage(true) * (int) str_shuffle("127469453645108") / (int) str_shuffle("12746945364"))));
-	}
+        return intval(rand(0, intval(time() / memory_get_usage(true) * (int) str_shuffle("127469453645108") / (int) str_shuffle("12746945364"))));
+    }
     
     /**
      * rrmdir
@@ -133,7 +128,17 @@ class Main extends PluginBase
             rmdir($dir);
         }
     }
-        
+    
+    /**
+     * getManager
+     *
+     * @return GameManager
+     */
+    public function getManager(): GameManager
+    {
+        return $this->gameManager;
+    }
+
     /**
      * getScenarioManager
      *
@@ -145,13 +150,23 @@ class Main extends PluginBase
     }
     
     /**
-     * getManager
+     * getSessionManager
      *
-     * @return GameManager
+     * @return SessionManager
      */
-    public function getManager(): GameManager
+    public function getSessionManager(): SessionManager
     {
-        return $this->gameManager;
+        return $this->sessionManager;
+    }
+
+    /**
+     * getTeamManager
+     *
+     * @return TeamManager
+     */
+    public function getTeamManager(): TeamManager
+    {
+        return $this->teamManager;
     }
     
     /**
@@ -173,113 +188,6 @@ class Main extends PluginBase
     public function isGlobalMuteEnabled(): bool
     {
         return $this->globalMuteEnabled;
-    }
-    
-    /**
-     * addToGame
-     *
-     * @param  Player $player
-     * @return void
-     */
-    public function addToGame(Player $player): void
-    {
-        if (!isset($this->gamePlayers[$player->getUniqueId()->toString()])) {
-            $this->gamePlayers[$player->getUniqueId()->toString()] = $player;
-        }
-    }
-    
-    /**
-     * removeFromGame
-     *
-     * @param  Player $player
-     * @return void
-     */
-    public function removeFromGame(Player $player): void
-    {
-        if (isset($this->gamePlayers[$player->getUniqueId()->toString()])) {
-            unset($this->gamePlayers[$player->getUniqueId()->toString()]);
-        }
-    }
-    
-    /**
-     * getGamePlayers
-     *
-     * @return array
-     */
-    public function getGamePlayers(): array
-    {
-        return $this->gamePlayers;
-    }
-    
-    /**
-     * isInGame
-     *
-     * @param  Player $player
-     * @return bool
-     */
-    public function isInGame(Player $player): bool
-    {
-        return isset($this->gamePlayers[$player->getUniqueId()->toString()]);
-    }
-    
-    /**
-     * addSession
-     *
-     * @param  Player $player
-     * @return void
-     */
-    public function addSession(Player $player): void
-	{
-		if (!$this->hasSession($player)) {
-			$this->sessions[$player->getUniqueId()->toString()] = new PlayerSession($player);
-		} else {
-			$this->getSession($player)->updatePlayer($player);
-		}
-	}
-    
-    /**
-     * removeSession
-     *
-     * @param  Player $player
-     * @return void
-     */
-    public function removeSession(Player $player): void
-    {
-        if ($this->hasSession($player)) {
-            unset($this->sessions[$player->getUniqueId()->toString()]);
-        }
-    }
-    
-    /**
-     * hasSession
-     *
-     * @param  Player $player
-     * @return bool
-     */
-    public function hasSession(Player $player): bool
-    {
-        return isset($this->sessions[$player->getUniqueId()->toString()]);
-    }
-    
-    /**
-     * getSessions
-     *
-     * @return array
-     */
-    public function getSessions(): array
-    {
-        return $this->sessions;
-    }
-    
-    /**
-     * getSession
-     *
-     * @param  Player $player
-     * @return PlayerSession
-     */
-    public function getSession(Player $player): ?PlayerSession
-    {
-        return $this->hasSession($player) ? $this->sessions[$player->getUniqueId()->toString()] : null;
     }
     
     /**
@@ -313,15 +221,5 @@ class Main extends PluginBase
             return TF::GREEN . "SERVER OPERATIONAL";
         }
         return TF::RED . "SERVER UNOPERATIONAL";
-    }
-    
-    /**
-     * getTeamManager
-     *
-     * @return TeamManager
-     */
-    public function getTeamManager(): TeamManager
-    {
-        return $this->teamManager;
     }
 }

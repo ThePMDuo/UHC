@@ -28,6 +28,8 @@ class GameManager extends Task
 {
     /** @var int */
     private $game = 0;
+    /** @var int */
+    public const MIN_PLAYERS = 2;
 
     /** @var int */
     public $phase = PhaseChangeEvent::WAITING;
@@ -85,7 +87,7 @@ class GameManager extends Task
      */
     public function setPhase(int $phase): void
     {
-        foreach ($this->plugin->getGamePlayers() as $playerSession) {
+        foreach ($this->plugin->getSessionManager()->getPlaying() as $playerSession) {
             $event = new PhaseChangeEvent($playerSession, $this->phase, $phase);
             $event->call();
         }
@@ -274,7 +276,7 @@ class GameManager extends Task
             }
         }
         
-        if (count($this->plugin->getGamePlayers()) <= 1) {
+        if (count($this->plugin->getSessionManager()->getPlaying()) <= 1) {
             switch ($this->getPhase()) {
                 case PhaseChangeEvent::WAITING:
                 case PhaseChangeEvent::COUNTDOWN:
@@ -323,16 +325,17 @@ class GameManager extends Task
     private function handlePlayers(): void
     {
         foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
+            $session = $this->plugin->getSessionManager()->getSession($player);
             if ($player->isSurvival()) {
-                $this->plugin->addToGame($player);
+                $session->setPlaying(true);
             } else {
-                $this->plugin->removeFromGame($player);
+                $session->setPlaying(false);
             }
             $this->handleScoreboard($player);
         }
 
-        foreach ($this->plugin->getGamePlayers() as $player) {
-            $session = $this->plugin->getSession($player);
+        foreach ($this->plugin->getSessionManager()->getPlaying() as $player) {
+            $session = $this->plugin->getSessionManager()->getSession($player);
             if ($session !== null) {
                 $name = (string)$session->getTeam()->getNumber() ?? "NO TEAM";
                 $player->setNameTag(TF::GOLD . "[$name] " . $player->getDisplayName());
@@ -375,13 +378,13 @@ class GameManager extends Task
         //$server->setConfigString("gamemode", "0");
         $server->getNetwork()->setName("NOT STARTED");
         
-        $playerstartcount = 2 - count($server->getOnlinePlayers());
+        $playerstartcount = self::MIN_PLAYERS - count($server->getOnlinePlayers());
         
-        if(count($server->getOnlinePlayers()) >= 2){
+        if(count($server->getOnlinePlayers()) >= self::MIN_PLAYERS){
                 $this->setPhase(PhaseChangeEvent::COUNTDOWN);
         }
         
-        foreach ($this->plugin->getGamePlayers() as $player) {
+        foreach ($this->plugin->getSessionManager()->getSessions() as $player) {
             //$server->setConfigBool("white-list", false);
             $player->setFood($player->getMaxFood());
             $player->setHealth($player->getMaxHealth());
@@ -391,36 +394,38 @@ class GameManager extends Task
             //$player->getArmorInventory()->clearAll();
             //$player->getCursorInventory()->clearAll();
             $this->handleScoreboard($player);
-            }
-            foreach ($server->getOnlinePlayers() as $player) {
-                $inventory = $player->getInventory();
+        }
+
+        foreach ($server->getOnlinePlayers() as $player) {
+            $inventory = $player->getInventory();
+            $session = $this->plugin->getSessionManager()->getSession($player);
                 
-                $this->plugin->removeFromGame($player);
-                $player->setGamemode(Player::SURVIVAL);
-                if (count($server->getOnlinePlayers()) <= "2") {
-                    if ($this->getPhase() === PhaseChangeEvent::WAITING && $player->getInventory()->getItemInHand()->hasEnchantment(17)) {
-                        switch ($player->getInventory()->getItemInHand()->getId()) {
-                            case 355:
-                                if ($player->getInventory()->getItemInHand()->hasEnchantment(17)) {
-                                    $player->sendPopup("§aReturn To Hub");
-                                    return;
-                                }
-                                break;
-                            case 35:
-                                $player->sendPopup("§cReport");
+            $session->setPlaying(false);
+            $player->setGamemode(Player::SURVIVAL);
+            if (count($server->getOnlinePlayers()) <= self::MIN_PLAYERS) {
+                if ($this->getPhase() === PhaseChangeEvent::WAITING && $player->getInventory()->getItemInHand()->hasEnchantment(17)) {
+                    switch ($player->getInventory()->getItemInHand()->getId()) {
+                        case 355:
+                            if ($player->getInventory()->getItemInHand()->hasEnchantment(17)) {
+                                $player->sendPopup("§aReturn To Hub");
                                 return;
-                        }
+                            }
+                            break;
+                        case 35:
+                            $player->sendPopup("§cReport");
+                            return;
                     }
-                    $player->sendPopup(TF::RED . $playerstartcount . " more players required...");
                 }
-                $item = Item::get(Item::BED, 0, 1)->setCustomName("§aReturn To Hub");
-                $item->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(17), 5));
-                $player->getInventory()->setItem(8, $item);
-                
-                $item2 = Item::get(35, 14, 1)->setCustomName("§aReport");
-                $item2->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(17), 5));
-                $player->getInventory()->setItem(0, $item2);
+                $player->sendPopup(TF::RED . $playerstartcount . " more players required...");
             }
+            $item = Item::get(Item::BED, 0, 1)->setCustomName("§aReturn To Hub");
+            $item->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(17), 5));
+            $player->getInventory()->setItem(8, $item);
+                
+            $item2 = Item::get(35, 14, 1)->setCustomName("§aReport");
+            $item2->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(17), 5));
+            $player->getInventory()->setItem(0, $item2);
+        }
     }
     
     /**
@@ -907,9 +912,9 @@ class GameManager extends Task
             }
             //put the deathmatch time for normal too 5 mins i think
             ScoreFactory::setScoreLine($player, 5, " ");
-            ScoreFactory::setScoreLine($player, 6, " §fPlayers: §a" . count($this->plugin->getGamePlayers()) . "§f§7/50");
+            ScoreFactory::setScoreLine($player, 6, " §fPlayers: §a" . count($this->plugin->getSessionManager()->getPlaying()) . "§f§7/50");
             ScoreFactory::setScoreLine($player, 7, "  ");
-            ScoreFactory::setScoreLine($player, 8, $this->plugin->hasSession($player) !== true ? " §fKills: §a0" : " §fKills: §a" . $this->plugin->getSession($player)->getEliminations());
+            ScoreFactory::setScoreLine($player, 8, $this->plugin->hasSession($player) !== true ? " §fKills: §a0" : " §fKills: §a" . $this->plugin->getSessionManager()->getSession($player)->getEliminations());
             ScoreFactory::setScoreLine($player, 9, " §fTPS: §a" . $this->plugin->getServer()->getTicksPerSecond());
             ScoreFactory::setScoreLine($player, 10, "   ");
             ScoreFactory::setScoreLine($player, 11, " §fBorder: §a± " . $this->border->getSize());
@@ -920,7 +925,7 @@ class GameManager extends Task
         } else {
             ScoreFactory::setScoreLine($player, 1, "§7§l[-------------------]");
             ScoreFactory::setScoreLine($player, 2, " §fPlayers §f");
-            ScoreFactory::setScoreLine($player, 3, " §a" . count($this->plugin->getGamePlayers()) . "§f§7/50");
+            ScoreFactory::setScoreLine($player, 3, " §a" . count($this->plugin->getSessionManager()->getPlaying()) . "§f§7/50");
             ScoreFactory::setScoreLine($player, 4, " ");
             ScoreFactory::setScoreLine($player, 5, $this->getPhase() === PhaseChangeEvent::WAITING ? "§7 Waiting for more players..." : "§7 Starting in:§f $this->countdown");
             ScoreFactory::setScoreLine($player, 6, "  ");
@@ -943,7 +948,7 @@ class GameManager extends Task
     public function randomizeCoordinates(int $x1, int $x2, int $y1, int $y2, int $z1, int $z2): void
     {
         $server = $this->plugin->getServer();
-        foreach ($this->plugin->getGamePlayers() as $player) {
+        foreach ($this->plugin->getSessionManager()->getPlaying() as $player) {
             $x = mt_rand($x1, $x2);
             $y = mt_rand($y1, $y2);
             $z = mt_rand($z1, $z2);

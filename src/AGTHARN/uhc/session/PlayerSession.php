@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AGTHARN\uhc;
+namespace AGTHARN\uhc\session;
 
 use pocketmine\Player;
 
@@ -11,13 +11,13 @@ class PlayerSession
 {
 
     /** @var Player */
-    private $player;
-
-    /** @var Team|null */
-    private $team = null;
-    
+    private Player $player;
     /** @var int */
-    private $eliminations = 0;
+    private int $eliminations = 0;
+    /** @var Team|null */
+    private ?Team $team = null;
+    /** @var bool */
+    private bool $isPlaying = false;
     
     /**
      * __construct
@@ -38,6 +38,27 @@ class PlayerSession
     public function getPlayer(): Player
     {
         return $this->player;
+    }
+    
+    /**
+     * setPlaying
+     *
+     * @param  bool $isPlaying
+     * @return void
+     */
+    public function setPlaying(bool $isPlaying): void
+    {
+        $this->isPlaying = $isPlaying;
+    }
+    
+    /**
+     * isPlaying
+     *
+     * @return bool
+     */
+    public function isPlaying(): bool
+    {
+        return $this->isPlaying;
     }
     
     /**
@@ -62,22 +83,11 @@ class PlayerSession
     }
     
     /**
-     * updatePlayer
-     *
-     * @param  Player $player
-     * @return void
-     */
-    public function updatePlayer(Player $player)
-    {
-        $this->player = $player;
-    }
-    
-    /**
      * getTeam
      *
      * @return Team
      */
-    public function getTeam(): Team
+    public function getTeam(): ?Team
     {
         return $this->team;
     }
@@ -104,6 +114,7 @@ class PlayerSession
             $this->team = $team;
             return true;
         }
+
         return false;
     }
     
@@ -117,10 +128,11 @@ class PlayerSession
         if ($this->team->removeMember($this->getPlayer())) {
             $this->team = null;
             return true;
-        } elseif($this->isTeamLeader()){
+        }elseif($this->isTeamLeader()){
             $this->team = null;
             return true;
         }
+
         return false;
     }
     
@@ -132,5 +144,16 @@ class PlayerSession
     public function isTeamLeader(): bool
     {
         return $this->isInTeam() && $this->team->isLeader($this->getPlayer());
+    }
+    
+    /**
+     * update
+     *
+     * @param  Player $player
+     * @return void
+     */
+    public function update(Player $player): void
+    {
+        $this->player = $player;
     }
 }

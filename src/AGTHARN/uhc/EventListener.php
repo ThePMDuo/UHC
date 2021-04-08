@@ -85,6 +85,8 @@ class EventListener implements Listener
     public function handleJoin(PlayerJoinEvent $event): void
     {
         $player = $event->getPlayer();
+        $sessionManager = $this->plugin->getSessionManager();
+        $session = $this->plugin->getSessionManager()->getSession($player);
         $server = $this->plugin->getServer();
         $mUsage = Process::getAdvancedMemoryUsage();
 
@@ -102,11 +104,11 @@ class EventListener implements Listener
                 $this->plugin->addSession($player);
                 $player->setGamemode(Player::SURVIVAL);
                 // since solo we wont handle joining available teams
-                $this->plugin->getSession($player)->addToTeam($this->plugin->getTeamManager()->createTeam($player));
+                $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
                 break;
             default:
-                if ($this->plugin->hasSession($player)) {
-                    $this->plugin->removeFromGame($player);
+                if ($sessionManager->hasSession($player)) {
+                    $session->setPlaying(false);
                 }
                 $player->setGamemode(3);
                 $player->sendMessage(TF::YELLOW . "Type /spectate to spectate a player.");
@@ -124,7 +126,7 @@ class EventListener implements Listener
     public function handleQuit(PlayerQuitEvent $event): void
     {
         $player = $event->getPlayer();
-        $session = $this->plugin->getSession($player);
+        $session = $this->plugin->getSessionManager()->getSession($player);
 
         if ($session->isInTeam()) {
             if (!$session->isTeamLeader()) {
@@ -140,9 +142,8 @@ class EventListener implements Listener
 
         if ($this->plugin->hasSession($player)) {
             $this->plugin->removeSession($player);
-            $this->plugin->removeFromGame($player);
+            $session->setPlaying(false);
         }
-        $this->plugin->removeFromGame($player);
         ScoreFactory::removeScore($player);
     }
     
@@ -240,7 +241,7 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $cause = $player->getLastDamageCause();
-        $eliminatedSession = $this->plugin->getSession($player);
+        $eliminatedSession = $this->plugin->getSessionManager()->getSession($player);
         
         $player->setGamemode(3);
         $player->sendMessage(TF::YELLOW . "You have been eliminated! Type /spectate to spectate a player.");
