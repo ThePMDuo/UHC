@@ -172,9 +172,9 @@ class Main extends PluginBase
     /**
      * getBossBar
      *
-     * @return Bossbar
+     * @return mixed
      */
-    public function getBossBar(): Bossbar /** @phpstan-ignore-line */
+    public function getBossBar()
     {
         return new Bossbar(); /** @phpstan-ignore-line */
     }

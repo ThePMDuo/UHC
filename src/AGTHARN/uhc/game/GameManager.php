@@ -799,65 +799,65 @@ class GameManager extends Task
                 if ($this->border->getSize() >= 499) {
                     $changedTime = (int)$this->pvp - 900;
                     if ($this->pvp - 900 >= 61) {
-                        $bossBar->setTitle("§fBorder Shrinks(400): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(400): §a" . gmdate("i:s", $changedTime));/** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     } elseif ($this->pvp - 900 <= 60) {
-                        $bossBar->setTitle("§fBorder Shrinks(400): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(400): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     }
                 } elseif ($this->border->getSize() >= 399) {
                     $changedTime = (int)$this->pvp - 600;
                     if ($this->pvp - 600 >= 61) {
-                        $bossBar->setTitle("§fBorder Shrinks(300): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(300): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     } elseif ($this->pvp - 600 <= 60) {
-                        $bossBar->setTitle("§fBorder Shrinks(300): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(300): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     }
                 } elseif ($this->border->getSize() >= 299) {
                     $changedTime = (int)$this->pvp - 300;
                     if ($this->pvp - 300 >= 61) {
-                        $bossBar->setTitle("§fBorder Shrinks(200): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(200): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     } elseif ($this->pvp - 300 <= 60) {
-                        $bossBar->setTitle("§fBorder Shrinks(200): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(200): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     }
                 } elseif ($this->border->getSize() >= 199) {
                     $changedTime = (int)$this->pvp - 0;
                     if ($this->pvp - 0 >= 61) { // reason why i leave it as - 0 is to note myself
-                        $bossBar->setTitle("§fBorder Shrinks(100): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(100): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     } elseif ($this->pvp - 0 <= 60) {
-                        $bossBar->setTitle("§fBorder Shrinks(100): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(100): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     }
                 } elseif ($this->border->getSize() >= 99) {
                     $changedTime = (int)$this->deathmatch - 700;
                     if ($this->deathmatch - 700 >= 61) {
-                        $bossBar->setTitle("§fBorder Shrinks(50): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(50): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     } elseif ($this->deathmatch - 700 <= 60) {
-                        $bossBar->setTitle("§fBorder Shrinks(50): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(50): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     }
                 } elseif ($this->border->getSize() >= 49) {
                     $changedTime = (int)$this->deathmatch - 400;
                     if ($this->deathmatch - 400 >= 61) {
-                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 100);
+                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 100); /** @phpstan-ignore-line */
                     } elseif ($this->deathmatch - 400 <= 60) {
-                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 100);
+                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 100); /** @phpstan-ignore-line */
                     }
                 } elseif ($this->border->getSize() >= 9) {
                     $changedTime = (int)$this->deathmatch - 300;
                      if ($this->deathmatch - 300 >= 61) {
-                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     } elseif ($this->deathmatch - 300 <= 60) {
-                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                        $bossBar->setHealthPercent($changedTime / 300); /** @phpstan-ignore-line */
                     }
                 }
                 break;
