@@ -70,129 +70,6 @@ class GameManager extends Task
     }
     
     /**
-     * getPhase
-     *
-     * @return int
-     */
-    public function getPhase(): int
-    {
-        return $this->phase;
-    }
-    
-    /**
-     * setPhase
-     *
-     * @param  int $phase
-     * @return void
-     */
-    public function setPhase(int $phase): void
-    {
-        foreach ($this->plugin->getSessionManager()->getPlaying() as $playerSession) {
-            $event = new PhaseChangeEvent($playerSession, $this->phase, $phase);
-            $event->call();
-        }
-        $this->phase = $phase;
-    }
-        
-    /**
-     * setGameTimer
-     *
-     * @param  int $time
-     * @return void
-     */
-    public function setGameTimer(int $time)
-    {
-        $this->game = $time;
-    }
-        
-    /**
-     * setCountdownTimer
-     *
-     * @param  int $time
-     * @return void
-     */
-    public function setCountdownTimer(int $time): void
-    {
-        $this->countdown = $time;
-    }
-        
-    /**
-     * setGraceTimer
-     *
-     * @param  int $time
-     * @return void
-     */
-    public function setGraceTimer(int $time): void
-    {
-        $this->grace = $time;
-    }
-        
-    /**
-     * setPVPTimer
-     *
-     * @param  int $time
-     * @return void
-     */
-    public function setPVPTimer(int $time): void
-    {
-        $this->pvp = $time;
-    }
-        
-    /**
-     * setDeathmatchTimer
-     *
-     * @param  int $time
-     * @return void
-     */
-    public function setDeathmatchTimer(int $time): void
-    {
-        $this->deathmatch = $time;
-    }
-        
-    /**
-     * setWinnerTimer
-     *
-     * @param  int $time
-     * @return void
-     */
-    public function setWinnerTimer(int $time): void
-    {
-        $this->winner = $time;
-    }
-        
-    /**
-     * setResetTimer
-     *
-     * @param  int $time
-     * @return void
-     */
-    public function setResetTimer(int $time): void
-    {
-        $this->reset = $time;
-    }
-    
-    /**
-     * hasStarted
-     *
-     * @return bool
-     */
-    public function hasStarted(): bool
-    {
-        return $this->getPhase() >= PhaseChangeEvent::GRACE;
-    }
-        
-    /**
-     * setShrinking
-     *
-     * @param  bool $shrinking
-     * @return void
-     */
-    public function setShrinking(bool $shrinking)
-    {
-        $this->shrinking = $shrinking;
-    }
-    
-    /**
      * onRun
      *
      * @param  int $currentTick
@@ -202,6 +79,7 @@ class GameManager extends Task
     {
         $server = $this->plugin->getServer();
         $this->handlePlayers();
+        $this->handleBossBar();
         
         switch ($this->getPhase()) {
             case PhaseChangeEvent::WAITING:
@@ -229,6 +107,12 @@ class GameManager extends Task
         if ($this->hasStarted() && $this->phase !== PhaseChangeEvent::WINNER) $this->game++;
         
         $server->getLevelByName($this->plugin->map)->setTime(1000);
+
+        if (!$this->hasStarted()) {
+            $server->getNetwork()->setName("NOT STARTED");
+        } else {
+            $server->getNetwork()->setName("STARTED");
+        }
         
         foreach ($server->getOnlinePlayers() as $player) {
             $playerx = $player->getFloorX();
@@ -376,7 +260,6 @@ class GameManager extends Task
         $this->border->setSize(500);
         
         //$server->setConfigString("gamemode", "0");
-        $server->getNetwork()->setName("NOT STARTED");
         
         $playerstartcount = self::MIN_PLAYERS - count($server->getOnlinePlayers());
         
@@ -461,7 +344,6 @@ class GameManager extends Task
                 break;
             case 30:
                 $this->border->setSize(500);
-                $server->getNetwork()->setName("STARTED");
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The game will begin in " . TF::AQUA . "30 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
@@ -720,7 +602,6 @@ class GameManager extends Task
     {
         $server = $this->plugin->getServer();
         $sessionManager = $this->plugin->getSessionManager();
-        //$this->hasStarted(false);
         
         switch ($this->winner) {
             case 60:
@@ -735,13 +616,13 @@ class GameManager extends Task
                     $player->getCursorInventory()->clearAll();
                     $player->setImmobile(false);
                     $this->handleScoreboard($player);
-                    }
-                    foreach ($server->getOnlinePlayers() as $player) {
-                        $sessionManager->removeFromGame($player);
-                        $player->teleport($server->getLevelByName($this->plugin->map)->getSafeSpawn());
-                        $player->setGamemode(Player::SURVIVAL);
-                        }
-                    $this->setShrinking(false);
+                }
+                foreach ($server->getOnlinePlayers() as $player) {
+                    $sessionManager->getPlaying($player);
+                    $player->teleport($server->getLevelByName($this->plugin->map)->getSafeSpawn());
+                    $player->setGamemode(Player::SURVIVAL);
+                }
+                $this->setShrinking(false);
                 break;
             case 45:
                 foreach ($server->getOnlinePlayers() as $player) {
@@ -800,7 +681,6 @@ class GameManager extends Task
     private function handleReset(): void
     {
         $server = $this->plugin->getServer();
-        //$this->hasStarted(false);
         
         switch ($this->reset) {
             case 3:
@@ -851,78 +731,44 @@ class GameManager extends Task
         if ($this->hasStarted()) {
             ScoreFactory::setScoreLine($player, 1, "§7§l[-------------------]");
             ScoreFactory::setScoreLine($player, 2, " §fGame Time: §a" . gmdate("H:i:s", $this->game));
-            if ($this->phase === PhaseChangeEvent::GRACE) {
-                if ($this->grace >= 601) {
-                    ScoreFactory::setScoreLine($player, 3, " §fFinal Heal In: §a" . (int)gmdate("i:s", (int)$this->grace - 601));
-                }
-            } elseif ($this->phase === PhaseChangeEvent::PVP) {
-                if ($this->shrinking == true && $this->border->getSize() >= "499") {
-                    if ($this->pvp - 900 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(400): §a" . gmdate("i:s", (int)$this->pvp - 900));
-                    } elseif ($this->pvp - 900 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(400): §c" . gmdate("i:s", (int)$this->pvp - 900));
+
+            switch ($this->getPhase()) {
+                case PhaseChangeEvent::GRACE:
+                    if ($this->grace >= 601) {
+                        ScoreFactory::setScoreLine($player, 3, " §fFinal Heal In: §a" . (int)gmdate("i:s", (int)$this->grace - 601));
                     }
-                } elseif ($this->shrinking == true && $this->border->getSize() >= "399") {
-                    if ($this->pvp - 600 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(300): §a" . gmdate("i:s", (int)$this->pvp - 600));
-                    } elseif ($this->pvp - 600 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(300): §c" . gmdate("i:s", (int)$this->pvp - 600));
-                    }
-                } elseif ($this->shrinking == true && $this->border->getSize() >= "299") {
-                    if ($this->pvp - 300 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(200): §a" . gmdate("i:s", (int)$this->pvp - 300));
-                    } elseif ($this->pvp - 300 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(200): §c" . gmdate("i:s", (int)$this->pvp - 300));
-                    }
-                } elseif ($this->shrinking == true && $this->border->getSize() >= "199") {
-                    if ($this->pvp - 0 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(100): §a" . gmdate("i:s", (int)$this->pvp - 0));
-                    } elseif ($this->pvp - 0 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(100): §c" . gmdate("i:s", (int)$this->pvp - 0));
-                    }
-                } elseif ($this->shrinking == true && $this->border->getSize() >= "99") {
-                    if ($this->deathmatch - 700 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(50): §a" . gmdate("i:s", (int)$this->deathmatch - 700));
-                    } elseif ($this->deathmatch - 700 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(50): §c" . gmdate("i:s", (int)$this->deathmatch - 700));
-                    }
-                } elseif ($this->shrinking == true && $this->border->getSize() >= "49") {
-                    if ($this->deathmatch - 400 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(10): §a" . gmdate("i:s", (int)$this->deathmatch - 400));
-                    } elseif ($this->deathmatch - 400 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(10): §c" . gmdate("i:s", (int)$this->deathmatch - 400));
-                    }
-                } elseif ($this->shrinking == true && $this->border->getSize() >= "9") {
-                    if ($this->deathmatch - 300 >= 61) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(1): §a" . gmdate("i:s", (int)$this->deathmatch - 300));
-                    } elseif ($this->deathmatch - 300 <= 60) {
-                        ScoreFactory::setScoreLine($player, 3, " §fBorder Shrinks(1): §c" . gmdate("i:s", (int)$this->deathmatch - 300));
-                    }
-                }
+                    break;
             }
-            if ($this->phase === PhaseChangeEvent::GRACE) {
-                if ($this->grace <= 300) {
-                    ScoreFactory::setScoreLine($player, 4, " §fPVP Enables In: §c" . gmdate("i:s", (int)$this->grace));
-                } else {
-                    ScoreFactory::setScoreLine($player, 4, " §fPVP Enables In: §a" . gmdate("i:s", (int)$this->grace));
-                }
-            } elseif ($this->phase === PhaseChangeEvent::DEATHMATCH) {
-                if ($this->deathmatch >= 900) {
-                    ScoreFactory::setScoreLine($player, 4, " §fDeathmatch In: §c" . gmdate("i:s", (int)$this->deathmatch - 900));
-                }
+
+            ScoreFactory::setScoreLine($player, 1, "§7§l[-------------------]");
+            ScoreFactory::setScoreLine($player, 2, " §fGame Time: §a" . gmdate("H:i:s", $this->game));
+            switch ($this->getPhase()) {
+                case PhaseChangeEvent::GRACE:
+                    if ($this->grace <= 300) {
+                        ScoreFactory::setScoreLine($player, 3, " §fPVP Enables In: §c" . gmdate("i:s", (int)$this->grace));
+                    } else {
+                        ScoreFactory::setScoreLine($player, 3, " §fPVP Enables In: §a" . gmdate("i:s", (int)$this->grace));
+                    }
+                    break;
+                case PhaseChangeEvent::DEATHMATCH:
+                    if ($this->deathmatch >= 900) {
+                        ScoreFactory::setScoreLine($player, 3, " §fDeathmatch In: §c" . gmdate("i:s", (int)$this->deathmatch - 900));
+                    }
+                    break;
             }
+
             //put the deathmatch time for normal too 5 mins i think
-            ScoreFactory::setScoreLine($player, 5, " ");
-            ScoreFactory::setScoreLine($player, 6, " §fPlayers: §a" . count($this->plugin->getSessionManager()->getPlaying()) . "§f§7/50");
-            ScoreFactory::setScoreLine($player, 7, "  ");
-            ScoreFactory::setScoreLine($player, 8, $this->plugin->getSessionManager()->hasSession($player) !== true ? " §fKills: §a0" : " §fKills: §a" . $this->plugin->getSessionManager()->getSession($player)->getEliminations());
-            ScoreFactory::setScoreLine($player, 9, " §fTPS: §a" . $this->plugin->getServer()->getTicksPerSecond());
-            ScoreFactory::setScoreLine($player, 10, "   ");
-            ScoreFactory::setScoreLine($player, 11, " §fBorder: §a± " . $this->border->getSize());
-            ScoreFactory::setScoreLine($player, 12, " §fCenter: §a0, 0");
-            ScoreFactory::setScoreLine($player, 13, "    ");
-            ScoreFactory::setScoreLine($player, 14, "§7§l[-------------------] ");
-            ScoreFactory::setScoreLine($player, 15, " §eplay.minewarrior.xyz");
+            ScoreFactory::setScoreLine($player, 4, " ");
+            ScoreFactory::setScoreLine($player, 5, " §fPlayers: §a" . count($this->plugin->getSessionManager()->getPlaying()) . "§f§7/50");
+            ScoreFactory::setScoreLine($player, 6, "  ");
+            ScoreFactory::setScoreLine($player, 7, $this->plugin->getSessionManager()->hasSession($player) !== true ? " §fKills: §a0" : " §fKills: §a" . $this->plugin->getSessionManager()->getSession($player)->getEliminations());
+            ScoreFactory::setScoreLine($player, 8, " §fTPS: §a" . $this->plugin->getServer()->getTicksPerSecond());
+            ScoreFactory::setScoreLine($player, 9, "   ");
+            ScoreFactory::setScoreLine($player, 10, " §fBorder: §a± " . $this->border->getSize());
+            ScoreFactory::setScoreLine($player, 11, " §fCenter: §a0, 0");
+            ScoreFactory::setScoreLine($player, 12, "    ");
+            ScoreFactory::setScoreLine($player, 13, "§7§l[-------------------] ");
+            ScoreFactory::setScoreLine($player, 14, " §eplay.minewarrior.xyz");
         } else {
             ScoreFactory::setScoreLine($player, 1, "§7§l[-------------------]");
             ScoreFactory::setScoreLine($player, 2, " §fPlayers §f");
@@ -932,6 +778,90 @@ class GameManager extends Task
             ScoreFactory::setScoreLine($player, 6, "  ");
             ScoreFactory::setScoreLine($player, 7, "§7§l[-------------------] ");
             ScoreFactory::setScoreLine($player, 8, " §eplay.minewarrior.xyz");
+        }
+    }
+    
+    /**
+     * handleBossBar
+     *
+     * @return void
+     */
+    public function handleBossBar(): void
+    {
+        $bossBar = $this->plugin->getBossBar();
+        switch ($this->getPhase()) {
+            case PhaseChangeEvent::GRACE:
+                $changedTime = (int)$this->grace - 601;
+
+                $bossBar->setTitle("§fFinal Heal In: §a" . gmdate("i:s", $changedTime));
+                $bossBar->setHealthPercent($changedTime / 599);
+                break;
+            case PhaseChangeEvent::PVP:
+                if ($this->border->getSize() >= 499) {
+                    $changedTime = (int)$this->pvp - 900;
+                    if ($this->pvp - 900 >= 61) {
+                        $bossBar->setTitle("§fBorder Shrinks(400): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    } elseif ($this->pvp - 900 <= 60) {
+                        $bossBar->setTitle("§fBorder Shrinks(400): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    }
+                } elseif ($this->border->getSize() >= 399) {
+                    $changedTime = (int)$this->pvp - 600;
+                    if ($this->pvp - 600 >= 61) {
+                        $bossBar->setTitle("§fBorder Shrinks(300): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    } elseif ($this->pvp - 600 <= 60) {
+                        $bossBar->setTitle("§fBorder Shrinks(300): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    }
+                } elseif ($this->border->getSize() >= 299) {
+                    $changedTime = (int)$this->pvp - 300;
+                    if ($this->pvp - 300 >= 61) {
+                        $bossBar->setTitle("§fBorder Shrinks(200): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    } elseif ($this->pvp - 300 <= 60) {
+                        $bossBar->setTitle("§fBorder Shrinks(200): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    }
+                } elseif ($this->border->getSize() >= 199) {
+                    $changedTime = (int)$this->pvp - 0;
+                    if ($this->pvp - 0 >= 61) { // reason why i leave it as - 0 is to note myself
+                        $bossBar->setTitle("§fBorder Shrinks(100): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    } elseif ($this->pvp - 0 <= 60) {
+                        $bossBar->setTitle("§fBorder Shrinks(100): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    }
+                } elseif ($this->border->getSize() >= 99) {
+                    $changedTime = (int)$this->deathmatch - 700;
+                    if ($this->deathmatch - 700 >= 61) {
+                        $bossBar->setTitle("§fBorder Shrinks(50): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    } elseif ($this->deathmatch - 700 <= 60) {
+                        $bossBar->setTitle("§fBorder Shrinks(50): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    }
+                } elseif ($this->border->getSize() >= 49) {
+                    $changedTime = (int)$this->deathmatch - 400;
+                    if ($this->deathmatch - 400 >= 61) {
+                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 100);
+                    } elseif ($this->deathmatch - 400 <= 60) {
+                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 100);
+                    }
+                } elseif ($this->border->getSize() >= 9) {
+                    $changedTime = (int)$this->deathmatch - 300;
+                     if ($this->deathmatch - 300 >= 61) {
+                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    } elseif ($this->deathmatch - 300 <= 60) {
+                        $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
+                        $bossBar->setHealthPercent($changedTime / 300);
+                    }
+                }
+                break;
         }
     }
     
@@ -959,5 +889,128 @@ class GameManager extends Task
             $player->teleport(new Position($x, $y, $z, $level));
         }
         $this->playerTimer += 5;
+    }
+
+    /**
+     * getPhase
+     *
+     * @return int
+     */
+    public function getPhase(): int
+    {
+        return $this->phase;
+    }
+    
+    /**
+     * setPhase
+     *
+     * @param  int $phase
+     * @return void
+     */
+    public function setPhase(int $phase): void
+    {
+        foreach ($this->plugin->getSessionManager()->getPlaying() as $playerSession) {
+            $event = new PhaseChangeEvent($playerSession, $this->phase, $phase);
+            $event->call();
+        }
+        $this->phase = $phase;
+    }
+        
+    /**
+     * setGameTimer
+     *
+     * @param  int $time
+     * @return void
+     */
+    public function setGameTimer(int $time)
+    {
+        $this->game = $time;
+    }
+        
+    /**
+     * setCountdownTimer
+     *
+     * @param  int $time
+     * @return void
+     */
+    public function setCountdownTimer(int $time): void
+    {
+        $this->countdown = $time;
+    }
+        
+    /**
+     * setGraceTimer
+     *
+     * @param  int $time
+     * @return void
+     */
+    public function setGraceTimer(int $time): void
+    {
+        $this->grace = $time;
+    }
+        
+    /**
+     * setPVPTimer
+     *
+     * @param  int $time
+     * @return void
+     */
+    public function setPVPTimer(int $time): void
+    {
+        $this->pvp = $time;
+    }
+        
+    /**
+     * setDeathmatchTimer
+     *
+     * @param  int $time
+     * @return void
+     */
+    public function setDeathmatchTimer(int $time): void
+    {
+        $this->deathmatch = $time;
+    }
+        
+    /**
+     * setWinnerTimer
+     *
+     * @param  int $time
+     * @return void
+     */
+    public function setWinnerTimer(int $time): void
+    {
+        $this->winner = $time;
+    }
+        
+    /**
+     * setResetTimer
+     *
+     * @param  int $time
+     * @return void
+     */
+    public function setResetTimer(int $time): void
+    {
+        $this->reset = $time;
+    }
+    
+    /**
+     * hasStarted
+     *
+     * @return bool
+     */
+    public function hasStarted(): bool
+    {
+        return $this->getPhase() >= PhaseChangeEvent::GRACE;
+    }
+        
+    /**
+     * setShrinking
+     *
+     * @param  bool $shrinking
+     * @return void
+     */
+    public function setShrinking(bool $shrinking)
+    {
+        $this->shrinking = $shrinking;
     }
 }

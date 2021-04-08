@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace AGTHARN\uhc;
 
 use pocketmine\level\generator\GeneratorManager;
+use pocketmine\entity\utils\Bossbar;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat as TF;
-use pocketmine\Player;
 
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\session\SessionManager;
@@ -167,6 +167,16 @@ class Main extends PluginBase
     public function getTeamManager(): TeamManager
     {
         return $this->teamManager;
+    }
+    
+    /**
+     * getBossBar
+     *
+     * @return Bossbar
+     */
+    public function getBossBar(): Bossbar
+    {
+        return new Bossbar();
     }
     
     /**
