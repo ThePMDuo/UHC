@@ -2,11 +2,12 @@ parameters:
     level: 7
 
     checkMissingIterableValueType: false
+    reportUnmatchedIgnoredErrors: true
 
     ignoreErrors:
-        - 'Call to method setHealthPercent() on an unknown class'
-        - 'Call to method setTitle() on an unknown class'
-        - 'Return typehint of method AGTHARN\uhc\Main::getBossBar() has invalid type'
+        - 'Call to method setHealthPercent'
+        - 'Call to method setTitle'
+        - 'Return typehint of method AGTHARN'
         - 'Instantiated class'
 
     paths:
