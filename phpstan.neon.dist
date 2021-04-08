@@ -4,10 +4,10 @@ parameters:
     checkMissingIterableValueType: false
 
     ignoreErrors:
-        - Call to method setHealthPercent() on an unknown class pocketmine\entity\utils\Bossbar.
-        - Call to method setTitle() on an unknown class pocketmine\entity\utils\Bossbar.
-        - Return typehint of method AGTHARN\uhc\Main::getBossBar() has invalid type pocketmine\entity\utils\Bossbar.
-        - Instantiated class pocketmine\entity\utils\Bossbar not found.
+        - "/ Call to method setHealthPercent() on an unknown class pocketmine\entity\utils\Bossbar. /"
+        - "/ Call to method setTitle() on an unknown class pocketmine\entity\utils\Bossbar. /"
+        - "/ Return typehint of method AGTHARN\uhc\Main::getBossBar() has invalid type pocketmine\entity\utils\Bossbar. /"
+        - "/ Instantiated class pocketmine\entity\utils\Bossbar not found. /"
 
     paths:
         - /source/src
