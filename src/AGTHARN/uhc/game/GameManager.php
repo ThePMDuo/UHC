@@ -792,8 +792,8 @@ class GameManager extends Task
             case PhaseChangeEvent::GRACE:
                 $changedTime = (int)$this->grace - 601;
 
-                $bossBar->setTitle("§fFinal Heal In: §a" . gmdate("i:s", $changedTime));
-                $bossBar->setHealthPercent($changedTime / 599);
+                $bossBar->setTitle("§fFinal Heal In: §a" . gmdate("i:s", $changedTime)); /** @phpstan-ignore-line */
+                $bossBar->setHealthPercent($changedTime / 599); /** @phpstan-ignore-line */
                 break;
             case PhaseChangeEvent::PVP:
                 if ($this->border->getSize() >= 499) {
