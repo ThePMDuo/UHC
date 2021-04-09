@@ -23,10 +23,18 @@ class Main extends PluginBase
     public $buildNumber = 1;
     /** @var bool */
     public $operational = true;
+    
     /** @var int */
     public $seed;
     /** @var string */
     public $map = "UHC";
+
+    /** @var int */
+    public $spawnPosX = 0;
+    /** @var int */
+    public $spawnPosY = 100;
+    /** @var int */
+    public $spawnPosZ = 0;
 
     /** @var GameManager */
     private $gameManager;
@@ -93,6 +101,7 @@ class Main extends PluginBase
             $this->getServer()->generateLevel($levelName, $this->seed, $generator, []);
             $this->getServer()->loadLevel("UHC");
         }
+        $player->teleport(new Position($this->spawnPosX, $this->spawnPosY, $this->spawnPosZ, $level));
     }
     
     /**

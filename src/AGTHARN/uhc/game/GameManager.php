@@ -127,7 +127,7 @@ class GameManager extends Task
                 if ($this->phase === PhaseChangeEvent::WAITING || $this->phase === PhaseChangeEvent::COUNTDOWN) {
                     $level = $server->getLevelByName($this->plugin->map);
                     
-                    $player->teleport(new Position(265, 70, 265, $level));
+                    $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
                 } else {
                     $player->addEffect(new EffectInstance(Effect::getEffect(19), 60, 1, false));
                     if ($player->getHealth() <= 2) {
@@ -139,17 +139,13 @@ class GameManager extends Task
                 $player->sendPopup(TF::RED . "BORDER IS CLOSE!");
             }
             
-            if($player->getLevel()->getName() == $server->getLevelByName($this->plugin->map)){
+            if ($player->getLevel()->getName() !== $server->getLevelByName($this->plugin->map)) {
                 $level = $server->getLevelByName($this->plugin->map);
-                $player->teleport(new Position($playerx, $playery, $playerz, $level));
+                $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
             }
             
-            if($player->getGamemode() === Player::SPECTATOR) {
+            if ($player->getGamemode() === Player::SPECTATOR) {
                 $inventory = $player->getInventory();
-                //if ($player->getInventory()->getItemInHand()->getId() === 355 && $player->getInventory()->getItemInHand()->hasEnchantment(17)) {
-                        //$player->sendPopup("§aReturn To Hub");
-                        //return;
-                //}
                 $item = Item::get(Item::BED, 0, 1)->setCustomName("§aReturn To Hub");
                 $item->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(17), 5));
                 $player->getInventory()->setItem(8, $item);
@@ -205,7 +201,12 @@ class GameManager extends Task
         }
         $server->getLevelByName("UHC")->setAutoSave(false);
     }
-
+    
+    /**
+     * handlePlayers
+     *
+     * @return void
+     */
     private function handlePlayers(): void
     {
         foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
@@ -230,7 +231,6 @@ class GameManager extends Task
                     $player->setHealth($player->getMaxHealth());
                     if ($this->countdown === 29) {
                         $this->randomizeCoordinates(-250, 250, 180, 200, -250, 250);
-                        //$player->setWhitelisted(true);
                         $player->removeAllEffects();
                         $player->getInventory()->clearAll();
                         $player->getArmorInventory()->clearAll();
@@ -259,23 +259,16 @@ class GameManager extends Task
         $server = $this->plugin->getServer();
         $this->border->setSize(500);
         
-        //$server->setConfigString("gamemode", "0");
-        
         $playerstartcount = self::MIN_PLAYERS - count($server->getOnlinePlayers());
         
-        if(count($server->getOnlinePlayers()) >= self::MIN_PLAYERS){
+        if (count($server->getOnlinePlayers()) >= self::MIN_PLAYERS) {
                 $this->setPhase(PhaseChangeEvent::COUNTDOWN);
         }
         
         foreach ($this->plugin->getSessionManager()->getSessions() as $player) {
-            //$server->setConfigBool("white-list", false);
             $player->setFood($player->getMaxFood());
             $player->setHealth($player->getMaxHealth());
             $player->setImmobile(false);
-            //$player->removeAllEffects();
-            //$player->getInventory()->clearAll();
-            //$player->getArmorInventory()->clearAll();
-            //$player->getCursorInventory()->clearAll();
             $this->handleScoreboard($player);
         }
 
@@ -321,12 +314,9 @@ class GameManager extends Task
         $server = $this->plugin->getServer();
         switch ($this->countdown) {
             case 60:
-                //for uhcreset so it can happen for second time
                 $this->setResetTimer(3);
-                //double check
                 $this->setGameTimer(0);
                 foreach ($server->getOnlinePlayers() as $player) {
-                    //players will see effect refresh
                     $player->removeAllEffects();
                     $player->getInventory()->clearAll();
                     $player->getArmorInventory()->clearAll();
@@ -383,10 +373,9 @@ class GameManager extends Task
                 }
 
                 foreach ($server->getOnlinePlayers() as $player) {
-                $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . TF::BOLD . "The match has begun!");
-                $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . TF::BOLD . "The match has begun!");
+                    $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
-                //NOTE PLS SET TO GRACE CUZ OF TESTING
                 $this->setPhase(PhaseChangeEvent::GRACE);
                 break;
         }
@@ -652,8 +641,6 @@ class GameManager extends Task
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "ALL PLAYERS TELEPORTING!");
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
-                //so nobody interrupts reset
-                $server->setConfigBool("white-list", true);
                 break;
             case 4:
                 foreach ($server->getOnlinePlayers() as $player) {
@@ -684,6 +671,10 @@ class GameManager extends Task
         switch ($this->reset) {
             case 3:
                 $server->getLogger()->info("Starting reset");
+
+                foreach ($server->getOnlinePlayers() as $player) { // ik this is the 2nd time. its just for safety measures
+                    $player->kick();
+                }
             
                 foreach ($server->getLevels() as $level) {
                     foreach ($level->getEntities() as $entity) {
@@ -704,15 +695,12 @@ class GameManager extends Task
                 $this->setDeathmatchTimer(60 * 20);
                 $this->setWinnerTimer(60);
                 $this->setShrinking(false);
-                //$this->setResetTimer(30); //moved to countdown
             
                 $server->getLogger()->info("Timers have been reset");
                 break;
             case 0:
                 $this->setPhase(PhaseChangeEvent::WAITING);
                 $server->getLogger()->info("Changed to waiting phase");
-                //so nobody interrupts reset
-                $server->setConfigBool("white-list", false);
                 break;
         }
         $this->reset--;
@@ -756,7 +744,6 @@ class GameManager extends Task
                     break;
             }
 
-            //put the deathmatch time for normal too 5 mins i think
             ScoreFactory::setScoreLine($player, 4, " ");
             ScoreFactory::setScoreLine($player, 5, " §fPlayers: §a" . count($this->plugin->getSessionManager()->getPlaying()) . "§f§7/50");
             ScoreFactory::setScoreLine($player, 6, "  ");
@@ -884,7 +871,6 @@ class GameManager extends Task
             $z = mt_rand($z1, $z2);
             $level = $server->getLevelByName($this->plugin->map);
             
-            //$player->teleport(new Vector3($x, $y, $z));
             $player->teleport(new Position($x, $y, $z, $level));
         }
         $this->playerTimer += 5;

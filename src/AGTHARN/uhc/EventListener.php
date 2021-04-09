@@ -106,6 +106,9 @@ class EventListener implements Listener
                 // since solo we wont handle joining available teams
                 $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
                 break;
+            case PhaseChangeEvent::RESET:
+                $player->kick("SERVER RESETTING: IF IT TAKES LONGER THAN 10 SECONDS, PLEASE CONTACT AN ADMIN!");
+                break;
             default:
                 if ($sessionManager->hasSession($player)) {
                     $session->setPlaying(false);
@@ -114,7 +117,7 @@ class EventListener implements Listener
                 $player->sendMessage(TF::YELLOW . "Type /spectate to spectate a player.");
                 break;
         }
-        $player->teleport(new Position(265, 70, 265, $server->getLevelByName($this->plugin->map)));
+        $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $server->getLevelByName($this->plugin->map)));
     }
 
     /**
@@ -229,7 +232,7 @@ class EventListener implements Listener
      */
     public function onRespawn(PlayerRespawnEvent $event): void
     {
-        $event->getPlayer()->teleport(new Position(265, 70, 265, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
+        $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $server->getLevelByName($this->plugin->map)));
     }
     
     /**
@@ -295,17 +298,14 @@ class EventListener implements Listener
                 }
                 break;
             case Block::LOG:
-                $drops = array();
                 $drops[] = Item::get(Item::PLANKS, 0, 4);
                 $event->setDrops($drops);
                 break;
             case Block::IRON_ORE:
-                $drops = array();
                 $drops[] = Item::get(Item::IRON_INGOT, 0, 2);
                 $event->setDrops($drops);
                 break;
             case Block::GOLD_ORE:
-                $drops = array();
                 $drops[] = Item::get(Item::GOLD_INGOT, 0, 2);
                 $event->setDrops($drops);
                 break;
