@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AGTHARN\uhc\Handler;
+namespace AGTHARN\uhc\util;
 
 use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\enchantment\Enchantment;
@@ -386,7 +386,7 @@ class Handler
                 break;
             case 930:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $this->randomizeCoordinates(-99, 99, 180, 200, -99, 99);
+                    $gameManager->randomizeCoordinates(-99, 99, 180, 200, -99, 99);
                     $player->setImmobile(true);
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "Deathmatch starts in 30 seconds" . ".\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "All players have been teleported.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
@@ -633,7 +633,7 @@ class Handler
 
         switch ($gameManager->getPhase()) {
             case PhaseChangeEvent::GRACE:
-                $changedTime = (int)$this->grace - 601;
+                $changedTime = (int)$gameManager->grace - 601;
 
                 $bossBar->setTitle("§fFinal Heal In: §a" . gmdate("i:s", $changedTime)); 
                 $bossBar->setHealthPercent($changedTime / 599);
