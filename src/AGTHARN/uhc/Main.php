@@ -13,6 +13,7 @@ use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\scenario\ScenarioManager;
 use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
+use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\EventListener;
 
 class Main extends PluginBase
@@ -44,6 +45,8 @@ class Main extends PluginBase
     private $sessionManager;
     /** @var ScenarioManager */
     private $scenarioManager;
+    /** @var Handler */
+    private $utilHandler;
 
     /** @var bool */
     private $globalMuteEnabled = false;
@@ -64,6 +67,7 @@ class Main extends PluginBase
         $this->teamManager = new TeamManager();
         $this->sessionManager = new SessionManager();
         $this->scenarioManager = new ScenarioManager($this);
+        $this->utilHandler = new Handler($this);
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
 
@@ -175,6 +179,15 @@ class Main extends PluginBase
     public function getTeamManager(): TeamManager
     {
         return $this->teamManager;
+    }
+    
+    /**
+     * getHandler
+     *
+     * @return Handler
+     */
+    public function getHandler(): Handler {
+        return $this->utilHandler;
     }
     
     /**
