@@ -48,19 +48,17 @@ class Handler
      */
     public function handlePlayers(): void
     {
+        $this->handleBossBar();
         foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
             $session = $this->plugin->getSessionManager()->getSession($player);
+            $gameManager = $this->plugin->getManager();
+
             if ($player->isSurvival()) {
                 $session->setPlaying(true);
             } else {
                 $session->setPlaying(false);
             }
             $this->handleScoreboard($player);
-        }
-
-        foreach ($this->plugin->getSessionManager()->getPlaying() as $player) {
-            $session = $this->plugin->getSessionManager()->getSession($player);
-            $gameManager = $this->plugin->getManager();
 
             if ($session !== null) {
                 $name = (string)$session->getTeam()->getNumber() ?? "NO TEAM";
@@ -106,20 +104,18 @@ class Handler
         if (count($server->getOnlinePlayers()) >= self::MIN_PLAYERS) {
             $gameManager->setPhase(PhaseChangeEvent::COUNTDOWN);
         }
-        
-        foreach ($this->plugin->getSessionManager()->getSessions() as $player) {
-            $player->setFood($player->getMaxFood());
-            $player->setHealth($player->getMaxHealth());
-            $player->setImmobile(false);
-            $this->handleScoreboard($player);
-        }
 
         foreach ($server->getOnlinePlayers() as $player) {
             $inventory = $player->getInventory();
             $session = $this->plugin->getSessionManager()->getSession($player);
-                
+            
+            $this->handleScoreboard($player);
             $session->setPlaying(false);
+
             $player->setGamemode(Player::SURVIVAL);
+            $player->setFood($player->getMaxFood());
+            $player->setHealth($player->getMaxHealth());
+            $player->setImmobile(false);
             if (count($server->getOnlinePlayers()) <= self::MIN_PLAYERS) {
                 if ($gameManager->getPhase() === PhaseChangeEvent::WAITING && $player->getInventory()->getItemInHand()->hasEnchantment(17)) {
                     switch ($player->getInventory()->getItemInHand()->getId()) {
@@ -249,7 +245,7 @@ class Handler
                 }
             case 601:
                 foreach ($server->getOnlinePlayers() as $player) {
-                $player->setHealth($player->getMaxHealth());
+                    $player->setHealth($player->getMaxHealth());
                     $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Final heal has " . TF::AQUA . "occurred!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
@@ -547,6 +543,7 @@ class Handler
                 $gameManager->setDeathmatchTimer(60 * 20);
                 $gameManager->setWinnerTimer(60);
                 $gameManager->setShrinking(false);
+                $this->plugin->getTeamManager()->resetTeams();
             
                 $server->getLogger()->info("Timers have been reset");
                 break;
@@ -636,71 +633,71 @@ class Handler
                 $changedTime = (int)$gameManager->grace - 601;
 
                 $bossBar->setTitle("§fFinal Heal In: §a" . gmdate("i:s", $changedTime)); 
-                $bossBar->setHealthPercent($changedTime / 599);
+                $bossBar->setPercentage($changedTime / 599);
                 break;
             case PhaseChangeEvent::PVP:
                 if ($this->border->getSize() >= 499) {
                     $changedTime = (int)$gameManager->pvp - 900;
                     if ($gameManager->pvp - 900 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(400): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     } elseif ($gameManager->pvp - 900 <= 60) {
                         $bossBar->setTitle("§fBorder Shrinks(400): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 399) {
                     $changedTime = (int)$gameManager->pvp - 600;
                     if ($gameManager->pvp - 600 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(300): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     } elseif ($gameManager->pvp - 600 <= 60) {
                         $bossBar->setTitle("§fBorder Shrinks(300): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 299) {
                     $changedTime = (int)$gameManager->pvp - 300;
                     if ($gameManager->pvp - 300 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(200): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     } elseif ($gameManager->pvp - 300 <= 60) {
                         $bossBar->setTitle("§fBorder Shrinks(200): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 199) {
                     $changedTime = (int)$gameManager->pvp - 0;
                     if ($gameManager->pvp - 0 >= 61) { // reason why i leave it as - 0 is to note myself
                         $bossBar->setTitle("§fBorder Shrinks(100): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     } elseif ($gameManager->pvp - 0 <= 60) {
                         $bossBar->setTitle("§fBorder Shrinks(100): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 99) {
                     $changedTime = (int)$gameManager->deathmatch - 700;
                     if ($gameManager->deathmatch - 700 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(50): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     } elseif ($gameManager->deathmatch - 700 <= 60) {
                         $bossBar->setTitle("§fBorder Shrinks(50): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 49) {
                     $changedTime = (int)$gameManager->deathmatch - 400;
                     if ($gameManager->deathmatch - 400 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 100);
+                        $bossBar->setPercentage($changedTime / 100);
                     } elseif ($gameManager->deathmatch - 400 <= 60) {
                         $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 100);
+                        $bossBar->setPercentage($changedTime / 100);
                     }
                 } elseif ($this->border->getSize() >= 9) {
                     $changedTime = (int)$gameManager->deathmatch - 300;
                      if ($gameManager->deathmatch - 300 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     } elseif ($gameManager->deathmatch - 300 <= 60) {
                         $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
-                        $bossBar->setHealthPercent($changedTime / 300);
+                        $bossBar->setPercentage($changedTime / 300);
                     }
                 }
                 break;

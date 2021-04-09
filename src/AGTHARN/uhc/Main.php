@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace AGTHARN\uhc;
 
 use pocketmine\level\generator\GeneratorManager;
-use pocketmine\entity\utils\Bossbar;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat as TF;
 
@@ -15,6 +14,8 @@ use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\EventListener;
+
+use AGTHARN\uhc\libs\xenialdan\apibossbar\BossBar;
 
 class Main extends PluginBase
 {   
@@ -193,11 +194,11 @@ class Main extends PluginBase
     /**
      * getBossBar
      *
-     * @return mixed
+     * @return Bossbar
      */
-    public function getBossBar()
+    public function getBossBar(): Bossbar
     {
-        return new Bossbar(); /** @phpstan-ignore-line */
+        return new Bossbar();
     }
     
     /**

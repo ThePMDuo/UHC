@@ -74,7 +74,6 @@ class GameManager extends Task
         $server = $this->plugin->getServer();
         $handler = $this->plugin->getHandler();
         $handler->handlePlayers();
-        $handler->handleBossBar();
         
         switch ($this->getPhase()) {
             case PhaseChangeEvent::WAITING:
@@ -117,24 +116,28 @@ class GameManager extends Task
             if (!$player->hasEffect(16)) {
                 $player->addEffect(new EffectInstance(Effect::getEffect(16), 1000000, 1, false));
             }
-            
-            if ($playerx >= $this->border->getSize() || -$playerx >= $this->border->getSize() || $playery >= $this->border->getSize() || $playerz >= $this->border->getSize() || -$playerz >= $this->border->getSize()) {
-                if ($this->phase === PhaseChangeEvent::WAITING || $this->phase === PhaseChangeEvent::COUNTDOWN) {
-                    $level = $server->getLevelByName($this->plugin->map);
-                    
-                    $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
-                } else {
-                    $player->addEffect(new EffectInstance(Effect::getEffect(19), 60, 1, false));
-                    if ($player->getHealth() <= 2) {
-                        $player->addEffect(new EffectInstance(Effect::getEffect(7), 100, 1, false));
-                    }
-                }
-            }
+
             if ($playerx >= $this->border->getSize() - 20 || -$playerx >= $this->border->getSize() - 20 || $playery >= $this->border->getSize() - 20 || $playerz >= $this->border->getSize() - 20 || -$playerz >= $this->border->getSize() - 20) {
                 $player->sendPopup(TF::RED . "BORDER IS CLOSE!");
             }
             
-            if ($player->getLevel()->getName() !== $server->getLevelByName($this->plugin->map)) {
+            if ($playerx >= $this->border->getSize() || -$playerx >= $this->border->getSize() || $playery >= $this->border->getSize() || $playerz >= $this->border->getSize() || -$playerz >= $this->border->getSize()) {
+                switch ($this->getPhase()) {
+                    case PhaseChangeEvent::WAITING:
+                    case PhaseChangeEvent::COUNTDOWN:
+                        $level = $server->getLevelByName($this->plugin->map);
+                        $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
+                        break;
+                    default:
+                        $player->addEffect(new EffectInstance(Effect::getEffect(19), 60, 1, false));
+                        if ($player->getHealth() <= 2) {
+                            $player->addEffect(new EffectInstance(Effect::getEffect(7), 100, 1, false));
+                        }
+                        break;
+                }
+            }
+            
+            if ($player->getLevel()->getName() === $server->getLevelByName($this->plugin->map)) {
                 $level = $server->getLevelByName($this->plugin->map);
                 $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
             }
@@ -217,7 +220,7 @@ class GameManager extends Task
             $z = mt_rand($z1, $z2);
             $level = $server->getLevelByName($this->plugin->map);
             
-            $player->teleport(new Position($x, $y, $z, $level));
+            $player->getPlayer()->teleport(new Position($x, $y, $z, $level));
         }
         $this->playerTimer += 5;
     }
@@ -241,7 +244,7 @@ class GameManager extends Task
     public function setPhase(int $phase): void
     {
         foreach ($this->plugin->getSessionManager()->getPlaying() as $playerSession) {
-            $event = new PhaseChangeEvent($playerSession, $this->phase, $phase);
+            $event = new PhaseChangeEvent($playerSession->getPlayer(), $this->phase, $phase);
             $event->call();
         }
         $this->phase = $phase;

@@ -9,6 +9,7 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerDeathEvent;
+use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\player\PlayerInteractEvent;
@@ -77,33 +78,22 @@ class EventListener implements Listener
     }
     
     /**
-     * handleJoin
+     * handlePreLogin
      *
-     * @param  PlayerJoinEvent $event
+     * @param  PlayerPreLoginEvent $event
      * @return void
      */
-    public function handleJoin(PlayerJoinEvent $event): void
+    public function handlePreLogin(PlayerPreLoginEvent $event): void
     {
         $player = $event->getPlayer();
         $sessionManager = $this->plugin->getSessionManager();
-        $session = $this->plugin->getSessionManager()->getSession($player);
-        $server = $this->plugin->getServer();
-        $mUsage = Process::getAdvancedMemoryUsage();
-
-        $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber);
-        $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalMessage());
-        $player->sendMessage("THREADS: " . Process::getThreadCount() . " RAM USAGE: " . number_format(round(($mUsage[1] / 1024) / 1024, 2), 2) . " MB");
-
-        if (!$this->plugin->getOperational()) {
-            $player->kick($this->plugin->getOperationalMessage() . ": UHC LOADER HAS FAILED! PLEASE CONTACT AN ADMIN!");
-            return;
-        }
 
         switch ($this->plugin->getManager()->getPhase()) {
             case PhaseChangeEvent::WAITING:
                 $sessionManager->createSession($player);
                 $player->setGamemode(Player::SURVIVAL);
                 // since solo we wont handle joining available teams
+                $session = $this->plugin->getSessionManager()->getSession($player);
                 $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
                 break;
             case PhaseChangeEvent::RESET:
@@ -117,6 +107,35 @@ class EventListener implements Listener
                 $player->sendMessage(TF::YELLOW . "Type /spectate to spectate a player.");
                 break;
         }
+    }
+    
+    /**
+     * handleJoin
+     *
+     * @param  PlayerJoinEvent $event
+     * @return void
+     */
+    public function handleJoin(PlayerJoinEvent $event): void
+    {
+        $player = $event->getPlayer();
+        $sessionManager = $this->plugin->getSessionManager();
+        $session = $this->plugin->getSessionManager()->getSession($player);
+        $server = $this->plugin->getServer();
+        $mUsage = Process::getAdvancedMemoryUsage();
+        $bossBar = $this->plugin->getBossBar();
+
+        $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber);
+        $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalMessage());
+        $player->sendMessage("THREADS: " . Process::getThreadCount() . " RAM USAGE: " . number_format(round(($mUsage[1] / 1024) / 1024, 2), 2) . " MB");
+
+        if (!$this->plugin->getOperational()) {
+            $player->kick($this->plugin->getOperationalMessage() . ": UHC LOADER HAS FAILED! PLEASE CONTACT AN ADMIN!");
+            return;
+        }
+
+        $bossBar->setTitle("§fWAITING...");
+        $bossBar->setPercentage(1.0);
+        $bossBar->addPlayer($player);
         $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $server->getLevelByName($this->plugin->map)));
     }
 
@@ -132,19 +151,18 @@ class EventListener implements Listener
         $session = $this->plugin->getSessionManager()->getSession($player);
         $sessionManager = $this->plugin->getSessionManager();
 
-        if ($session->isInTeam()) {
-            if (!$session->isTeamLeader()) {
-                $session->removeFromTeam(); 
-            } else {
-                $teamNumber = $session->getTeam()->getNumber();
-                foreach ($session->getTeam()->getMembers() as $member) {
-                    $this->plugin->getSessionManager()->getSession($member)->removeFromTeam();
-                }
-                $this->plugin->getTeamManager()->disbandTeam($teamNumber);
-            }
-        }
-
         if ($sessionManager->hasSession($player)) {
+            if ($session->isInTeam()) {
+                if (!$session->isTeamLeader()) {
+                    $session->removeFromTeam(); 
+                } else {
+                    $teamNumber = $session->getTeam()->getNumber();
+                    foreach ($session->getTeam()->getMembers() as $member) {
+                        $this->plugin->getSessionManager()->getSession($member)->removeFromTeam();
+                    }
+                    $this->plugin->getTeamManager()->disbandTeam($teamNumber);
+                }
+            }
             $this->plugin->getSessionManager()->removeSession($player);
             $session->setPlaying(false);
         }
@@ -284,7 +302,7 @@ class EventListener implements Listener
                 return;
         }
 
-        switch ($event->getBlock()) {
+        switch ($event->getBlock()->getId()) {
             case Block::LEAVES:
                 $rand = mt_rand(0, 100);
                 if ($event->getItem()->equals(Item::get(Item::APPLE, 0, 1), false, false)) {

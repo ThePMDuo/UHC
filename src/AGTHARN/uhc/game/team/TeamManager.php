@@ -69,4 +69,15 @@ class TeamManager
     {
         unset($this->teams[$teamNumber]);
     }
+    
+    /**
+     * resetTeams
+     *
+     * @return void
+     */
+    public function resetTeams(): void
+    {
+        $this->teamNumbers = 1;
+        $this->teams = [];
+    }
 }
