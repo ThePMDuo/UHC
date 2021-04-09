@@ -101,7 +101,6 @@ class Main extends PluginBase
             $this->getServer()->generateLevel($levelName, $this->seed, $generator, []);
             $this->getServer()->loadLevel("UHC");
         }
-        $player->teleport(new Position($this->spawnPosX, $this->spawnPosY, $this->spawnPosZ, $level));
     }
     
     /**
