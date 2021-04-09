@@ -14,6 +14,7 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 
 use AGTHARN\uhc\event\PhaseChangeEvent;
+use AGTHARN\uhc\game\Border;
 use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;

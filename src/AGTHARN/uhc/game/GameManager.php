@@ -23,7 +23,7 @@ use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 class GameManager extends Task
 {
     /** @var int */
-    private $game = 0;
+    public $game = 0;
 
     /** @var int */
     public $phase = PhaseChangeEvent::WAITING;
@@ -49,7 +49,7 @@ class GameManager extends Task
     private $playerTimer = 1;
         
     /** @var bool */
-    private $shrinking = false;
+    public $shrinking = false;
     
     /**
      * __construct
@@ -73,7 +73,7 @@ class GameManager extends Task
     {
         $server = $this->plugin->getServer();
         $handler = $this->plugin->getHandler();
-        $handler->pluginhandlePlayers();
+        $handler->handlePlayers();
         $handler->handleBossBar();
         
         switch ($this->getPhase()) {
