@@ -46,7 +46,7 @@ class Handler
      *
      * @return void
      */
-    private function handlePlayers(): void
+    public function handlePlayers(): void
     {
         foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
             $session = $this->plugin->getSessionManager()->getSession($player);
@@ -95,7 +95,7 @@ class Handler
      *
      * @return void
      */
-    private function handleWaiting(): void
+    public function handleWaiting(): void
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
@@ -151,7 +151,7 @@ class Handler
      *
      * @return void
      */
-    private function handleCountdown(): void
+    public function handleCountdown(): void
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
@@ -231,7 +231,7 @@ class Handler
      *
      * @return void
      */
-    private function handleGrace(): void
+    public function handleGrace(): void
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
@@ -319,7 +319,7 @@ class Handler
      *
      * @return void
      */
-    private function handlePvP(): void
+    public function handlePvP(): void
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
@@ -437,7 +437,7 @@ class Handler
      *
      * @return void
      */
-    private function handleWinner(): void
+    public function handleWinner(): void
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
@@ -515,7 +515,7 @@ class Handler
      *
      * @return void
      */
-    private function handleReset(): void
+    public function handleReset(): void
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
@@ -564,7 +564,7 @@ class Handler
      * @param  Player $player
      * @return void
      */
-    private function handleScoreboard(Player $player): void
+    public function handleScoreboard(Player $player): void
     {
         $gameManager = $this->plugin->getManager();
 
