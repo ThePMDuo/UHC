@@ -87,7 +87,7 @@ class Main extends PluginBase
         $levelName = $this->map;
         $levelPath = $this->getServer()->getDataPath() . "worlds/" . $this->map;
 
-        $worldAPI = $this->getServer()->getPluginManager()->getPlugin("MultiWorld")->getWorldManagementAPI();
+        $worldAPI = $this->getServer()->getPluginManager()->getPlugin("MultiWorld")->getWorldManagementAPI(); /** @phpstan-ignore-line */
 
         if ($worldAPI->isLevelGenerated($levelName)) {
             if($worldAPI->isLevelLoaded($levelName)) {  

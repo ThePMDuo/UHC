@@ -86,6 +86,7 @@ class EventListener implements Listener
                 break;
             default:
                 if ($sessionManager->hasSession($player)) {
+                    $session = $this->plugin->getSessionManager()->getSession($player);
                     $session->setPlaying(false);
                 }
                 $player->setGamemode(3);

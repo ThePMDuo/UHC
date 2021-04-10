@@ -19,8 +19,10 @@ use pocketmine\Player;
  * @package xenialdan\apibossbar
  */
 class DiverseBossBar extends BossBar
-{
+{   
+    /** @var array */
     private $titles = [];
+    /** @var array */
     private $subTitles = [];
     /** @var AttributeMap[] */
     private $attributeMaps = [];
@@ -115,9 +117,9 @@ class DiverseBossBar extends BossBar
     /**
      * The full title as a combination of the title and its subtitle. Automatically fixes encoding issues caused by newline characters
      * @param Player $player
-     * @return string
+     * @return mixed
      */
-    public function getFullTitleFor(Player $player): string
+    public function getFullTitleFor(Player $player)
     {
         $text = $this->titles[$player->getId()] ?? "";
         if (!empty($this->subTitles[$player->getId()] ?? "")) {

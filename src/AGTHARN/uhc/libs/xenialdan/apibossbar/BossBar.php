@@ -375,13 +375,13 @@ class BossBar
     protected function sendEntityDataPacket(array $players): void
     {
         return;
-        $this->getPropertyManager()->setString(Entity::DATA_NAMETAG, $this->getFullTitle());
-        $pk = new SetActorDataPacket();
-        $pk->metadata = $this->getPropertyManager()->getDirty();
-        $pk->entityRuntimeId = $this->entityId;
-        Server::getInstance()->broadcastPacket($players, $pk);
+        //$this->getPropertyManager()->setString(Entity::DATA_NAMETAG, $this->getFullTitle());
+        //$pk = new SetActorDataPacket();
+        //$pk->metadata = $this->getPropertyManager()->getDirty();
+        //$pk->entityRuntimeId = $this->entityId;
+        //Server::getInstance()->broadcastPacket($players, $pk);
 
-        $this->getPropertyManager()->clearDirtyProperties();
+        //$this->getPropertyManager()->clearDirtyProperties();
     }
 
     /**

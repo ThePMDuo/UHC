@@ -41,12 +41,12 @@ class PacketListener implements Listener
         $plugin->getServer()->getPluginManager()->registerEvents(new self, $plugin);
     }
 
-    public function onDataPacketReceiveEvent(DataPacketReceiveEvent $e)
+    public function onDataPacketReceiveEvent(DataPacketReceiveEvent $e): void
     {
         if ($e->getPacket() instanceof BossEventPacket) $this->onBossEventPacket($e);
     }
 
-    private function onBossEventPacket(DataPacketReceiveEvent $e)
+    private function onBossEventPacket(DataPacketReceiveEvent $e): void
     {
         if (!($pk = $e->getPacket()) instanceof BossEventPacket) throw new \InvalidArgumentException(get_class($e->getPacket()) . " is not a " . BossEventPacket::class);
         /** @var BossEventPacket $pk */

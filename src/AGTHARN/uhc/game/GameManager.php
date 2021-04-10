@@ -138,7 +138,7 @@ class GameManager extends Task
                 }
             }
             
-            if ($player->getLevel()->getName() === $server->getLevelByName($this->plugin->map)) {
+            if ($player->getLevel()->getName() !== $this->plugin->map) {
                 $level = $server->getLevelByName($this->plugin->map);
                 $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
             }
