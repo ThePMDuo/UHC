@@ -74,6 +74,7 @@ class GameManager extends Task
         $server = $this->plugin->getServer();
         $handler = $this->plugin->getHandler();
         $handler->handlePlayers();
+        $handler->handleBossBar();
         
         switch ($this->getPhase()) {
             case PhaseChangeEvent::WAITING:

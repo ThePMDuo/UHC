@@ -48,17 +48,16 @@ class Handler
      */
     public function handlePlayers(): void
     {
-        $this->handleBossBar();
         foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
             $session = $this->plugin->getSessionManager()->getSession($player);
             $gameManager = $this->plugin->getManager();
 
+            $this->handleScoreboard($player);
             if ($player->isSurvival()) {
                 $session->setPlaying(true);
             } else {
                 $session->setPlaying(false);
             }
-            $this->handleScoreboard($player);
 
             if ($session !== null) {
                 $name = (string)$session->getTeam()->getNumber() ?? "NO TEAM";
@@ -631,7 +630,6 @@ class Handler
         switch ($gameManager->getPhase()) {
             case PhaseChangeEvent::GRACE:
                 $changedTime = (int)$gameManager->grace - 601;
-
                 $bossBar->setTitle("§fFinal Heal In: §a" . gmdate("i:s", $changedTime)); 
                 $bossBar->setPercentage($changedTime / 599);
                 break;

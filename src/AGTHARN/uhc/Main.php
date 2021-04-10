@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\level\generator\GeneratorManager;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat as TF;
 
@@ -84,27 +83,26 @@ class Main extends PluginBase
      */
     public function prepareLevels(): void
     {
-        $level = $this->getServer()->getLevelByName("UHC");
-        $levelName = "UHC";
-        $levelPath = $this->getServer()->getDataPath() . "worlds/UHC";
+        $level = $this->getServer()->getLevelByName($this->map);
+        $levelName = $this->map;
+        $levelPath = $this->getServer()->getDataPath() . "worlds/" . $this->map;
 
-        if (is_dir($levelPath)) {
-            if ($level !== null) {
-                $this->getServer()->unloadLevel($level);
+        $worldAPI = $this->getServer()->getPluginManager()->getPlugin("MultiWorld")->getWorldManagementAPI();
+
+        if ($worldAPI->isLevelGenerated($levelName)) {
+            if($worldAPI->isLevelLoaded($levelName)) {  
+                $worldAPI->unloadLevel($level);
             }
-            $this->rrmdir($levelPath);
+            $worldAPI->removeLevel($levelName);
             $this->prepareLevels();
         } else {  
             $this->seed = $this->generateRandomSeed();
 
-            $generator = GeneratorManager::getGenerator("betternormal");
-            $generatorName = "betternormal";
-
             if ((int)$this->seed === 0) {
                 $this->seed = $this->generateRandomSeed();
             }
-            $this->getServer()->generateLevel($levelName, $this->seed, $generator, []);
-            $this->getServer()->loadLevel("UHC");
+            $worldAPI->generateLevel($levelName, $this->seed, 1);  
+            $worldAPI->loadLevel($levelName);
         }
     }
     
@@ -116,30 +114,6 @@ class Main extends PluginBase
     public function generateRandomSeed(): int
     {
         return intval(rand(0, intval(time() / memory_get_usage(true) * (int) str_shuffle("127469453645108") / (int) str_shuffle("12746945364"))));
-    }
-    
-    /**
-     * rrmdir
-     *
-     * @param  mixed $dir
-     * @return void
-     */
-    public function rrmdir($dir): void
-    {
-        if (is_dir($dir)) {
-            $objects = scandir($dir);
-            foreach ($objects as $object) { /* @phpstan-ignore-line */
-                if ($object != "." && $object != "..") {
-                    if (filetype($dir."/".$object) == "dir") {
-                        $this->rrmdir($dir."/".$object); 
-                    } else {
-                        unlink($dir."/".$object);
-                    }
-                }
-            }
-            reset($objects); /* @phpstan-ignore-line */
-            rmdir($dir);
-        }
     }
     
     /**
@@ -194,11 +168,11 @@ class Main extends PluginBase
     /**
      * getBossBar
      *
-     * @return Bossbar
+     * @return BossBar
      */
-    public function getBossBar(): Bossbar
+    public function getBossBar(): BossBar
     {
-        return new Bossbar();
+        return new BossBar();
     }
     
     /**

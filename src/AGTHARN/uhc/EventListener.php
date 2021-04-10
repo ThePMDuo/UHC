@@ -63,21 +63,6 @@ class EventListener implements Listener
     }
     
     /**
-     * handleChat
-     *
-     * @param  PlayerChatEvent $event
-     * @return void
-     */
-    public function handleChat(PlayerChatEvent $event): void
-    {
-        $player = $event->getPlayer();
-        if ($this->plugin->isGlobalMuteEnabled() && !$player->isOp()) {
-            $player->sendMessage(TF::RED . "You cannot talk right now!");
-            $event->setCancelled();
-        }
-    }
-    
-    /**
      * handlePreLogin
      *
      * @param  PlayerPreLoginEvent $event
@@ -168,40 +153,22 @@ class EventListener implements Listener
         }
         ScoreFactory::removeScore($player);
     }
-    
+
     /**
-     * handlePhaseChange
+     * handleChat
      *
-     * @param  PhaseChangeEvent $event
+     * @param  PlayerChatEvent $event
      * @return void
      */
-    public function handlePhaseChange(PhaseChangeEvent $event): void
+    public function handleChat(PlayerChatEvent $event): void
     {
         $player = $event->getPlayer();
+        if ($this->plugin->isGlobalMuteEnabled() && !$player->isOp()) {
+            $player->sendMessage(TF::RED . "You cannot talk right now!");
+            $event->setCancelled();
+        }
+    }
 
-        switch ($event->getOldPhase()) {
-            case PhaseChangeEvent::COUNTDOWN:
-                $player->getInventory()->addItem(ItemFactory::get(ItemIds::BAKED_POTATO, 0, 16));
-                $player->getInventory()->addItem(Item::get(6, 0, 1));
-                break;
-        }
-    }
-    
-    /**
-     * handleEntityRegain
-     *
-     * @param  EntityRegainHealthEvent $event
-     * @return void
-     */
-    public function handleEntityRegain(EntityRegainHealthEvent $event): void
-    {
-        switch ($event->getRegainReason()) {
-            case EntityRegainHealthEvent::CAUSE_SATURATION:
-                $event->setCancelled();
-                break;
-        }
-    }
-    
     /**
      * handleDamage
      *
@@ -241,16 +208,20 @@ class EventListener implements Listener
                 break;
         }
     }
-        
+    
     /**
-     * onRespawn
+     * handleEntityRegain
      *
-     * @param  PlayerRespawnEvent $event
+     * @param  EntityRegainHealthEvent $event
      * @return void
      */
-    public function onRespawn(PlayerRespawnEvent $event): void
+    public function handleEntityRegain(EntityRegainHealthEvent $event): void
     {
-        $event->getPlayer()->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
+        switch ($event->getRegainReason()) {
+            case EntityRegainHealthEvent::CAUSE_SATURATION:
+                $event->setCancelled();
+                break;
+        }
     }
     
     /**
@@ -284,6 +255,17 @@ class EventListener implements Listener
         } else {
             $event->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " has been eliminated somehow!");
         }
+    }
+
+    /**
+     * handleRespawn
+     *
+     * @param  PlayerRespawnEvent $event
+     * @return void
+     */
+    public function handleRespawn(PlayerRespawnEvent $event): void
+    {
+        $event->getPlayer()->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
     }
     
     /**
@@ -367,14 +349,27 @@ class EventListener implements Listener
             }
         }
     }
+
+    /**
+     * handleExhaust
+     *
+     * @param  PlayerExhaustEvent $event
+     * @return void
+     */
+    public function handleExhaust(PlayerExhaustEvent $event): void
+    {
+        if (!$this->plugin->getManager()->hasStarted()) {
+            $event->setCancelled();
+        }
+    }
         
     /**
-     * onInteract
+     * handleInteract
      *
      * @param  PlayerInteractEvent $event
      * @return void
      */
-    public function onInteract(PlayerInteractEvent $event): void
+    public function handleInteract(PlayerInteractEvent $event): void
     {
         $player = $event->getPlayer();
         $item = $event->getItem();
@@ -395,12 +390,12 @@ class EventListener implements Listener
     }
         
     /**
-     * onInventoryTransaction
+     * handleInventoryTransaction
      *
      * @param  InventoryTransactionEvent $event
      * @return void
      */
-    public function onInventoryTransaction(InventoryTransactionEvent $event): void
+    public function handleInventoryTransaction(InventoryTransactionEvent $event): void
     {
         $transaction = $event->getTransaction();
         foreach ($transaction->getActions() as $action) {
@@ -422,12 +417,12 @@ class EventListener implements Listener
     }
     
     /**
-     * onPlayerDropItem
+     * handlePlayerDropItem
      *
      * @param  PlayerDropItemEvent $event
      * @return void
      */
-    public function onPlayerDropItem(PlayerDropItemEvent $event)
+    public function handlePlayerDropItem(PlayerDropItemEvent $event)
     {
         $item = $event->getItem();
         $itemID = $item->getId();
@@ -445,17 +440,22 @@ class EventListener implements Listener
             }
         }
     }
-    
+
     /**
-     * handleExhaust
+     * handlePhaseChange
      *
-     * @param  PlayerExhaustEvent $event
+     * @param  PhaseChangeEvent $event
      * @return void
      */
-    public function handleExhaust(PlayerExhaustEvent $event): void
+    public function handlePhaseChange(PhaseChangeEvent $event): void
     {
-        if (!$this->plugin->getManager()->hasStarted()) {
-            $event->setCancelled();
+        $player = $event->getPlayer();
+
+        switch ($event->getOldPhase()) {
+            case PhaseChangeEvent::COUNTDOWN:
+                $player->getInventory()->addItem(ItemFactory::get(ItemIds::BAKED_POTATO, 0, 16));
+                $player->getInventory()->addItem(Item::get(6, 0, 1));
+                break;
         }
     }
 }
