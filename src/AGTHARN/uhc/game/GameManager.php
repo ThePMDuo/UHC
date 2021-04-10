@@ -291,7 +291,7 @@ class GameManager extends Task
      */
     public function getGraceTimer(): int
     {
-        return $this->grace;
+        return (int)$this->grace;
     }
         
     /**
@@ -312,7 +312,7 @@ class GameManager extends Task
      */
     public function getPVPTimer(): int
     {
-        return $this->pvp;
+        return (int)$this->pvp;
     }
         
     /**
@@ -333,7 +333,7 @@ class GameManager extends Task
      */
     public function getDeathmatchTimer(): int
     {
-        return $this->deathmatch;
+        return (int)$this->deathmatch;
     }
         
     /**
@@ -354,7 +354,7 @@ class GameManager extends Task
      */
     public function getWinnerTimer(): int
     {
-        return $this->winner;
+        return (int)$this->winner;
     }
         
     /**
@@ -375,7 +375,7 @@ class GameManager extends Task
      */
     public function getResetTimer(): int
     {
-        return $this->reset;
+        return (int)$this->reset;
     }
     
     /**

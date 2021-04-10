@@ -572,7 +572,7 @@ class Handler
             switch ($gameManager->getPhase()) {
                 case PhaseChangeEvent::GRACE:
                     if ($gameManager->getGraceTimer() >= 601) {
-                        ScoreFactory::setScoreLine($player, 3, " §fFinal Heal In: §a" . gmdate("i:s", (int)$gameManager->getGraceTimer() - 601));
+                        ScoreFactory::setScoreLine($player, 3, " §fFinal Heal In: §a" . gmdate("i:s", $gameManager->getGraceTimer() - 601));
                     }
                     break;
             }
@@ -582,14 +582,14 @@ class Handler
             switch ($gameManager->getPhase()) {
                 case PhaseChangeEvent::GRACE:
                     if ($gameManager->getGraceTimer() <= 300) {
-                        ScoreFactory::setScoreLine($player, 3, " §fPVP Enables In: §c" . gmdate("i:s", (int)$gameManager->getGraceTimer()));
+                        ScoreFactory::setScoreLine($player, 3, " §fPVP Enables In: §c" . gmdate("i:s", $gameManager->getGraceTimer()));
                     } else {
-                        ScoreFactory::setScoreLine($player, 3, " §fPVP Enables In: §a" . gmdate("i:s", (int)$gameManager->getGraceTimer()));
+                        ScoreFactory::setScoreLine($player, 3, " §fPVP Enables In: §a" . gmdate("i:s", $gameManager->getGraceTimer()));
                     }
                     break;
                 case PhaseChangeEvent::DEATHMATCH:
                     if ($gameManager->getDeathmatchTimer() >= 900) {
-                        ScoreFactory::setScoreLine($player, 3, " §fDeathmatch In: §c" . gmdate("i:s", (int)$gameManager->getDeathmatchTimer() - 900));
+                        ScoreFactory::setScoreLine($player, 3, " §fDeathmatch In: §c" . gmdate("i:s", $gameManager->getDeathmatchTimer() - 900));
                     }
                     break;
             }
@@ -629,13 +629,13 @@ class Handler
 
         switch ($gameManager->getPhase()) {
             case PhaseChangeEvent::GRACE:
-                $changedTime = (int)$gameManager->getGraceTimer() - 601;
+                $changedTime = $gameManager->getGraceTimer() - 601;
                 $bossBar->setTitle("§fFinal Heal In: §a" . gmdate("i:s", $changedTime)); 
                 $bossBar->setPercentage($changedTime / 599);
                 break;
             case PhaseChangeEvent::PVP:
                 if ($this->border->getSize() >= 499) {
-                    $changedTime = (int)$gameManager->getPVPTimer() - 900;
+                    $changedTime = $gameManager->getPVPTimer() - 900;
                     if ($gameManager->getPVPTimer() - 900 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(400): §a" . gmdate("i:s", $changedTime));
                         $bossBar->setPercentage($changedTime / 300);
@@ -644,7 +644,7 @@ class Handler
                         $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 399) {
-                    $changedTime = (int)$gameManager->getPVPTimer() - 600;
+                    $changedTime = $gameManager->getPVPTimer() - 600;
                     if ($gameManager->getPVPTimer() - 600 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(300): §a" . gmdate("i:s", $changedTime));
                         $bossBar->setPercentage($changedTime / 300);
@@ -653,7 +653,7 @@ class Handler
                         $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 299) {
-                    $changedTime = (int)$gameManager->getPVPTimer() - 300;
+                    $changedTime = $gameManager->getPVPTimer() - 300;
                     if ($gameManager->getPVPTimer() - 300 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(200): §a" . gmdate("i:s", $changedTime));
                         $bossBar->setPercentage($changedTime / 300);
@@ -662,7 +662,7 @@ class Handler
                         $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 199) {
-                    $changedTime = (int)$gameManager->getPVPTimer() - 0;
+                    $changedTime = $gameManager->getPVPTimer() - 0;
                     if ($gameManager->getPVPTimer() - 0 >= 61) { // reason why i leave it as - 0 is to note myself
                         $bossBar->setTitle("§fBorder Shrinks(100): §a" . gmdate("i:s", $changedTime));
                         $bossBar->setPercentage($changedTime / 300);
@@ -671,7 +671,7 @@ class Handler
                         $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 99) {
-                    $changedTime = (int)$gameManager->getDeathmatchTimer() - 700;
+                    $changedTime = $gameManager->getDeathmatchTimer() - 700;
                     if ($gameManager->getDeathmatchTimer() - 700 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(50): §a" . gmdate("i:s", $changedTime));
                         $bossBar->setPercentage($changedTime / 300);
@@ -680,7 +680,7 @@ class Handler
                         $bossBar->setPercentage($changedTime / 300);
                     }
                 } elseif ($this->border->getSize() >= 49) {
-                    $changedTime = (int)$gameManager->getDeathmatchTimer() - 400;
+                    $changedTime = $gameManager->getDeathmatchTimer() - 400;
                     if ($gameManager->getDeathmatchTimer() - 400 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
                         $bossBar->setPercentage($changedTime / 100);
@@ -689,7 +689,7 @@ class Handler
                         $bossBar->setPercentage($changedTime / 100);
                     }
                 } elseif ($this->border->getSize() >= 9) {
-                    $changedTime = (int)$gameManager->getDeathmatchTimer() - 300;
+                    $changedTime = $gameManager->getDeathmatchTimer() - 300;
                      if ($gameManager->getDeathmatchTimer() - 300 >= 61) {
                         $bossBar->setTitle("§fBorder Shrinks(10): §a" . gmdate("i:s", $changedTime));
                         $bossBar->setPercentage($changedTime / 300);
