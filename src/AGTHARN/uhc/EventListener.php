@@ -22,8 +22,6 @@ use pocketmine\event\Listener;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\utils\Process;
 use pocketmine\block\Block;
-use pocketmine\item\ItemFactory;
-use pocketmine\item\ItemIds;
 use pocketmine\item\Item;
 use pocketmine\level\Position;
 use pocketmine\Player;
@@ -54,10 +52,10 @@ class EventListener implements Listener
      * @param  Main $plugin
      * @return void
      */
-    public function __construct(Main $plugin)
+    public function __construct(Main $plugin, Border $border)
     {
         $this->plugin = $plugin;
-        $this->border = new Border($plugin->getServer()->getDefaultLevel());
+        $this->border = $border;
     }
     
     /**
@@ -115,6 +113,8 @@ class EventListener implements Listener
             $player->kick($this->plugin->getOperationalMessage() . ": UHC LOADER HAS FAILED! PLEASE CONTACT AN ADMIN!");
             return;
         }
+
+        $this->plugin->getUtilItems()->giveItems($player);
 
         $player->setFood($player->getMaxFood());
         $player->setHealth($player->getMaxHealth());
@@ -377,17 +377,19 @@ class EventListener implements Listener
         $item = $event->getItem();
 
         // to do use waterdogpe api instead
-        if ($item->hasEnchantment(17)) {
-            switch ($item->getId()) {
-                case 355:
-                    $event->setCancelled();
-                    $this->plugin->getServer()->dispatchCommand($player, "transfer hub");
-                    break;
-                case 35:
+        switch ($item->getId()) {
+            case Item::BED:
+                if ($item->getNamedTagEntry("Report")) {
                     $event->setCancelled();
                     $this->plugin->getServer()->dispatchCommand($player, "report");
-                    break;
-            }
+                }
+                break;
+            case Item::COMPASS:
+                if ($item->getNamedTagEntry("Hub")) {
+                    $event->setCancelled();
+                    $this->plugin->getServer()->dispatchCommand($player, "transfer hub");
+                }
+                break;
         }
     }
         
@@ -403,13 +405,8 @@ class EventListener implements Listener
         foreach ($transaction->getActions() as $action) {
             $item = $action->getSourceItem();
 
-            if ($item->hasEnchantment(17)) {
-                switch ($item->getId()) {
-                    case 355:
-                    case 35:
-                        $event->setCancelled();
-                        break;
-                }
+            if ($item->getNamedTagEntry("Report") || $item->getNamedTagEntry("Hub")) {
+                $event->setCancelled();
             }
 
             if ($item->getId() === 444) {
@@ -433,13 +430,8 @@ class EventListener implements Listener
             $event->setCancelled();
         }
 
-        if ($item->hasEnchantment(17)) {
-            switch ($item->getId()) {
-                case 355:
-                case 35:
-                    $event->setCancelled();
-                    break;
-            }
+        if ($item->getNamedTagEntry("Report") || $item->getNamedTagEntry("Hub")) {
+            $event->setCancelled();
         }
     }
 
@@ -455,7 +447,7 @@ class EventListener implements Listener
 
         switch ($event->getOldPhase()) {
             case PhaseChangeEvent::COUNTDOWN:
-                $player->getInventory()->addItem(ItemFactory::get(ItemIds::BAKED_POTATO, 0, 16));
+                $player->getInventory()->addItem(Item::get(Item::BAKED_POTATO, 0, 16));
                 $player->getInventory()->addItem(Item::get(6, 0, 1));
                 break;
         }

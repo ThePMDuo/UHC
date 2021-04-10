@@ -12,7 +12,9 @@ use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\scenario\ScenarioManager;
 use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
+use AGTHARN\uhc\game\Border;
 use AGTHARN\uhc\util\Handler;
+use AGTHARN\uhc\util\Items;
 use AGTHARN\uhc\EventListener;
 
 class Main extends PluginBase
@@ -62,13 +64,13 @@ class Main extends PluginBase
         }
         $this->prepareLevels();
         
-        $this->gameManager = new GameManager($this);
+        $this->gameManager = new GameManager($this, $this->getBorder());
         $this->teamManager = new TeamManager();
         $this->sessionManager = new SessionManager();
         $this->scenarioManager = new ScenarioManager($this);
-        $this->utilHandler = new Handler($this);
+        $this->utilHandler = new Handler($this, $this->getBorder());
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
-        $this->getServer()->getPluginManager()->registerEvents(new EventListener($this), $this);
+        $this->getServer()->getPluginManager()->registerEvents(new EventListener($this, $this->getBorder()), $this);
 
         $this->getServer()->getCommandMap()->registerAll("uhc", [
             new SpectatorCommand($this)
@@ -188,11 +190,31 @@ class Main extends PluginBase
     /**
      * getBossBar
      *
-     * @return Bossbar
+     * @return mixed
      */
-    public function getBossBar(string $text, float $float): Bossbar /** @phpstan-ignore-line */
+    public function getBossBar(string $text, float $float)
     {
         return new Bossbar($text, $float); /** @phpstan-ignore-line */
+    }
+    
+    /**
+     * getBorder
+     *
+     * @return Border
+     */
+    public function getBorder(): Border
+    {
+        return new Border($this->map);
+    }
+    
+    /**
+     * getUtilItems
+     *
+     * @return Items
+     */
+    public function getUtilItems(): Items
+    {
+        return new Items($this);
     }
     
     /**

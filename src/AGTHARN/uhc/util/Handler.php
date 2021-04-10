@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\util;
 
-use pocketmine\item\enchantment\EnchantmentInstance;
-use pocketmine\item\enchantment\Enchantment;
 use pocketmine\level\sound\BlazeShootSound;
 use pocketmine\level\sound\ClickSound;
+use pocketmine\entity\EffectInstance;
+use pocketmine\entity\Effect;
 use pocketmine\item\ItemIds;
 use pocketmine\item\Item;
 use pocketmine\utils\TextFormat as TF;
@@ -37,10 +37,10 @@ class Handler
      * @param  Main $plugin
      * @return void
      */
-    public function __construct(Main $plugin)
+    public function __construct(Main $plugin, Border $border)
     {
         $this->plugin = $plugin;
-        $this->border = new Border($plugin->getServer()->getDefaultLevel());
+        $this->border = $border;
     }
 
     /**
@@ -122,28 +122,8 @@ class Handler
             $player->getCursorInventory()->clearAll();
             $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
             if (count($server->getOnlinePlayers()) <= self::MIN_PLAYERS) {
-                if ($gameManager->getPhase() === PhaseChangeEvent::WAITING && $player->getInventory()->getItemInHand()->hasEnchantment(17)) {
-                    switch ($player->getInventory()->getItemInHand()->getId()) {
-                        case 355:
-                            if ($player->getInventory()->getItemInHand()->hasEnchantment(17)) {
-                                $player->sendPopup("§aReturn To Hub");
-                                return;
-                            }
-                            break;
-                        case 35:
-                            $player->sendPopup("§cReport");
-                            return;
-                    }
-                }
                 $player->sendPopup(TF::RED . $playerstartcount . " more players required...");
             }
-            $item = Item::get(Item::BED, 0, 1)->setCustomName("§aReturn To Hub");
-            $item->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(17), 5));
-            $player->getInventory()->setItem(8, $item);
-                
-            $item2 = Item::get(35, 14, 1)->setCustomName("§aReport");
-            $item2->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(17), 5));
-            $player->getInventory()->setItem(0, $item2);
         }
     }
     
@@ -695,6 +675,41 @@ class Handler
         if ($this->bossBar !== null) {
             foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
                 $this->bossBar->showTo($player);
+            }
+        }
+    }
+    
+    /**
+     * handleBorder
+     *
+     * @return void
+     */
+    public function handleBorder(): void
+    {   
+        $gameManager = $this->plugin->getManager();
+        foreach ($this->getServer()->getOnlinePlayers() as $player) {
+            $playerx = $player->getFloorX();
+            $playery = $player->getFloorY();
+            $playerz = $player->getFloorZ();
+
+            if ($playerx >= $this->border->getSize() - 20 || -$playerx >= $this->border->getSize() - 20 || $playery >= $this->border->getSize() - 20 || $playerz >= $this->border->getSize() - 20 || -$playerz >= $this->border->getSize() - 20) {
+                $player->sendPopup(TF::RED . "BORDER IS CLOSE!");
+            }
+            
+            if ($playerx >= $this->border->getSize() || -$playerx >= $this->border->getSize() || $playery >= $this->border->getSize() || $playerz >= $this->border->getSize() || -$playerz >= $this->border->getSize()) {
+                switch ($this->getPhase()) {
+                    case PhaseChangeEvent::WAITING:
+                    case PhaseChangeEvent::COUNTDOWN:
+                        $level = $this->getServer()->getLevelByName($this->plugin->map);
+                        $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
+                        break;
+                    default:
+                        $player->addEffect(new EffectInstance(Effect::getEffect(19), 60, 1, false));
+                        if ($player->getHealth() <= 2) {
+                            $player->addEffect(new EffectInstance(Effect::getEffect(7), 100, 1, false));
+                        }
+                        break;
+                }
             }
         }
     }

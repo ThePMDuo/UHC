@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\game;
 
-use pocketmine\item\enchantment\EnchantmentInstance;
-use pocketmine\item\enchantment\Enchantment;
 use pocketmine\level\Position;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
-use pocketmine\item\Item;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\scheduler\Task;
 use pocketmine\Player;
 
 use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\game\type\GameTimer;
+use AGTHARN\uhc\game\Border;
 use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
@@ -57,10 +55,10 @@ class GameManager extends Task
      * @param  Main $plugin
      * @return void
      */
-    public function __construct(Main $plugin)
+    public function __construct(Main $plugin, Border $border)
     {
         $this->plugin = $plugin;
-        $this->border = new Border($plugin->getServer()->getDefaultLevel());
+        $this->border = $border;
     }
     
     /**
@@ -75,6 +73,7 @@ class GameManager extends Task
         $handler = $this->plugin->getHandler();
         $handler->handlePlayers();
         $handler->handleBossBar();
+        $handler->handleBorder();
         
         switch ($this->getPhase()) {
             case PhaseChangeEvent::WAITING:
@@ -110,32 +109,8 @@ class GameManager extends Task
         }
         
         foreach ($server->getOnlinePlayers() as $player) {
-            $playerx = $player->getFloorX();
-            $playery = $player->getFloorY();
-            $playerz = $player->getFloorZ();
-            
             if (!$player->hasEffect(16)) {
                 $player->addEffect(new EffectInstance(Effect::getEffect(16), 1000000, 1, false));
-            }
-
-            if ($playerx >= $this->border->getSize() - 20 || -$playerx >= $this->border->getSize() - 20 || $playery >= $this->border->getSize() - 20 || $playerz >= $this->border->getSize() - 20 || -$playerz >= $this->border->getSize() - 20) {
-                $player->sendPopup(TF::RED . "BORDER IS CLOSE!");
-            }
-            
-            if ($playerx >= $this->border->getSize() || -$playerx >= $this->border->getSize() || $playery >= $this->border->getSize() || $playerz >= $this->border->getSize() || -$playerz >= $this->border->getSize()) {
-                switch ($this->getPhase()) {
-                    case PhaseChangeEvent::WAITING:
-                    case PhaseChangeEvent::COUNTDOWN:
-                        $level = $server->getLevelByName($this->plugin->map);
-                        $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
-                        break;
-                    default:
-                        $player->addEffect(new EffectInstance(Effect::getEffect(19), 60, 1, false));
-                        if ($player->getHealth() <= 2) {
-                            $player->addEffect(new EffectInstance(Effect::getEffect(7), 100, 1, false));
-                        }
-                        break;
-                }
             }
             
             if ($player->getLevel()->getName() !== $this->plugin->map) {
@@ -144,14 +119,7 @@ class GameManager extends Task
             }
             
             if ($player->getGamemode() === Player::SPECTATOR) {
-                $inventory = $player->getInventory();
-                $item = Item::get(Item::BED, 0, 1)->setCustomName("§aReturn To Hub");
-                $item->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(17), 5));
-                $player->getInventory()->setItem(8, $item);
-                
-                $item2 = Item::get(35, 14, 1)->setCustomName("§cReport");
-                $item2->addEnchantment(new EnchantmentInstance(Enchantment::getEnchantment(17), 5));
-                $player->getInventory()->setItem(0, $item2);
+                $this->plugin->getUtilItems()->giveItems($player);
             }
         }
         
