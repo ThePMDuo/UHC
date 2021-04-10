@@ -106,7 +106,6 @@ class EventListener implements Listener
         $session = $this->plugin->getSessionManager()->getSession($player);
         $server = $this->plugin->getServer();
         $mUsage = Process::getAdvancedMemoryUsage();
-        $bossBar = $this->plugin->getBossBar();
 
         $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber);
         $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalMessage());
@@ -124,9 +123,6 @@ class EventListener implements Listener
         $player->getArmorInventory()->clearAll();
         $player->getCursorInventory()->clearAll();
 
-        $bossBar->setTitle("§fWAITING...");
-        $bossBar->setPercentage(1.0);
-        $bossBar->addPlayer($player);
         $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $server->getLevelByName($this->plugin->map)));
     }
 

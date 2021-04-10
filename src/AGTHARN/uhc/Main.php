@@ -5,6 +5,7 @@ namespace AGTHARN\uhc;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat as TF;
+use pocketmine\entity\utils\Bossbar;
 
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\session\SessionManager;
@@ -13,8 +14,6 @@ use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\EventListener;
-
-use AGTHARN\uhc\libs\xenialdan\apibossbar\BossBar;
 
 class Main extends PluginBase
 {   
@@ -33,7 +32,7 @@ class Main extends PluginBase
     /** @var int */
     public $spawnPosX = 0;
     /** @var int */
-    public $spawnPosY = 100;
+    public $spawnPosY = 125;
     /** @var int */
     public $spawnPosZ = 0;
 
@@ -103,8 +102,28 @@ class Main extends PluginBase
             }
             $worldAPI->generateLevel($levelName, $this->seed, 1);  
             $worldAPI->loadLevel($levelName);
+
+            $level = $this->getServer()->getLevelByName($this->map); // redefine so its not null
+            $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "domobspawning"), "true");
+            $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "showcoordinates"), "true");
         }
     }
+    
+    /**
+     * matchRuleName
+     *
+     * @param  array $rules
+     * @param  string $input
+     * @return string
+     */
+    public function matchRuleName(array $rules, string $input): string {
+		foreach ($rules as $name => $d) {
+			if (strtolower($name) === $input) {
+				return $name;
+			}
+		}
+		return $input;
+	}
     
     /**
      * generateRandomSeed
@@ -145,6 +164,7 @@ class Main extends PluginBase
     {
         return $this->sessionManager;
     }
+    
 
     /**
      * getTeamManager
@@ -164,15 +184,15 @@ class Main extends PluginBase
     public function getHandler(): Handler {
         return $this->utilHandler;
     }
-    
+
     /**
      * getBossBar
      *
-     * @return BossBar
+     * @return Bossbar
      */
-    public function getBossBar(): BossBar
+    public function getBossBar(string $text, float $float): Bossbar
     {
-        return new BossBar();
+        return new Bossbar($text, $float); /** @phpstan-ignore-line */
     }
     
     /**
