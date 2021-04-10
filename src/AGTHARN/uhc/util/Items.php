@@ -28,10 +28,10 @@ class Items
     /**
      * giveItems
      *
-     * @param  mixed $player
+     * @param  Player $player
      * @return void
      */
-    public function giveItems(Player $player)
+    public function giveItems(Player $player): void
     {
         $hub = Item::get(Item::COMPASS)->setCustomName("§aReturn To Hub");;
         $hub->setNamedTagEntry(new StringTag("Hub"));

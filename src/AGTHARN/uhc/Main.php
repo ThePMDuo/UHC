@@ -204,7 +204,7 @@ class Main extends PluginBase
      */
     public function getBorder(): Border
     {
-        return new Border($this->map);
+        return new Border($this->getServer()->getLevelByName($this->map));
     }
     
     /**

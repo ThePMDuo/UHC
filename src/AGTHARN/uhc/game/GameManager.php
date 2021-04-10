@@ -7,7 +7,6 @@ namespace AGTHARN\uhc\game;
 use pocketmine\level\Position;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
-use pocketmine\utils\TextFormat as TF;
 use pocketmine\scheduler\Task;
 use pocketmine\Player;
 

@@ -7,6 +7,7 @@ use pocketmine\level\sound\BlazeShootSound;
 use pocketmine\level\sound\ClickSound;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
+use pocketmine\level\Position;
 use pocketmine\item\ItemIds;
 use pocketmine\item\Item;
 use pocketmine\utils\TextFormat as TF;
@@ -687,7 +688,7 @@ class Handler
     public function handleBorder(): void
     {   
         $gameManager = $this->plugin->getManager();
-        foreach ($this->getServer()->getOnlinePlayers() as $player) {
+        foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
             $playerx = $player->getFloorX();
             $playery = $player->getFloorY();
             $playerz = $player->getFloorZ();
@@ -697,10 +698,10 @@ class Handler
             }
             
             if ($playerx >= $this->border->getSize() || -$playerx >= $this->border->getSize() || $playery >= $this->border->getSize() || $playerz >= $this->border->getSize() || -$playerz >= $this->border->getSize()) {
-                switch ($this->getPhase()) {
+                switch ($gameManager->getPhase()) {
                     case PhaseChangeEvent::WAITING:
                     case PhaseChangeEvent::COUNTDOWN:
-                        $level = $this->getServer()->getLevelByName($this->plugin->map);
+                        $level = $this->plugin->getServer()->getLevelByName($this->plugin->map);
                         $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
                         break;
                     default:
