@@ -119,6 +119,13 @@ class EventListener implements Listener
             return;
         }
 
+        $player->setFood($player->getMaxFood());
+        $player->setHealth($player->getMaxHealth());
+        $player->removeAllEffects();
+        $player->getInventory()->clearAll();
+        $player->getArmorInventory()->clearAll();
+        $player->getCursorInventory()->clearAll();
+
         $bossBar->setTitle("§fWAITING...");
         $bossBar->setPercentage(1.0);
         $bossBar->addPlayer($player);

@@ -283,6 +283,16 @@ class GameManager extends Task
     {
         $this->grace = $time;
     }
+    
+    /**
+     * getGraceTimer
+     *
+     * @return int
+     */
+    public function getGraceTimer(): int
+    {
+        return $this->grace;
+    }
         
     /**
      * setPVPTimer
@@ -293,6 +303,16 @@ class GameManager extends Task
     public function setPVPTimer(int $time): void
     {
         $this->pvp = $time;
+    }
+
+    /**
+     * getPVPTimer
+     *
+     * @return int
+     */
+    public function getPVPTimer(): int
+    {
+        return $this->pvp;
     }
         
     /**
@@ -305,6 +325,16 @@ class GameManager extends Task
     {
         $this->deathmatch = $time;
     }
+
+    /**
+     * getDeathmatchTimer
+     *
+     * @return int
+     */
+    public function getDeathmatchTimer(): int
+    {
+        return $this->deathmatch;
+    }
         
     /**
      * setWinnerTimer
@@ -316,6 +346,16 @@ class GameManager extends Task
     {
         $this->winner = $time;
     }
+
+    /**
+     * getWinnerTimer
+     *
+     * @return int
+     */
+    public function getWinnerTimer(): int
+    {
+        return $this->winner;
+    }
         
     /**
      * setResetTimer
@@ -326,6 +366,16 @@ class GameManager extends Task
     public function setResetTimer(int $time): void
     {
         $this->reset = $time;
+    }
+
+    /**
+     * getResetTimer
+     *
+     * @return int
+     */
+    public function getResetTimer(): int
+    {
+        return $this->reset;
     }
     
     /**
