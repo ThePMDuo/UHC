@@ -104,8 +104,8 @@ class Main extends PluginBase
             $worldAPI->loadLevel($levelName);
 
             $level = $this->getServer()->getLevelByName($this->map); // redefine so its not null
-            $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "domobspawning"), "true");
-            $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "showcoordinates"), "true");
+            $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "domobspawning"), "true"); /** @phpstan-ignore-line */
+            $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "showcoordinates"), "true"); /** @phpstan-ignore-line */
         }
     }
     
@@ -190,7 +190,7 @@ class Main extends PluginBase
      *
      * @return Bossbar
      */
-    public function getBossBar(string $text, float $float): Bossbar
+    public function getBossBar(string $text, float $float): Bossbar /** @phpstan-ignore-line */
     {
         return new Bossbar($text, $float); /** @phpstan-ignore-line */
     }

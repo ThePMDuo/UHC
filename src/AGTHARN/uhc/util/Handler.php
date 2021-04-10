@@ -75,7 +75,7 @@ class Handler
                         $player->getInventory()->clearAll();
                         $player->getArmorInventory()->clearAll();
                         $player->getCursorInventory()->clearAll();
-                        $player->getOffHandInventory()->clearAll();
+                        $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
                         $player->setImmobile(true);
                     } elseif ($gameManager->countdown === 0) {
                         $player->setImmobile(false);
@@ -120,7 +120,7 @@ class Handler
             $player->getInventory()->clearAll();
             $player->getArmorInventory()->clearAll();
             $player->getCursorInventory()->clearAll();
-            $player->getOffHandInventory()->clearAll();
+            $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
             if (count($server->getOnlinePlayers()) <= self::MIN_PLAYERS) {
                 if ($gameManager->getPhase() === PhaseChangeEvent::WAITING && $player->getInventory()->getItemInHand()->hasEnchantment(17)) {
                     switch ($player->getInventory()->getItemInHand()->getId()) {
@@ -454,7 +454,7 @@ class Handler
                     $player->getInventory()->clearAll();
                     $player->getArmorInventory()->clearAll();
                     $player->getCursorInventory()->clearAll();
-                    $player->getOffHandInventory()->clearAll();
+                    $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
                     $player->setImmobile(false);
                     $this->handleScoreboard($player);
 
