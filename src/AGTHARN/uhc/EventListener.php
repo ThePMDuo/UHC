@@ -58,8 +58,6 @@ class EventListener implements Listener
     {
         $this->plugin = $plugin;
         $this->border = new Border($plugin->getServer()->getDefaultLevel());
-
-        $plugin->getServer()->getPluginManager()->registerEvents($this, $plugin);
     }
     
     /**
