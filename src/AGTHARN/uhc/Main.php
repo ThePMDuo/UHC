@@ -3,16 +3,15 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\plugin\PluginLoadOrder;
 use pocketmine\plugin\PluginBase;
 use pocketmine\entity\utils\Bossbar;
 
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\scenario\ScenarioManager;
+use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
-use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\util\FolderPluginLoader;
 use AGTHARN\uhc\util\ConfigUpdater;
 use AGTHARN\uhc\util\Handler;
@@ -61,12 +60,6 @@ class Main extends PluginBase
      */
     public function onEnable(): void
     {   
-        $plugins = getcwd() . "\n" . DIRECTORY_SEPARATOR . "plugins";
-
-        $this->getServer()->getPluginManager()->registerInterface(new FolderPluginLoader($this->getServer()->getLoader()));
-		$this->getServer()->getPluginManager()->loadPlugins($plugins, [FolderPluginLoader::class]);
-		$this->getServer()->enablePlugins(PluginLoadOrder::STARTUP);
-
         @mkdir($this->getDataFolder() . "scenarios");
 
         $this->prepareLevels();

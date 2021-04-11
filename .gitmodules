@@ -13,3 +13,6 @@
 [submodule "src/AGTHARN/uhc/plugins/Mockingbird"]
 	path = src/AGTHARN/uhc/plugins/Mockingbird
 	url = https://github.com/ethaniccc/Mockingbird.git
+[submodule "src/AGTHARN/uhc/plugins/AntiXray"]
+	path = src/AGTHARN/uhc/plugins/AntiXray
+	url = https://github.com/HimmelKreis4865/AntiXray.git
