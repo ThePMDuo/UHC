@@ -6,6 +6,9 @@ parameters:
 
     ignoreErrors: []
 
+    excludes_analyse:
+        - '%currentWorkingDirectory%/src/AGTHARN/uhc/plugins/*'
+
     paths:
         - /source/src
     bootstrapFiles:

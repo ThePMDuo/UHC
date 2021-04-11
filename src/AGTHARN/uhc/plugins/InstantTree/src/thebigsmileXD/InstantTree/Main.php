@@ -16,30 +16,49 @@ use pocketmine\utils\Random;
 use pocketmine\item\Item;
 use pocketmine\block\Block;
 
-class Main extends PluginBase implements Listener{
+class Main extends PluginBase implements Listener
+{
+	/** @var array */
 	public $levels = [];
-
-	public function onEnable(){
+	
+	/**
+	 * onEnable
+	 *
+	 * @return void
+	 */
+	public function onEnable(): void
+	{
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		$this->saveDefaultConfig();
 		$this->levels = $this->getConfig()->get("worlds");
 	}
+	
+	/**
+	 * spawnTree
+	 *
+	 * @param  PlayerInteractEvent $event
+	 * @return void
+	 */
+	public function spawnTree(PlayerInteractEvent $event): void
+	{
+		if ($event->getItem()->getId() === Item::SAPLING) {
+			$pos = $event->getBlock()->getSide($event->getFace());
+			$level = $event->getBlock()->getLevel();
 
-	public function spawnTree(PlayerInteractEvent $event){
-		if(($this->getConfig()->get("per-world") == true && !empty($this->levels) && in_array($event->getPlayer()->getLevel()->getName(), $this->levels)) || $this->getConfig()->get("per-world") == false){
-			if($event->getItem()->getId() === Item::SAPLING){
-				$pos = $event->getBlock()->getSide($event->getFace());
-				$blockplacedonid = $pos->getSide(0)->getId();
-				if($blockplacedonid === Block::DIRT || $blockplacedonid === Block::GRASS || $blockplacedonid === Block::PODZOL || $blockplacedonid === Block::FARMLAND){
-					$level = $event->getBlock()->getLevel();
-					Tree::growTree($level, $pos->x, $pos->y, $pos->z, new Random(mt_rand()), $event->getItem()->getDamage());
-					if($event->getPlayer()->isSurvival()) $event->getPlayer()->getInventory()->removeItem($event->getItem());
+			switch ($pos->getSide(0)->getId()) {
+				case Block::DIRT:
+				case Block::GRASS:
+				case Block::PODZOL:
+				case Block::FARMLAND:
+					Tree::growTree($level, (int)$pos->x, (int)$pos->y, (int)$pos->z, new Random(mt_rand()), $event->getItem()->getDamage());
+					if ($event->getPlayer()->isSurvival()) {
+						$event->getPlayer()->getInventory()->removeItem($event->getItem());
+					}
 					$event->setCancelled();
-				}
-				else{
+					break;
+				default:
 					$event->setCancelled();
-					return false;
-				}
+					break;
 			}
 		}
 	}
