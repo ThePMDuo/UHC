@@ -12,7 +12,7 @@ use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\scenario\ScenarioManager;
 use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
-use AGTHARN\uhc\game\Border;
+use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\util\Items;
 use AGTHARN\uhc\EventListener;

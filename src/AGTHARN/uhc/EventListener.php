@@ -27,7 +27,7 @@ use pocketmine\level\Position;
 use pocketmine\Player;
 
 use AGTHARN\uhc\event\PhaseChangeEvent;
-use AGTHARN\uhc\game\Border;
+use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
@@ -154,6 +154,10 @@ class EventListener implements Listener
             $session->setPlaying(false);
         }
         ScoreFactory::removeScore($player);
+
+        if ($this->plugin->getHandler()->bossBar !== null) {
+            $this->plugin->getHandler()->bossBar->hideFrom($player);
+        }
     }
 
     /**
