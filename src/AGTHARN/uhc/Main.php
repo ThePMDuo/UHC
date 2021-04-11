@@ -5,7 +5,6 @@ namespace AGTHARN\uhc;
 
 use pocketmine\plugin\PluginLoadOrder;
 use pocketmine\plugin\PluginBase;
-use pocketmine\utils\TextFormat as TF;
 use pocketmine\entity\utils\Bossbar;
 
 use AGTHARN\uhc\command\SpectatorCommand;
@@ -64,8 +63,11 @@ class Main extends PluginBase
     {   
         $plugins = getcwd() . "\n" . DIRECTORY_SEPARATOR . "plugins";
 
+        $this->getServer()->getPluginManager()->registerInterface(new FolderPluginLoader($this->getServer()->getLoader()));
+		$this->getServer()->getPluginManager()->loadPlugins($plugins, [FolderPluginLoader::class]);
+		$this->getServer()->enablePlugins(PluginLoadOrder::STARTUP);
+
         @mkdir($this->getDataFolder() . "scenarios");
-        @mkdir($plugins);
 
         $this->prepareLevels();
         $this->getConfigUpdater()->updateConfigs();
@@ -77,10 +79,6 @@ class Main extends PluginBase
         $this->utilHandler = new Handler($this, $this->getBorder());
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this, $this->getBorder()), $this);
-
-        $this->getServer()->getPluginManager()->registerInterface(new FolderPluginLoader($this->getServer()->getLoader()));
-        $this->getServer()->getPluginManager()->loadPlugins($plugins, [FolderPluginLoader::class]);
-        $this->getServer()->enablePlugins(PluginLoadOrder::STARTUP);
         
         $this->getServer()->getCommandMap()->registerAll("uhc", [
             new SpectatorCommand($this)
@@ -265,7 +263,8 @@ class Main extends PluginBase
      * @param  bool $operational
      * @return void
      */
-    public function setOperational(bool $operational): void {
+    public function setOperational(bool $operational): void
+    {
         if ($this->getOperational()) {
             $this->operational = $operational;
         }
@@ -276,19 +275,34 @@ class Main extends PluginBase
      *
      * @return bool
      */
-    public function getOperational(): bool {
+    public function getOperational(): bool
+    {
         return $this->operational;
     }
     
+    /**
+     * getOperationalColoredMessage
+     *
+     * @return string
+     */
+    public function getOperationalColoredMessage(): string
+    {
+        if ($this->getOperational()) {
+            return "§aSERVER OPERATIONAL";
+        }
+        return "§cSERVER UNOPERATIONAL: POSSIBLY RESETTING";
+    }
+
     /**
      * getOperationalMessage
      *
      * @return string
      */
-    public function getOperationalMessage(): string {
+    public function getOperationalMessage(): string
+    {
         if ($this->getOperational()) {
-            return TF::GREEN . "SERVER OPERATIONAL";
+            return "SERVER OPERATIONAL";
         }
-        return TF::RED . "SERVER UNOPERATIONAL";
+        return "SERVER UNOPERATIONAL: POSSIBLY RESETTING";
     }
 }

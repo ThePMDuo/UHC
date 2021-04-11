@@ -29,43 +29,66 @@ use function is_dir;
 class FolderPluginLoader implements PluginLoader
 {
     /** @var \ClassLoader */
-    private $loader;
-
-    public function __construct(\ClassLoader $loader)
+	private $loader;
+	
+	/**
+	 * __construct
+	 *
+	 * @param  ClassLoader $loader
+	 * @return void
+	 */
+	public function __construct(\ClassLoader $loader)
     {
-        $this->loader = $loader;
-    }
-
-    public function canLoadPlugin(string $path): bool
+		$this->loader = $loader;
+	}
+	
+	/**
+	 * canLoadPlugin
+	 *
+	 * @param  string $path
+	 * @return bool
+	 */
+	public function canLoadPlugin(string $path): bool
     {
-        return is_dir($path) and file_exists($path . "/plugin.yml") and file_exists($path . "/src/");
-    }
-
-    /**
-     * Loads the plugin contained in $file
-     */
-    public function loadPlugin(string $file) : void
+		return is_dir($path) and file_exists($path . "/plugin.yml") and file_exists($path . "/src/");
+	}
+	
+	/**
+	 * loadPlugin
+	 *
+	 * @param  string $file
+	 * @return void
+	 */
+	public function loadPlugin(string $file): void
     {
-        $this->loader->addPath("$file/src");
-    }
-
-    /**
-     * Gets the PluginDescription from the file
-     */
-    public function getPluginDescription(string $file): ?PluginDescription
+		$this->loader->addPath("$file/src");
+	}
+	
+	/**
+	 * getPluginDescription
+	 *
+	 * @param  string $file
+	 * @return PluginDescription
+	 */
+	public function getPluginDescription(string $file): ?PluginDescription
     {
-        if(is_dir($file) and file_exists($file . "/plugin.yml")){
-            $yaml = @file_get_contents($file . "/plugin.yml");
-            if($yaml != ""){
-                /* @phpstan-ignore-next-line */
-                return new PluginDescription($yaml);
-            }
-        }
-        return null;
-    }
+		if(is_dir($file) and file_exists($file . "/plugin.yml")){
+			$yaml = @file_get_contents($file . "/plugin.yml");
+			if($yaml != ""){
+				return new PluginDescription($yaml);
+			}
+		}
 
-    public function getAccessProtocol(): string
+		return null;
+	}
+	
+	/**
+	 * getAccessProtocol
+	 *
+	 * @return string
+	 */
+	public function getAccessProtocol(): string
     {
-        return "";
-    }
+		return "";
+	}
 }

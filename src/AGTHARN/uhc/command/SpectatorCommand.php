@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace AGTHARN\uhc\command;
 
 use pocketmine\command\utils\InvalidCommandSyntaxException;
-use pocketmine\utils\TextFormat;
 use pocketmine\Player;
 
 use AGTHARN\uhc\Main;
@@ -37,7 +36,7 @@ class SpectatorCommand extends BaseCommand
     public function onExecute(Player $sender, array $args) : void
     {
         if ($sender->getGamemode() !== Player::SPECTATOR) {
-            $sender->sendMessage(TextFormat::RED . "You must be eliminated to use this command!");
+            $sender->sendMessage("§cYou must be eliminated to use this command!");
             return;
         }
 
@@ -47,16 +46,16 @@ class SpectatorCommand extends BaseCommand
 
         $player = $this->plugin->getServer()->getPlayer(mb_strtolower($args[0]));
         if ($player === null) {
-            $sender->sendMessage(TextFormat::RED . "That player is not in the game!");
+            $sender->sendMessage("§cThat player is not in the game!");
             return;
         }
 
         if ($player === $sender) {
-            $sender->sendMessage(TextFormat::RED . "You can't spectate yourself!");
+            $sender->sendMessage("§cYou can't spectate yourself!");
             return;
         } else {
             $sender->teleport($player->getPosition());
-            $sender->sendMessage(TextFormat::GREEN . "Currently spectating " . $player->getDisplayName());
+            $sender->sendMessage("§aCurrently spectating " . $player->getDisplayName());
             return;
         }
     }

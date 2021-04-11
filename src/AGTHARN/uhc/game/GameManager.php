@@ -101,6 +101,10 @@ class GameManager extends Task
         
         $server->getLevelByName($this->plugin->map)->setTime(1000);
 
+        if (!$this->plugin->getOperational()){
+            $server->getNetwork()->setName($this->plugin->getOperationalMessage());
+        }
+
         if (!$this->hasStarted()) {
             $server->getNetwork()->setName("NOT STARTED");
         } else {
@@ -135,37 +139,6 @@ class GameManager extends Task
                     break;
             }       
         }
-        
-        if ($this->shrinking == true) {
-            switch ($this->getPhase()) {
-                case PhaseChangeEvent::PVP:
-                    if ($this->pvp >= 801 && $this->pvp <= 900) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    if ($this->pvp >= 501 && $this->pvp <= 600) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    if ($this->pvp >= 201 && $this->pvp <= 300) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    break;
-                case PhaseChangeEvent::DEATHMATCH:
-                    if ($this->deathmatch >= 1101) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    if ($this->deathmatch >= 651 && $this->deathmatch <= 700) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    if ($this->deathmatch >= 361 && $this->deathmatch <= 400) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    if ($this->deathmatch >= 291 && $this->deathmatch <= 300) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    break;
-            }
-        }
-        $server->getLevelByName("UHC")->setAutoSave(false);
     }
     
     /**

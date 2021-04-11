@@ -8,9 +8,7 @@ use pocketmine\level\sound\ClickSound;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
 use pocketmine\level\Position;
-use pocketmine\item\ItemIds;
 use pocketmine\item\Item;
-use pocketmine\utils\TextFormat as TF;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
@@ -64,7 +62,7 @@ class Handler
 
             if ($session !== null) {
                 $name = (string)$session->getTeam()->getNumber() ?? "NO TEAM";
-                $player->setNameTag(TF::GOLD . "[$name] " . $player->getDisplayName());
+                $player->setNameTag("§6[$name] " . $player->getDisplayName());
             }
             switch ($gameManager->getPhase()) {
                 case PhaseChangeEvent::COUNTDOWN:
@@ -78,7 +76,10 @@ class Handler
                         $player->getCursorInventory()->clearAll();
                         $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
                         $player->setImmobile(true);
-                    } elseif ($gameManager->countdown === 0) {
+                        return;
+                    }
+
+                    if ($gameManager->countdown === 0) {
                         $player->setImmobile(false);
                     }
                     break;
@@ -123,7 +124,7 @@ class Handler
             $player->getCursorInventory()->clearAll();
             $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
             if (count($server->getOnlinePlayers()) <= self::MIN_PLAYERS) {
-                $player->sendPopup(TF::RED . $playerstartcount . " more players required...");
+                $player->sendPopup("§c" . $playerstartcount . " more players required...");
             }
         }
     }
@@ -147,45 +148,44 @@ class Handler
                     $player->getInventory()->clearAll();
                     $player->getArmorInventory()->clearAll();
                     $player->getCursorInventory()->clearAll();
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Game starting in " . TF::AQUA . "60 seconds!");
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "All players will be teleported in " . TF::AQUA . "30 seconds!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rGame starting in " . "§b60 seconds!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rAll players will be teleported in " . "§b30 seconds!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 45:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "All players will be teleported in " . TF::AQUA . "15 seconds!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rAll players will be teleported in " . "§b15 seconds!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 30:
-                $this->border->setSize(500);
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The game will begin in " . TF::AQUA . "30 seconds.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe game will begin in " . "§b30 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 10:
-            foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The game will begin in " . TF::AQUA . "10 seconds.");
+                foreach ($server->getOnlinePlayers() as $player) {
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe game will begin in " . "§b10 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 3:
-            foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The game will begin in " . TF::AQUA . "3 seconds.");
+                foreach ($server->getOnlinePlayers() as $player) {
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe game will begin in " . "§b3 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 2:
-            foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The game will begin in " . TF::AQUA . "2 seconds.");
+                foreach ($server->getOnlinePlayers() as $player) {
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe game will begin in " . "§b2 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 1:
-            foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The game will begin in " . TF::AQUA . "1 second.");
+                foreach ($server->getOnlinePlayers() as $player) {
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe game will begin in " . "§b1 second.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
@@ -197,9 +197,9 @@ class Handler
                 }
 
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . TF::BOLD . "The match has begun!");
+                    $player->sendMessage("§aJAX " . "§7»» §r§c§lThe match has begun!");
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                    $player->getArmorInventory()->setChestplate(Item::get(ItemIds::ELYTRA));
+                    $player->getArmorInventory()->setChestplate(Item::get(Item::ELYTRA));
                 }
                 $gameManager->setPhase(PhaseChangeEvent::GRACE);
                 break;
@@ -220,7 +220,7 @@ class Handler
         switch ($gameManager->getGraceTimer()) {
             case 1190:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Final heal in " . TF::AQUA . "10 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rFinal heal in " . "§b10 minutes.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
@@ -232,62 +232,62 @@ class Handler
             case 601:
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->setHealth($player->getMaxHealth());
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Final heal has " . TF::AQUA . "occurred!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rFinal heal has " . "§boccurred!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 600:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PVP will enable in 10 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cPVP will enable in 10 minutes.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 300:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PVP will enable in 5 minutes.");
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border will start shrinking to " . TF::AQUA . "400" . TF::WHITE . " in " . TF::AQUA . "10 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cPVP will enable in 5 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe border will start shrinking to " . "§b400" . "§f in " . "§b10 minutes.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 60:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PVP will enable in 1 minute.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cPVP will enable in 1 minute.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 30:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PVP will enable in 30 seconds.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cPVP will enable in 30 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 10:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PVP will enable in 10 seconds.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cPVP will enable in 10 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 3:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PvP will be enabled in 3 seconds.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cPvP will be enabled in 3 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 2:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PvP will be enabled in 2 seconds.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cPvP will be enabled in 2 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 1:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PvP will be enabled in 1 second.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cPvP will be enabled in 1 second.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 0:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "PvP has been enabled!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cPvP has been enabled!");
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 $gameManager->setPhase(PhaseChangeEvent::PVP);
@@ -310,38 +310,38 @@ class Handler
         switch ($gameManager->getPVPTimer()) {
             case 1199:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border will start shrinking to " . TF::AQUA . "400" . TF::WHITE . " in " . TF::AQUA . "5 minutes");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe border will start shrinking to " . "§b400" . "§f in " . "§b5 minutes");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 900:
                 foreach ($server->getOnlinePlayers() as $player) {
                     //$this->border->setSize(400);
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border is now shrinking to " . TF::AQUA . "400.\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Shrinking to " . TF::AQUA . "300" . TF::WHITE . " in " . TF::AQUA . "5 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe border is now shrinking to " . "§b400.\n" . "§aJAX " . "§7»» " . "§rShrinking to " . "§b300" . "§f in " . "§b5 minutes.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 600:
                 foreach ($server->getOnlinePlayers() as $player) {
                     //$this->border->setSize(300);
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border is now shrinking to " . TF::AQUA . "300.\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Shrinking to " . TF::AQUA . "200" . TF::WHITE . " in " . TF::AQUA . "5 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe border is now shrinking to " . "§b300.\n" . "§aJAX " . "§7»» " . "§rShrinking to " . "§b200" . "§f in " . "§b5 minutes.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 300:
                 foreach ($server->getOnlinePlayers() as $player) {
                     //$this->border->setSize(200);
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border is now shrinking to " . TF::AQUA . "200.\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Shrinking to " . TF::AQUA . "100" . TF::WHITE . " in " . TF::AQUA . "5 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe border is now shrinking to " . "§b200.\n" . "§aJAX " . "§7»» " . "§rShrinking to " . "§b100" . "§f in " . "§b5 minutes.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "Deathmatch starts in " . TF::AQUA . "10 minutes" . ".\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "All players would be teleported before the Deathmatch starts.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cDeathmatch starts in " . "§b10 minutes" . ".\n" . "§aJAX " . "§7»» " . "§r§cAll players would be teleported before the Deathmatch starts.");
                 }
                 break;
             case 0:
                 foreach ($server->getOnlinePlayers() as $player) {
                     //$this->border->setSize(100);
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border is now shrinking to " . TF::AQUA . "100.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe border is now shrinking to " . "§b100.");
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "Deathmatch starts in " . TF::AQUA . "5 minutes" . ".\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "All players would be teleported before the Deathmatch starts.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cDeathmatch starts in " . "§b5 minutes" . ".\n" . "§aJAX " . "§7»» " . "§r§cAll players would be teleported before the Deathmatch starts.");
                 }
                 $gameManager->setPhase(PhaseChangeEvent::DEATHMATCH);
                 break;
@@ -362,7 +362,7 @@ class Handler
         switch ($gameManager->getDeathmatchTimer()) {
             case 960:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "Deathmatch starts in " . TF::AQUA . "1 minute" . ".\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "All players would be teleported in 30 seconds.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cDeathmatch starts in " . "§b1 minute" . ".\n" . "§aJAX " . "§7»» " . "§r§cAll players would be teleported in 30 seconds.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
@@ -370,42 +370,42 @@ class Handler
                 foreach ($server->getOnlinePlayers() as $player) {
                     $gameManager->randomizeCoordinates(-99, 99, 180, 200, -99, 99);
                     $player->setImmobile(true);
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "Deathmatch starts in 30 seconds" . ".\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "All players have been teleported.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cDeathmatch starts in 30 seconds" . ".\n" . "§aJAX " . "§7»» " . "§r§cAll players have been teleported.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 900:
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->setImmobile(false);
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Deathmatch has started, " . TF::AQUA . "GOOD LUCK!\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Border is shrinking to " . TF::AQUA . "100" . TF::WHITE . " in " . TF::AQUA . "5 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rDeathmatch has started, " . "§bGOOD LUCK!\n" . "§aJAX " . "§7»» " . "§rBorder is shrinking to " . "§b100" . "§f in " . "§b5 minutes.");
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 700:
                 foreach ($server->getOnlinePlayers() as $player) {
                     //$this->border->setSize(50);
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border is now shrinking to " . TF::AQUA . "50.\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Shrinking to " . TF::AQUA . "75" . TF::WHITE . " in " . TF::AQUA . "5 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe border is now shrinking to " . "§b50.\n" . "§aJAX " . "§7»» " . "§rShrinking to " . "§b75" . "§f in " . "§b5 minutes.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 400:
                 foreach ($server->getOnlinePlayers() as $player) {
                     //$this->border->setSize(10);
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border is now shrinking to " . TF::AQUA . "10.\n" . TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Shrinking to " . TF::AQUA . "50" . TF::WHITE . " in " . TF::AQUA . "5 minutes.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe border is now shrinking to " . "§b10.\n" . "§aJAX " . "§7»» " . "§rShrinking to " . "§b50" . "§f in " . "§b5 minutes.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 300:
                 foreach ($server->getOnlinePlayers() as $player) {
                     //$this->border->setSize(1);
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "The border is now shrinking to " . TF::AQUA . "1.");
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "THE GAME IS ENDING IN 5 MINS!!!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThe border is now shrinking to " . "§b1.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cTHE GAME IS ENDING IN 5 MINS!!!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 0:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "GAME OVER!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cGAME OVER!");
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 $gameManager->setPhase(PhaseChangeEvent::WINNER);
@@ -427,7 +427,7 @@ class Handler
         switch ($gameManager->getWinnerTimer()) {
             case 60:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::GREEN . "Congratulations to the winner!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§aCongratulations to the winner!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                     $player->setFood($player->getMaxFood());
                     $player->setHealth($player->getMaxHealth());
@@ -448,31 +448,31 @@ class Handler
                 break;
             case 45:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "All players would be sent back to the games hub in " . TF::AQUA . "40 seconds as map resets!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rAll players would be sent back to the Hub in " . "§b40 seconds as map resets!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 30:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "All players would be sent back to the games hub in " . TF::AQUA . "25 seconds as map resets!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rAll players would be sent back to the Hub in " . "§b25 seconds as map resets!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 10:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "All players will be sent back to the games hub in " . TF::AQUA . "5 seconds!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rAll players will be sent back to the Hub in " . "§b5 seconds!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 7:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . "Thanks for playing on " . TF::AQUA . "MineWarrior UHC!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rThanks for playing on " . "§bMineUHC!");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 5:
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage(TF::GREEN . "JAX " . TF::GRAY . "»» " . TF::RESET . TF::RED . "ALL PLAYERS TELEPORTING!");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§r§cALL PLAYERS TELEPORTING!");
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
@@ -513,13 +513,12 @@ class Handler
             
                 foreach ($server->getLevels() as $level) {
                     foreach ($level->getEntities() as $entity) {
-                        if ($entity->getSaveId() === "Slapper") return;
-                        if (!$entity instanceof Player) $entity->close(); 
+                        if (!$entity instanceof Player) {
+                            $entity->close(); 
+                        }
                     }
                 }
-            
                 $this->plugin->prepareLevels();
-            
                 $server->getLogger()->info("World reset completed");
                 break;
             case 2:
@@ -530,9 +529,10 @@ class Handler
                 $gameManager->setDeathmatchTimer(60 * 20);
                 $gameManager->setWinnerTimer(60);
                 $gameManager->setShrinking(false);
+                $this->border->setSize(500);
                 $this->plugin->getTeamManager()->resetTeams();
             
-                $server->getLogger()->info("Timers have been reset");
+                $server->getLogger()->info("Timers, Teams & Borders have been reset");
                 break;
             case 0:
                 $gameManager->setPhase(PhaseChangeEvent::WAITING);
@@ -577,16 +577,16 @@ class Handler
             ScoreFactory::setScoreLine($player, 11, " §fCenter: §a0, 0");
             ScoreFactory::setScoreLine($player, 12, "    ");
             ScoreFactory::setScoreLine($player, 13, "§7§l[-------------------] ");
-            ScoreFactory::setScoreLine($player, 14, " §eplay.minewarrior.xyz");
+            ScoreFactory::setScoreLine($player, 14, " §eplay.mineuhc.xyz");
         } else {
             ScoreFactory::setScoreLine($player, 1, "§7§l[-------------------]");
             ScoreFactory::setScoreLine($player, 2, " §fPlayers §f");
-            ScoreFactory::setScoreLine($player, 3, " §a" . count($this->plugin->getSessionManager()->getPlaying()) . "§f§7/50");
+            ScoreFactory::setScoreLine($player, 3, " §a" . count($this->plugin->getServer()->getOnlinePlayers()) . "§f§7/50");
             ScoreFactory::setScoreLine($player, 4, " ");
             ScoreFactory::setScoreLine($player, 5, $gameManager->getPhase() === PhaseChangeEvent::WAITING ? "§7 Waiting for more players..." : "§7 Starting in:§f $gameManager->countdown");
             ScoreFactory::setScoreLine($player, 6, "  ");
             ScoreFactory::setScoreLine($player, 7, "§7§l[-------------------] ");
-            ScoreFactory::setScoreLine($player, 8, " §eplay.minewarrior.xyz");
+            ScoreFactory::setScoreLine($player, 8, " §eplay.mineuhc.xyz");
         }
     }
     
@@ -694,7 +694,7 @@ class Handler
             $playerz = $player->getFloorZ();
 
             if ($playerx >= $this->border->getSize() - 20 || -$playerx >= $this->border->getSize() - 20 || $playery >= $this->border->getSize() - 20 || $playerz >= $this->border->getSize() - 20 || -$playerz >= $this->border->getSize() - 20) {
-                $player->sendPopup(TF::RED . "BORDER IS CLOSE!");
+                $player->sendPopup("§cBORDER IS CLOSE!");
             }
             
             if ($playerx >= $this->border->getSize() || -$playerx >= $this->border->getSize() || $playery >= $this->border->getSize() || $playerz >= $this->border->getSize() || -$playerz >= $this->border->getSize()) {
@@ -711,6 +711,36 @@ class Handler
                         }
                         break;
                 }
+            }
+        }
+
+        if ($gameManager->shrinking === true) {
+            switch ($this->getPhase()) {
+                case PhaseChangeEvent::PVP:
+                    if ($this->pvp >= 801 && $this->pvp <= 900) {
+                        $this->border->setSize($this->border->getSize() - 1);
+                    }
+                    if ($this->pvp >= 501 && $this->pvp <= 600) {
+                        $this->border->setSize($this->border->getSize() - 1);
+                    }
+                    if ($this->pvp >= 201 && $this->pvp <= 300) {
+                        $this->border->setSize($this->border->getSize() - 1);
+                    }
+                    break;
+                case PhaseChangeEvent::DEATHMATCH:
+                    if ($this->deathmatch >= 1101) {
+                        $this->border->setSize($this->border->getSize() - 1);
+                    }
+                    if ($this->deathmatch >= 651 && $this->deathmatch <= 700) {
+                        $this->border->setSize($this->border->getSize() - 1);
+                    }
+                    if ($this->deathmatch >= 361 && $this->deathmatch <= 400) {
+                        $this->border->setSize($this->border->getSize() - 1);
+                    }
+                    if ($this->deathmatch >= 291 && $this->deathmatch <= 300) {
+                        $this->border->setSize($this->border->getSize() - 1);
+                    }
+                    break;
             }
         }
     }

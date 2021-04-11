@@ -19,7 +19,6 @@ use pocketmine\event\player\PlayerExhaustEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
-use pocketmine\utils\TextFormat as TF;
 use pocketmine\utils\Process;
 use pocketmine\block\Block;
 use pocketmine\item\Item;
@@ -86,7 +85,7 @@ class EventListener implements Listener
                     $session->setPlaying(false);
                 }
                 $player->setGamemode(3);
-                $player->sendMessage(TF::YELLOW . "Type /spectate to spectate a player.");
+                $player->sendMessage("§eType /spectate to spectate a player.");
                 break;
         }
     }
@@ -106,11 +105,11 @@ class EventListener implements Listener
         $mUsage = Process::getAdvancedMemoryUsage();
 
         $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber);
-        $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalMessage());
+        $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalColoredMessage());
         $player->sendMessage("THREADS: " . Process::getThreadCount() . " RAM USAGE: " . number_format(round(($mUsage[1] / 1024) / 1024, 2), 2) . " MB");
 
         if (!$this->plugin->getOperational()) {
-            $player->kick($this->plugin->getOperationalMessage() . ": UHC LOADER HAS FAILED! PLEASE CONTACT AN ADMIN!");
+            $player->kick($this->plugin->getOperationalColoredMessage() . ": SERVER RESETTING! SHOULD NOT TAKE LONGER THAN 10 SECONDS!");
             return;
         }
 
@@ -170,7 +169,7 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         if ($this->plugin->isGlobalMuteEnabled() && !$player->isOp()) {
-            $player->sendMessage(TF::RED . "You cannot talk right now!");
+            $player->sendMessage("§cYou cannot talk right now!");
             $event->setCancelled();
         }
     }
@@ -244,7 +243,7 @@ class EventListener implements Listener
         $sessionManager = $this->plugin->getSessionManager();
         
         $player->setGamemode(3);
-        $player->sendMessage(TF::YELLOW . "You have been eliminated! Type /spectate to spectate a player.");
+        $player->sendMessage("§eYou have been eliminated! Type /spectate to spectate a player.");
 
         if (!$sessionManager->hasSession($player)) return;
         
@@ -255,11 +254,11 @@ class EventListener implements Listener
                     $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
 
                     $damagerSession->addEliminations();
-                    $event->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " was eliminated by " . TF::RED . $damager->getName() . TF::GRAY . "(" . TF::WHITE . $damagerSession->getEliminations() . TF::GRAY . ")");
+                    $event->setDeathMessage("§c" . $player->getName() . "§7 (§f" . $eliminatedSession->getEliminations() . "§7)" . "§e was eliminated by §c" . $damager->getName() . "§7(§f" . $damagerSession->getEliminations() . "§7)");
                 }
             }
         } else {
-            $event->setDeathMessage(TF::RED . $player->getName() . TF::GRAY . " (" . TF::WHITE . $eliminatedSession->getEliminations() . TF::GRAY . ")" . TF::YELLOW . " has been eliminated somehow!");
+            $event->setDeathMessage("§c" . $player->getName() . "§7 (§f" . $eliminatedSession->getEliminations() . "§7)" . "§e has been eliminated somehow!");
         }
     }
 
