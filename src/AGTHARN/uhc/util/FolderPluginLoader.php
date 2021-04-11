@@ -17,7 +17,7 @@
 
 declare(strict_types=1);
 
-namespace AGTHARN\uhc\util\UHCPluginLoader;
+namespace AGTHARN\uhc\util;
 
 use pocketmine\plugin\PluginDescription;
 use pocketmine\plugin\PluginLoader;
