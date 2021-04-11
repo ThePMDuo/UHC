@@ -715,29 +715,29 @@ class Handler
         }
 
         if ($gameManager->shrinking === true) {
-            switch ($this->getPhase()) {
+            switch ($gameManager->getPhase()) {
                 case PhaseChangeEvent::PVP:
-                    if ($this->pvp >= 801 && $this->pvp <= 900) {
+                    if ($gameManager->getPVPTimer() >= 801 && $gameManager->getPVPTimer() <= 900) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
-                    if ($this->pvp >= 501 && $this->pvp <= 600) {
+                    if ($gameManager->getPVPTimer() >= 501 && $gameManager->getPVPTimer() <= 600) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
-                    if ($this->pvp >= 201 && $this->pvp <= 300) {
+                    if ($gameManager->getPVPTimer() >= 201 && $gameManager->getPVPTimer() <= 300) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
                     break;
                 case PhaseChangeEvent::DEATHMATCH:
-                    if ($this->deathmatch >= 1101) {
+                    if ($gameManager->getDeathmatchTimer() >= 1101) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
-                    if ($this->deathmatch >= 651 && $this->deathmatch <= 700) {
+                    if ($gameManager->getDeathmatchTimer() >= 651 && $gameManager->getDeathmatchTimer() <= 700) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
-                    if ($this->deathmatch >= 361 && $this->deathmatch <= 400) {
+                    if ($gameManager->getDeathmatchTimer() >= 361 && $gameManager->getDeathmatchTimer() <= 400) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
-                    if ($this->deathmatch >= 291 && $this->deathmatch <= 300) {
+                    if ($gameManager->getDeathmatchTimer() >= 291 && $gameManager->getDeathmatchTimer() <= 300) {
                         $this->border->setSize($this->border->getSize() - 1);
                     }
                     break;

@@ -28,16 +28,16 @@ use function is_dir;
 
 class FolderPluginLoader implements PluginLoader
 {
-    /** @var \ClassLoader */
+    /** @var mixed */
 	private $loader;
 	
 	/**
 	 * __construct
 	 *
-	 * @param  ClassLoader $loader
+	 * @param  mixed $loader
 	 * @return void
 	 */
-	public function __construct(\ClassLoader $loader)
+	public function __construct($loader)
     {
 		$this->loader = $loader;
 	}
@@ -74,7 +74,7 @@ class FolderPluginLoader implements PluginLoader
     {
 		if(is_dir($file) and file_exists($file . "/plugin.yml")){
 			$yaml = @file_get_contents($file . "/plugin.yml");
-			if($yaml != ""){
+			if($yaml !== "" || $yaml !== false){
 				return new PluginDescription($yaml);
 			}
 		}
