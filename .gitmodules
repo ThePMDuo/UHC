@@ -10,3 +10,6 @@
 [submodule "src/AGTHARN/uhc/plugins/FlyPE"]
 	path = src/AGTHARN/uhc/plugins/FlyPE
 	url = https://github.com/AGTHARN/FlyPE.git
+[submodule "src/AGTHARN/uhc/plugins/Mockingbird"]
+	path = src/AGTHARN/uhc/plugins/Mockingbird
+	url = https://github.com/ethaniccc/Mockingbird.git

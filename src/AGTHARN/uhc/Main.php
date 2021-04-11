@@ -15,6 +15,7 @@ use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\util\FolderPluginLoader;
+use AGTHARN\uhc\util\ConfigUpdater;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\util\Items;
 use AGTHARN\uhc\EventListener;
@@ -67,6 +68,7 @@ class Main extends PluginBase
         @mkdir($plugins);
 
         $this->prepareLevels();
+        $this->getConfigUpdater()->updateConfigs();
         
         $this->gameManager = new GameManager($this, $this->getBorder());
         $this->teamManager = new TeamManager();
@@ -118,30 +120,6 @@ class Main extends PluginBase
             $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "showcoordinates"), "true"); /** @phpstan-ignore-line */
         }
     }
-
-    /**
-     * getDirContents
-     *
-     * @param  mixed $dir
-     * @param  string $filter
-     * @param  array $results
-     * @return array
-     */
-    public function getDirContents($dir, string $filter = '', array &$results = array()): array
-    {
-        $files = preg_grep('/^([^.])/', (array)scandir($dir));
-
-        foreach ($files as $key => $value) {
-            $path = (string)realpath($dir.DIRECTORY_SEPARATOR.$value); 
-
-            if (!is_dir($path)) {
-                if(empty($filter) || preg_match($filter, $path)) $results[] = $path;
-            } elseif($value != "." && $value != "..") {
-                $this->getDirContents($path, $filter, $results);
-            }
-        }
-        return $results;
-    } 
     
     /**
      * matchRuleName
@@ -248,6 +226,16 @@ class Main extends PluginBase
     public function getUtilItems(): Items
     {
         return new Items($this);
+    }
+    
+    /**
+     * getConfigUpdater
+     *
+     * @return ConfigUpdater
+     */
+    public function getConfigUpdater(): ConfigUpdater
+    {
+        return new ConfigUpdater($this);
     }
     
     /**
