@@ -74,7 +74,7 @@ class FolderPluginLoader implements PluginLoader
     {
 		if(is_dir($file) and file_exists($file . "/plugin.yml")){
 			$yaml = @file_get_contents($file . "/plugin.yml");
-			if($yaml !== "" || $yaml !== false){
+			if($yaml != "" && $yaml != false){
 				return new PluginDescription($yaml);
 			}
 		}
