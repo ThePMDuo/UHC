@@ -14,4 +14,4 @@ parameters:
         - /source/src
     excludes_analyse:
         - source/vendor
-        - '%currentWorkingDirectory%/src/AGTHARN/uhc/plugins/*'
+        - '%currentWorkingDirectory%/src/AGTHARN/uhc/plugins/'
