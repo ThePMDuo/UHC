@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AGTHARN\uhc\game;
+namespace AGTHARN\uhc\game\border;
 
 use pocketmine\level\Level;
 
