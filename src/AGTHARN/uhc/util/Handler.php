@@ -49,7 +49,8 @@ class Handler
      */
     public function handlePlayers(): void
     {
-        foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
+        $server = $this->plugin->getServer();
+        foreach ($server->getOnlinePlayers() as $player) {
             $session = $this->plugin->getSessionManager()->getSession($player);
             $gameManager = $this->plugin->getManager();
 
