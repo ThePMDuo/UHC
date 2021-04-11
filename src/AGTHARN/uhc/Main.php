@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
+use pocketmine\plugin\PluginLoadOrder;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\entity\utils\Bossbar;
@@ -58,10 +59,12 @@ class Main extends PluginBase
      * @return void
      */
     public function onEnable(): void
-    {
-        if (!is_dir($this->getDataFolder() . "scenarios")) {
-            mkdir($this->getDataFolder() . "scenarios");
-        }
+    {   
+        $plugins = getcwd() . "\n" . DIRECTORY_SEPARATOR . "plugins";
+
+        @mkdir($this->getDataFolder() . "scenarios");
+        @mkdir($plugins);
+
         $this->prepareLevels();
         
         $this->gameManager = new GameManager($this, $this->getBorder());
@@ -72,6 +75,10 @@ class Main extends PluginBase
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this, $this->getBorder()), $this);
 
+        $this->getServer()->getPluginManager()->registerInterface(new FolderPluginLoader($this->getServer()->getLoader()));
+        $this->getServer()->getPluginManager()->loadPlugins($plugins, [FolderPluginLoader::class]);
+        $this->getServer()->enablePlugins(PluginLoadOrder::STARTUP);
+        
         $this->getServer()->getCommandMap()->registerAll("uhc", [
             new SpectatorCommand($this)
         ]);
@@ -110,6 +117,30 @@ class Main extends PluginBase
             $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "showcoordinates"), "true"); /** @phpstan-ignore-line */
         }
     }
+
+    /**
+     * getDirContents
+     *
+     * @param  mixed $dir
+     * @param  string $filter
+     * @param  array $results
+     * @return array
+     */
+    public function getDirContents($dir, string $filter = '', array &$results = array()): array
+    {
+        $files = preg_grep('/^([^.])/', (array)scandir($dir));
+
+        foreach ($files as $key => $value) {
+            $path = (string)realpath($dir.DIRECTORY_SEPARATOR.$value); 
+
+            if (!is_dir($path)) {
+                if(empty($filter) || preg_match($filter, $path)) $results[] = $path;
+            } elseif($value != "." && $value != "..") {
+                $this->getDirContents($path, $filter, $results);
+            }
+        }
+        return $results;
+    } 
     
     /**
      * matchRuleName
@@ -118,7 +149,8 @@ class Main extends PluginBase
      * @param  string $input
      * @return string
      */
-    public function matchRuleName(array $rules, string $input): string {
+    public function matchRuleName(array $rules, string $input): string
+    {
 		foreach ($rules as $name => $d) {
 			if (strtolower($name) === $input) {
 				return $name;

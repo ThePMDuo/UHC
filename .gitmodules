@@ -1,0 +1,12 @@
+[submodule "src/AGTHARN/uhc/plugins/UHCGenerator"]
+	path = src/AGTHARN/uhc/plugins/UHCGenerator
+	url = https://github.com/AGTHARN/UHCGenerator.git
+[submodule "src/AGTHARN/uhc/plugins/PiggyPersonaSkins"]
+	path = src/AGTHARN/uhc/plugins/PiggyPersonaSkins
+	url = https://github.com/DaPigGuy/PiggyPersonaSkins.git
+[submodule "src/AGTHARN/uhc/plugins/Graves"]
+	path = src/AGTHARN/uhc/plugins/Graves
+	url = https://github.com/HighestDreams/Graves.git
+[submodule "src/AGTHARN/uhc/plugins/FlyPE"]
+	path = src/AGTHARN/uhc/plugins/FlyPE
+	url = https://github.com/AGTHARN/FlyPE.git
