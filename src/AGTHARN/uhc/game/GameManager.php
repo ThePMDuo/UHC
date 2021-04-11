@@ -73,6 +73,8 @@ class GameManager extends Task
         $handler->handlePlayers();
         $handler->handleBossBar();
         $handler->handleBorder();
+
+        $server->getLevelByName($this->plugin->map)->setTime(1000);
         
         switch ($this->getPhase()) {
             case PhaseChangeEvent::WAITING:
@@ -97,33 +99,15 @@ class GameManager extends Task
                 $handler->handleReset();
                 break;
         }
-        if ($this->hasStarted() && $this->phase !== PhaseChangeEvent::WINNER) $this->game++;
-        
-        $server->getLevelByName($this->plugin->map)->setTime(1000);
+        if ($this->hasStarted()) {
+            $this->game++;
+            $server->getNetwork()->setName("STARTED");
+        } else {
+            $server->getNetwork()->setName("NOT STARTED");
+        }
 
         if (!$this->plugin->getOperational()){
             $server->getNetwork()->setName($this->plugin->getOperationalMessage());
-        }
-
-        if (!$this->hasStarted()) {
-            $server->getNetwork()->setName("NOT STARTED");
-        } else {
-            $server->getNetwork()->setName("STARTED");
-        }
-        
-        foreach ($server->getOnlinePlayers() as $player) {
-            if (!$player->hasEffect(16)) {
-                $player->addEffect(new EffectInstance(Effect::getEffect(16), 1000000, 1, false));
-            }
-            
-            if ($player->getLevel()->getName() !== $this->plugin->map) {
-                $level = $server->getLevelByName($this->plugin->map);
-                $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
-            }
-            
-            if ($player->getGamemode() === Player::SPECTATOR) {
-                $this->plugin->getUtilItems()->giveItems($player);
-            }
         }
         
         if (count($this->plugin->getSessionManager()->getPlaying()) <= 1) {
@@ -325,7 +309,7 @@ class GameManager extends Task
      */
     public function hasStarted(): bool
     {
-        return $this->getPhase() >= PhaseChangeEvent::GRACE;
+        return $this->getPhase() >= PhaseChangeEvent::GRACE && $this->getPhase() <= PhaseChangeEvent::WINNER;
     }
         
     /**

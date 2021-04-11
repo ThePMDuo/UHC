@@ -80,10 +80,6 @@ class EventListener implements Listener
                 $player->kick("SERVER RESETTING: IF IT TAKES LONGER THAN 10 SECONDS, PLEASE CONTACT AN ADMIN!");
                 break;
             default:
-                if ($sessionManager->hasSession($player)) {
-                    $session = $this->plugin->getSessionManager()->getSession($player);
-                    $session->setPlaying(false);
-                }
                 $player->setGamemode(3);
                 $player->sendMessage("§eType /spectate to spectate a player.");
                 break;
@@ -378,19 +374,20 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $item = $event->getItem();
+        $server = $this->plugin->getServer();
 
         // to do use waterdogpe api instead
         switch ($item->getId()) {
             case Item::BED:
                 if ($item->getNamedTagEntry("Report")) {
                     $event->setCancelled();
-                    $this->plugin->getServer()->dispatchCommand($player, "report");
+                    $server->dispatchCommand($player, "report");
                 }
                 break;
             case Item::COMPASS:
                 if ($item->getNamedTagEntry("Hub")) {
                     $event->setCancelled();
-                    $this->plugin->getServer()->dispatchCommand($player, "transfer hub");
+                    $server->dispatchCommand($player, "transfer hub");
                 }
                 break;
         }
