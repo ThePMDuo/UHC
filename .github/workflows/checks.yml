@@ -1,0 +1,38 @@
+on: push
+
+name: Checks
+
+jobs:
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    
+    steps:
+        - name: "Checkout"
+          uses: actions/checkout@v2
+        - name: phpstan
+          uses: nxtlvlsoftware/pmmp-phpstan-action@stable
+          with:
+            phpstan-config: phpstan.neon.dist
+  copy_paste:
+    name: Copy Paste Detector
+    runs-on: ubuntu-latest
+    
+    steps:
+        - name: "Checkout"
+          uses: actions/checkout@v2
+        - name: PHP Copy Paste Detector
+          uses: StephaneBour/actions-php-cpd@1.0
+          with:
+            dir: './src'
+  var_dump:
+    name: Vardump Check
+    runs-on: ubuntu-latest
+    
+    steps:
+        - name: "Checkout"
+          uses: actions/checkout@v2
+        - name: Check 1
+          uses: umutphp/php-var-dump-check-action@v1
+          with:
+            extensions: 'php7'
