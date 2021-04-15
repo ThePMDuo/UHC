@@ -3,8 +3,8 @@ on: push
 name: Checks
 
 jobs:
-  phpstan:
-    name: PHPStan
+  checks:
+    name: Checks
     runs-on: ubuntu-latest
     
     steps:
@@ -14,25 +14,15 @@ jobs:
           uses: nxtlvlsoftware/pmmp-phpstan-action@stable
           with:
             phpstan-config: phpstan.neon.dist
-  copy_paste:
-    name: Copy Paste Detector
-    runs-on: ubuntu-latest
-    
-    steps:
-        - name: "Checkout"
-          uses: actions/checkout@v2
         - name: PHP Copy Paste Detector
           uses: StephaneBour/actions-php-cpd@1.0
           with:
             dir: './src'
-  var_dump:
-    name: Vardump Check
-    runs-on: ubuntu-latest
-    
-    steps:
-        - name: "Checkout"
-          uses: actions/checkout@v2
-        - name: Check 1
+        - name: PHP Syntax Checker
+          uses: StephaneBour/actions-php-lint@7.4
+          with:
+            dir: './src'
+        - name: VarDump Check
           uses: umutphp/php-var-dump-check-action@v1
           with:
             extensions: 'php7'
