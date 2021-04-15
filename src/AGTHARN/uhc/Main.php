@@ -5,6 +5,9 @@ namespace AGTHARN\uhc;
 
 use pocketmine\plugin\PluginBase;
 use pocketmine\entity\utils\Bossbar;
+use pocketmine\block\Block;
+use pocketmine\item\Item;
+use pocketmine\Player;
 
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\session\SessionManager;
@@ -12,18 +15,16 @@ use AGTHARN\uhc\game\scenario\ScenarioManager;
 use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
-use AGTHARN\uhc\util\FolderPluginLoader;
-use AGTHARN\uhc\util\ConfigUpdater;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\util\Items;
 use AGTHARN\uhc\EventListener;
 
 class Main extends PluginBase
 {   
-    /** @var int */
-    public $uhcServer = 1;
-    /** @var int */
-    public $buildNumber = 1;
+    /** @var string */
+    public $uhcServer = "GAME-1";
+    /** @var string */
+    public $buildNumber = "BETA-1";
     /** @var bool */
     public $operational = true;
     
@@ -63,7 +64,6 @@ class Main extends PluginBase
         @mkdir($this->getDataFolder() . "scenarios");
 
         $this->prepareLevels();
-        $this->getConfigUpdater()->updateConfigs();
         
         $this->gameManager = new GameManager($this, $this->getBorder());
         $this->teamManager = new TeamManager();
@@ -137,6 +137,26 @@ class Main extends PluginBase
     public function generateRandomSeed(): int
     {
         return intval(rand(0, intval(time() / memory_get_usage(true) * (int) str_shuffle("127469453645108") / (int) str_shuffle("12746945364"))));
+    }
+    
+    /**
+     * veinMine
+     *
+     * @param  Block $block
+     * @param  Item $item
+     * @param  Player $player
+     * @return void
+     */
+    public function veinMine(Block $block, Item $item, Player $player): void
+    {
+        if ($block->isValid()) {
+            foreach ($block->getAllSides() as $side) {
+                if (($side->getId() === $block->getId()) || ($side->getId() === Block::LEAVES && $block->getId() === Block::LOG)) {
+                    $this->veinMine($side, $item, $player);
+                }
+            }
+            $block->getLevel()->useBreakOn($block, $item, $player, true);
+        }
     }
     
     /**
@@ -217,16 +237,6 @@ class Main extends PluginBase
     public function getUtilItems(): Items
     {
         return new Items($this);
-    }
-    
-    /**
-     * getConfigUpdater
-     *
-     * @return ConfigUpdater
-     */
-    public function getConfigUpdater(): ConfigUpdater
-    {
-        return new ConfigUpdater($this);
     }
     
     /**

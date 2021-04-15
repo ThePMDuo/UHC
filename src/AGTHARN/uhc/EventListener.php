@@ -100,9 +100,10 @@ class EventListener implements Listener
         $server = $this->plugin->getServer();
         $mUsage = Process::getAdvancedMemoryUsage();
 
-        $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber);
+        $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber . " © 2021 MineUHC");
         $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalColoredMessage());
-        $player->sendMessage("THREADS: " . Process::getThreadCount() . " RAM USAGE: " . number_format(round(($mUsage[1] / 1024) / 1024, 2), 2) . " MB");
+        $player->sendMessage("THREADS: " . Process::getThreadCount() . " | RAM USAGE: " . number_format(round(($mUsage[1] / 1024) / 1024, 2), 2) . " MB");
+        $player->sendMessage("AntiCheat powered by BirdAC & MineGuard");
 
         if (!$this->plugin->getOperational()) {
             $player->kick($this->plugin->getOperationalColoredMessage() . ": SERVER RESETTING! SHOULD NOT TAKE LONGER THAN 10 SECONDS!");
@@ -285,7 +286,7 @@ class EventListener implements Listener
                 return;
         }
 
-        switch ($event->getBlock()->getId()) {
+        switch ($event->getBlock()->getId()) { // drops
             case Block::LEAVES:
                 $rand = mt_rand(0, 100);
                 if ($event->getItem()->equals(Item::get(Item::APPLE, 0, 1), false, false)) {
@@ -309,6 +310,20 @@ class EventListener implements Listener
             case Block::GOLD_ORE:
                 $drops[] = Item::get(Item::GOLD_INGOT, 0, 2);
                 $event->setDrops($drops);
+                break;
+        }
+
+        switch ($event->getBlock()->getId()) { // vein mine
+            case Block::IRON_ORE:
+            case Block::GOLD_ORE:
+            case Block::COAL_ORE:
+            case Block::LAPIS_ORE:
+            case Block::DIAMOND_ORE:
+            case Block::REDSTONE_ORE:
+            case Block::EMERALD_ORE:
+            case Block::NETHER_QUARTZ_ORE:
+            case Block::LOG:
+                $this->plugin->veinMine($event->getBlock(), $event->getItem(), $event->getPlayer());
                 break;
         }
     }

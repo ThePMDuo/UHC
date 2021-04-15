@@ -673,6 +673,7 @@ class Handler
                 $this->bossBar->showTo($player);
             }
         }
+        unset($this->bossBar);
     }
     
     /**
