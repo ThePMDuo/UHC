@@ -161,7 +161,7 @@ class EventListener implements Listener
     /**
      * handleGamemode
      *
-     * @param  mixed $event
+     * @param  PlayerGameModeChangeEvent $event
      * @return void
      */
     public function handleGamemode(PlayerGameModeChangeEvent $event): void

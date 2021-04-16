@@ -13,3 +13,6 @@
 [submodule "src/AGTHARN/uhc/plugins/BirdAC"]
 	path = src/AGTHARN/uhc/plugins/BirdAC
 	url = https://github.com/brokiem/BirdAC.git
+[submodule "src/AGTHARN/uhc/plugins/AntiXray"]
+	path = src/AGTHARN/uhc/plugins/AntiXray
+	url = https://github.com/Matze997/AntiXray
