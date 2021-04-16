@@ -7,6 +7,7 @@ use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
+use pocketmine\event\player\PlayerGameModeChangeEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\event\player\PlayerPreLoginEvent;
@@ -71,7 +72,6 @@ class EventListener implements Listener
         switch ($this->plugin->getManager()->getPhase()) {
             case PhaseChangeEvent::WAITING:
                 $sessionManager->createSession($player);
-                $player->setGamemode(Player::SURVIVAL);
                 // since solo we wont handle joining available teams
                 $session = $this->plugin->getSessionManager()->getSession($player);
                 $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
@@ -118,6 +118,8 @@ class EventListener implements Listener
         $player->getInventory()->clearAll();
         $player->getArmorInventory()->clearAll();
         $player->getCursorInventory()->clearAll();
+        $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
+        $player->setGamemode(Player::SURVIVAL);
 
         $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $server->getLevelByName($this->plugin->map)));
     }
@@ -154,6 +156,23 @@ class EventListener implements Listener
         if ($this->plugin->getHandler()->bossBar !== null) {
             $this->plugin->getHandler()->bossBar->hideFrom($player);
         }
+    }
+    
+    /**
+     * handleGamemode
+     *
+     * @param  mixed $event
+     * @return void
+     */
+    public function handleGamemode(PlayerGameModeChangeEvent $event): void
+    {
+        $player = $event->getPlayer();
+
+        $player->removeAllEffects();
+        $player->getInventory()->clearAll();
+        $player->getArmorInventory()->clearAll();
+        $player->getCursorInventory()->clearAll();
+        $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
     }
 
     /**

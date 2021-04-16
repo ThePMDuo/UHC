@@ -594,7 +594,7 @@ class Handler
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
 
-        if ($this->bossBar !== null) {
+        if (isset($this->bossBar)) {
             foreach ($server->getOnlinePlayers() as $player) {
                 $this->bossBar->hideFrom($player);
             }
@@ -668,12 +668,11 @@ class Handler
                 break;
         }
 
-        if ($this->bossBar !== null) {
+        if (isset($this->bossBar)) {
             foreach ($server->getOnlinePlayers() as $player) {
                 $this->bossBar->showTo($player);
             }
         }
-        unset($this->bossBar);
     }
     
     /**
