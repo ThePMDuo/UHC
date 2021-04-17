@@ -103,7 +103,6 @@ class Handler
 
             $player->setFood($player->getMaxFood());
             $player->setHealth($player->getMaxHealth());
-            $player->removeAllEffects();
             $player->getInventory()->clearAll();
             $player->getArmorInventory()->clearAll();
             $player->getCursorInventory()->clearAll();
@@ -127,7 +126,7 @@ class Handler
         switch ($gameManager->countdown) {
             case 60:
                 $server->getLevelByName($this->plugin->map)->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
-                //$server->getLevelByName($this->plugin->nether)->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
+                //$server->getLevelByName($this->plugin->nether)->getGameRules()->setRuleWithMatching("showcoordinates", "true");
                 $gameManager->setResetTimer(3);
                 $gameManager->setGameTimer(0);
 
@@ -563,7 +562,7 @@ class Handler
             }
 
             ScoreFactory::setScoreLine($player, 4, " ");
-            ScoreFactory::setScoreLine($player, 5, " §fPlayers: §a" . count($this->plugin->getSessionManager()->getPlaying()) . "§f§7/50");
+            ScoreFactory::setScoreLine($player, 5, " §fPlayers: §a" . count($this->plugin->getSessionManager()->getPlaying()) . "§f§7/" . $server->getMaxPlayers());
             ScoreFactory::setScoreLine($player, 6, "  ");
             ScoreFactory::setScoreLine($player, 7, $this->plugin->getSessionManager()->hasSession($player) !== true ? " §fKills: §a0" : " §fKills: §a" . $this->plugin->getSessionManager()->getSession($player)->getEliminations());
             ScoreFactory::setScoreLine($player, 8, " §fTPS: §a" . $server->getTicksPerSecond());
@@ -576,7 +575,7 @@ class Handler
         } else {
             ScoreFactory::setScoreLine($player, 1, "§7§l[-------------------]");
             ScoreFactory::setScoreLine($player, 2, " §fPlayers §f");
-            ScoreFactory::setScoreLine($player, 3, " §a" . count($server->getOnlinePlayers()) . "§f§7/50");
+            ScoreFactory::setScoreLine($player, 3, " §a" . count($server->getOnlinePlayers()) . "§f§7/" . $server->getMaxPlayers());
             ScoreFactory::setScoreLine($player, 4, " ");
             ScoreFactory::setScoreLine($player, 5, $gameManager->getPhase() === PhaseChangeEvent::WAITING ? "§7 Waiting for more players..." : "§7 Starting in:§f $gameManager->countdown");
             ScoreFactory::setScoreLine($player, 6, "  ");

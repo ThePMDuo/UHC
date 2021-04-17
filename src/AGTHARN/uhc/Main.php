@@ -172,9 +172,8 @@ class Main extends PluginBase
     public function veinMine(Block $block, Item $item, Player $player): void
     {
         if ($block->isValid()) {
-            $ignore[] = $block->asVector3()->__toString();
             foreach ($block->getAllSides() as $side) {
-                if (($side->getId() === $block->getId() && !in_array($side->asVector3()->__toString(), $ignore))) {
+                if (($side->getId() === $block->getId())) {
                     $this->veinMine($side, $item, $player);
                 }
             }

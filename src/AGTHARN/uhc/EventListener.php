@@ -84,7 +84,7 @@ class EventListener implements Listener
                 $player->kick("SERVER RESETTING: IF IT TAKES LONGER THAN 10 SECONDS, PLEASE CONTACT AN ADMIN!");
                 break;
             default:
-                $player->setGamemode(3);
+                $player->setGamemode(Player::SPECTATOR);
                 $player->sendMessage("§eType /spectate to spectate a player.");
                 break;
         }
@@ -218,9 +218,18 @@ class EventListener implements Listener
                 break;
             case PhaseChangeEvent::GRACE:
                 if ($entity instanceof Player) {
-                    if ($event->getCause() !== EntityDamageEvent::CAUSE_FALL) {
+                    if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
+                        if ($this->plugin->getManager()->grace >= 1180) {
+                            $event->setCancelled();
+                        }
+                    } else {
                         $event->setCancelled();
                     }
+                }
+                break;
+            case PhaseChangeEvent::DEATHMATCH:
+                if ($this->plugin->getManager()->deathmatch >= 890) {
+                    $event->setCancelled();
                 }
                 break;
             default:
@@ -250,12 +259,12 @@ class EventListener implements Listener
     {
         if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
             switch ($this->plugin->getManager()->getPhase()) {
-                case PhaseChangeEvent::WAITING:
-                case PhaseChangeEvent::COUNTDOWN:
                 case PhaseChangeEvent::DEATHMATCH:
                     if ($this->plugin->getManager()->deathmatch >= 890) {
                         $event->setCancelled();
                     }
+                    break;
+                case PhaseChangeEvent::GRACE:
                     if ($this->plugin->getManager()->grace >= 1180) {
                         $event->setCancelled();
                     }
@@ -274,6 +283,8 @@ class EventListener implements Listener
     {
         switch ($event->getRegainReason()) {
             case EntityRegainHealthEvent::CAUSE_SATURATION:
+            case EntityRegainHealthEvent::CAUSE_EATING:
+            case EntityRegainHealthEvent::CAUSE_CUSTOM:
                 $event->setCancelled();
                 break;
         }
@@ -292,7 +303,7 @@ class EventListener implements Listener
         $eliminatedSession = $this->plugin->getSessionManager()->getSession($player);
         $sessionManager = $this->plugin->getSessionManager();
         
-        $player->setGamemode(3);
+        $player->setGamemode(Player::SPECTATOR);
         $player->sendMessage("§eYou have been eliminated! Type /spectate to spectate a player.");
 
         if (!$sessionManager->hasSession($player)) return;
