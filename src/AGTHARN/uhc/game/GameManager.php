@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\game;
 
-use pocketmine\level\Position;
-use pocketmine\entity\EffectInstance;
-use pocketmine\entity\Effect;
 use pocketmine\scheduler\Task;
-use pocketmine\Player;
+use pocketmine\level\Position;
 
-use AGTHARN\uhc\event\PhaseChangeEvent;
-use AGTHARN\uhc\game\type\GameTimer;
+use AGTHARN\uhc\game\timer\GameTimer;
 use AGTHARN\uhc\game\border\Border;
+use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;

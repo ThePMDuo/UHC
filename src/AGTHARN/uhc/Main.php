@@ -3,20 +3,21 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\plugin\PluginBase;
 use pocketmine\entity\utils\Bossbar;
+use pocketmine\plugin\PluginBase;
 use pocketmine\block\Block;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
-use AGTHARN\uhc\command\SpectatorCommand;
-use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\scenario\ScenarioManager;
 use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
+use AGTHARN\uhc\command\SpectatorCommand;
+use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\util\Items;
+use AGTHARN\uhc\kits\Kits;
 use AGTHARN\uhc\EventListener;
 
 class Main extends PluginBase
@@ -32,6 +33,8 @@ class Main extends PluginBase
     public $seed;
     /** @var string */
     public $map = "UHC";
+    /** @var string */
+    public $nether = "nether";
 
     /** @var int */
     public $spawnPosX = 0;
@@ -63,7 +66,8 @@ class Main extends PluginBase
     {   
         @mkdir($this->getDataFolder() . "scenarios");
 
-        $this->prepareLevels();
+        $this->prepareWorld();
+        //$this->prepareNether(); //some issue with this
         
         $this->gameManager = new GameManager($this, $this->getBorder());
         $this->teamManager = new TeamManager();
@@ -79,55 +83,65 @@ class Main extends PluginBase
     }
     
     /**
-     * prepareLevels
+     * prepareWorld
      *
      * @return void
      */
-    public function prepareLevels(): void
-    {
-        $level = $this->getServer()->getLevelByName($this->map);
-        $levelName = $this->map;
-        $levelPath = $this->getServer()->getDataPath() . "worlds/" . $this->map;
+    public function prepareWorld(): void
+    {   
+        $uhcName = $this->map;
+        $uhcLevel = $this->getServer()->getLevelByName($uhcName);
 
         $worldAPI = $this->getServer()->getPluginManager()->getPlugin("MultiWorld")->getWorldManagementAPI(); /** @phpstan-ignore-line */
 
-        if ($worldAPI->isLevelGenerated($levelName)) {
-            if($worldAPI->isLevelLoaded($levelName)) {  
-                $worldAPI->unloadLevel($level);
+        if ($worldAPI->isLevelGenerated($uhcName)) {
+            if ($worldAPI->isLevelLoaded($uhcName)) {  
+                $worldAPI->unloadLevel($uhcLevel);
             }
-            $worldAPI->removeLevel($levelName);
-            $this->prepareLevels();
-        } else {  
+            $worldAPI->removeLevel($uhcName);
+            $this->prepareWorld();
+        } else {
             $this->seed = $this->generateRandomSeed();
 
             if ((int)$this->seed === 0) {
                 $this->seed = $this->generateRandomSeed();
             }
-            $worldAPI->generateLevel($levelName, $this->seed, 1);  
-            $worldAPI->loadLevel($levelName);
+            $worldAPI->generateLevel($uhcName, $this->seed, 1);  
+            $worldAPI->loadLevel($uhcName);
 
-            $level = $this->getServer()->getLevelByName($this->map); // redefine so its not null
-            $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "domobspawning"), "true"); /** @phpstan-ignore-line */
-            $level->getGameRules()->setRuleWithMatching($this->matchRuleName($level->getGameRules()->getRules(), "showcoordinates"), "true"); /** @phpstan-ignore-line */
+            $uhcLevel = $this->getServer()->getLevelByName($this->map); // redefine so its not null
+            $uhcLevel->getGameRules()->setRuleWithMatching("domobspawning", "true"); /** @phpstan-ignore-line */
+            $uhcLevel->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
         }
     }
     
     /**
-     * matchRuleName
+     * prepareNether
      *
-     * @param  array $rules
-     * @param  string $input
-     * @return string
+     * @return void
      */
-    public function matchRuleName(array $rules, string $input): string
+    public function prepareNether(): void
     {
-		foreach ($rules as $name => $d) {
-			if (strtolower($name) === $input) {
-				return $name;
-			}
-		}
-		return $input;
-	}
+        $netherName = $this->nether;
+        $netherLevel = $this->getServer()->getLevelByName($netherName);
+
+        $worldAPI = $this->getServer()->getPluginManager()->getPlugin("MultiWorld")->getWorldManagementAPI(); /** @phpstan-ignore-line */
+
+        if ($worldAPI->isLevelGenerated($netherName)) {
+            if ($worldAPI->isLevelLoaded($netherName)) {  
+                $worldAPI->unloadLevel($netherLevel);
+            }
+            $worldAPI->removeLevel($netherName);
+            $this->prepareNether();
+        } else {
+            $worldAPI->generateLevel($netherName, $this->seed, 2);  
+            $worldAPI->loadLevel($netherName);
+
+            $netherLevel = $this->getServer()->getLevelByName($this->map); // redefine so its not null
+            $netherLevel->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
+            $this->getServer()->setNetherLevel($netherLevel);
+        }
+    }
     
     /**
      * generateRandomSeed
@@ -150,8 +164,9 @@ class Main extends PluginBase
     public function veinMine(Block $block, Item $item, Player $player): void
     {
         if ($block->isValid()) {
+            $ignore[] = $block->asVector3()->__toString();
             foreach ($block->getAllSides() as $side) {
-                if (($side->getId() === $block->getId()) || ($side->getId() === Block::LEAVES && $block->getId() === Block::LOG)) {
+                if (($side->getId() === $block->getId() && !in_array($side->asVector3()->__toString(), $ignore))) {
                     $this->veinMine($side, $item, $player);
                 }
             }
@@ -237,6 +252,16 @@ class Main extends PluginBase
     public function getUtilItems(): Items
     {
         return new Items($this);
+    }
+    
+    /**
+     * getKits
+     *
+     * @return Kits
+     */
+    public function getKits(): Kits
+    {
+        return new Kits();
     }
     
     /**

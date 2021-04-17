@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AGTHARN\uhc\game\type;
+namespace AGTHARN\uhc\game\timer;
 
 final class GameTimer
 {

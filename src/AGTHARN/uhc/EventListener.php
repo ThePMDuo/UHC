@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
+use pocketmine\level\generator\object\Tree;
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -21,16 +22,19 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
 use pocketmine\utils\Process;
+use pocketmine\utils\Random;
 use pocketmine\block\Block;
-use pocketmine\item\Item;
 use pocketmine\level\Position;
+use pocketmine\item\Item;
 use pocketmine\Player;
 
-use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\game\border\Border;
+use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
+
+use Exception;
 
 class EventListener implements Listener
 {
@@ -168,11 +172,15 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
 
-        $player->removeAllEffects();
-        $player->getInventory()->clearAll();
-        $player->getArmorInventory()->clearAll();
-        $player->getCursorInventory()->clearAll();
-        $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
+        try {
+            $player->removeAllEffects();
+            $player->getInventory()->clearAll();
+            $player->getArmorInventory()->clearAll();
+            $player->getCursorInventory()->clearAll();
+            $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
+        } catch(Exception $error) {
+            // thows error sometimes when player joins
+        }
     }
 
     /**
@@ -342,7 +350,7 @@ class EventListener implements Listener
             case Block::EMERALD_ORE:
             case Block::NETHER_QUARTZ_ORE:
             case Block::LOG:
-                $this->plugin->veinMine($event->getBlock(), $event->getItem(), $event->getPlayer());
+                //$this->plugin->veinMine($event->getBlock(), $event->getItem(), $event->getPlayer()); //current issue
                 break;
         }
     }
@@ -408,7 +416,22 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $item = $event->getItem();
-        $server = $this->plugin->getServer();
+
+        if ($event->getItem()->getId() === Item::SAPLING) {
+			$pos = $event->getBlock()->getSide($event->getFace());
+
+			switch ($pos->getSide(0)->getId()) {
+				case Block::DIRT:
+				case Block::GRASS:
+				case Block::PODZOL:
+					Tree::growTree($event->getBlock()->getLevel(), (int)$pos->x, (int)$pos->y, (int)$pos->z, new Random(mt_rand()), $item->getDamage());
+					if ($player->isSurvival()) {
+						$player->getInventory()->removeItem($item);
+					}
+					$event->setCancelled();
+					break;
+			}
+		}
 
         // to do use waterdogpe api instead
         switch ($item->getId()) {
@@ -477,12 +500,12 @@ class EventListener implements Listener
      */
     public function handlePhaseChange(PhaseChangeEvent $event): void
     {
-        $player = $event->getPlayer();
-
         switch ($event->getOldPhase()) {
             case PhaseChangeEvent::COUNTDOWN:
+                $player = $event->getPlayer();
+
                 $player->getInventory()->addItem(Item::get(Item::BAKED_POTATO, 0, 16));
-                $player->getInventory()->addItem(Item::get(6, 0, 1));
+                $player->getInventory()->addItem(Item::get(Item::SAPLING, 0, 1));
                 break;
         }
     }

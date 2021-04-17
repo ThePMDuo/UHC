@@ -5,7 +5,8 @@ namespace AGTHARN\uhc\session;
 
 use pocketmine\Player;
 
-class SessionManager{
+class SessionManager
+{
     /** @var PlayerSession[] */
     private array $activeSessions = [];
     

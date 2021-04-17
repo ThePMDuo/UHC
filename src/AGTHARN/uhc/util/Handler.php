@@ -8,12 +8,12 @@ use pocketmine\level\sound\ClickSound;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
 use pocketmine\level\Position;
-use pocketmine\item\Item;
 use pocketmine\math\Vector3;
+use pocketmine\item\Item;
 use pocketmine\Player;
 
-use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\game\border\Border;
+use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
@@ -157,6 +157,14 @@ class Handler
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
+            case 20:
+                foreach ($server->getOnlinePlayers() as $player) {
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rAll kits will be deployed in " . "§b40 seconds.");
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rElytras have been deployed.");
+                    $player->getArmorInventory()->setChestplate(Item::get(Item::ELYTRA));
+                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+                }
+                break;
             case 10:
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->sendMessage("§aJAX " . "§7»» " . "§rThe game will begin in " . "§b10 seconds.");
@@ -182,16 +190,9 @@ class Handler
                 }
                 break;
             case 0:
-                foreach ($this->plugin->getServer()->getDefaultLevel()->getEntities() as $entity) {
-                    if (!$entity instanceof Player) {
-                        $entity->flagForDespawn();
-                    }
-                }
-
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->sendMessage("§aJAX " . "§7»» §r§c§lThe match has begun!");
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                    $player->getArmorInventory()->setChestplate(Item::get(Item::ELYTRA));
                     $player->setImmobile(false);
                 }
                 $gameManager->setPhase(PhaseChangeEvent::GRACE);
@@ -220,18 +221,15 @@ class Handler
             case 1180:
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->getArmorInventory()->clearAll();
-                    // to do kits
+
+                    $kit = $this->plugin->getKits()->giveKit($player);
+
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rAll kits have been deployed. You have gotten: §b" . $kit);
                 }
-            case 601:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->setHealth($player->getMaxHealth());
-                    $player->sendMessage("§aJAX " . "§7»» " . "§rHeal has " . "§boccurred!");
-                    $player->setHealth($player->getMaxHealth());
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
-                break;
             case 600:
                 foreach ($server->getOnlinePlayers() as $player) {
+                    $player->setHealth($player->getMaxHealth());
+                    $player->sendMessage("§aJAX " . "§7»» " . "§rA Heal has " . "§boccurred!");
                     $player->sendMessage("§aJAX " . "§7»» " . "§r§cPVP will enable in 10 minutes.");
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }

@@ -16,3 +16,9 @@
 [submodule "src/AGTHARN/uhc/plugins/AntiXray"]
 	path = src/AGTHARN/uhc/plugins/AntiXray
 	url = https://github.com/Matze997/AntiXray
+[submodule "src/AGTHARN/uhc/plugins/InvisibleSkinBlocker"]
+	path = src/AGTHARN/uhc/plugins/InvisibleSkinBlocker
+	url = https://github.com/Unickorn/InvisibleSkinBlocker
+[submodule "src/AGTHARN/uhc/plugins/InvSee"]
+	path = src/AGTHARN/uhc/plugins/InvSee
+	url = https://github.com/BlockHorizons/InvSee

@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\command;
 
-use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\command\Command;
 use pocketmine\Player;
 
 class BaseCommand extends Command

@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\util;
 
-use pocketmine\item\Item;
 use pocketmine\nbt\tag\StringTag;
+use pocketmine\item\Item;
 use pocketmine\Player;
 
 use AGTHARN\uhc\Main;

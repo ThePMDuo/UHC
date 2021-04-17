@@ -6,6 +6,7 @@ namespace AGTHARN\uhc\game\scenario;
 
 use pocketmine\event\HandlerList;
 use pocketmine\event\Listener;
+
 use AGTHARN\uhc\Main;
 
 class Scenario implements Listener
