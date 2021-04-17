@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
+use pocketmine\level\generator\GeneratorManager;
 use pocketmine\entity\utils\Bossbar;
 use pocketmine\plugin\PluginBase;
 use pocketmine\block\Block;
@@ -30,9 +31,11 @@ class Main extends PluginBase
     public $operational = true;
     
     /** @var int */
-    public $seed;
+    public $normalSeed;
     /** @var string */
     public $map = "UHC";
+    /** @var int */
+    public $netherSeed;
     /** @var string */
     public $nether = "nether";
 
@@ -67,7 +70,7 @@ class Main extends PluginBase
         @mkdir($this->getDataFolder() . "scenarios");
 
         $this->prepareWorld();
-        //$this->prepareNether(); //some issue with this
+        //$this->prepareNether();
         
         $this->gameManager = new GameManager($this, $this->getBorder());
         $this->teamManager = new TeamManager();
@@ -101,12 +104,12 @@ class Main extends PluginBase
             $worldAPI->removeLevel($uhcName);
             $this->prepareWorld();
         } else {
-            $this->seed = $this->generateRandomSeed();
+            $this->normalSeed = $this->generateRandomSeed();
 
-            if ((int)$this->seed === 0) {
-                $this->seed = $this->generateRandomSeed();
+            if ($this->normalSeed === 0) {
+                $this->normalSeed = $this->generateRandomSeed();
             }
-            $worldAPI->generateLevel($uhcName, $this->seed, 1);  
+            $worldAPI->generateLevel($uhcName, $this->normalSeed, 1);  
             $worldAPI->loadLevel($uhcName);
 
             $uhcLevel = $this->getServer()->getLevelByName($this->map); // redefine so its not null
@@ -134,10 +137,15 @@ class Main extends PluginBase
             $worldAPI->removeLevel($netherName);
             $this->prepareNether();
         } else {
-            $worldAPI->generateLevel($netherName, $this->seed, 2);  
+            $this->netherSeed = $this->generateRandomSeed();
+
+            if ($this->netherSeed === 0) {
+                $this->netherSeed = $this->generateRandomSeed();
+            }
+            $this->getServer()->generateLevel($netherName, $this->netherSeed, GeneratorManager::getGenerator("nether"));
             $worldAPI->loadLevel($netherName);
 
-            $netherLevel = $this->getServer()->getLevelByName($this->map); // redefine so its not null
+            $netherLevel = $this->getServer()->getLevelByName($this->nether); // redefine so its not null
             $netherLevel->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
             $this->getServer()->setNetherLevel($netherLevel); /** @phpstan-ignore-line */
         }

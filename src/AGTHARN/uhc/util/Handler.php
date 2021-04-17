@@ -126,8 +126,11 @@ class Handler
 
         switch ($gameManager->countdown) {
             case 60:
+                $server->getLevelByName($this->plugin->map)->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
+                //$server->getLevelByName($this->plugin->nether)->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
                 $gameManager->setResetTimer(3);
                 $gameManager->setGameTimer(0);
+
                 foreach ($server->getOnlinePlayers() as $player) {
                     $player->sendMessage("§aJAX " . "§7»» " . "§rGame starting in " . "§b60 seconds!");
                     $player->sendMessage("§aJAX " . "§7»» " . "§rAll players will be teleported in " . "§b30 seconds!");
@@ -223,7 +226,6 @@ class Handler
                     $player->getArmorInventory()->clearAll();
 
                     $kit = $this->plugin->getKits()->giveKit($player);
-
                     $player->sendMessage("§aJAX " . "§7»» " . "§rAll kits have been deployed. You have gotten: §b" . $kit);
                 }
             case 600:
@@ -510,7 +512,7 @@ class Handler
                     }
                 }
                 $this->plugin->prepareWorld();
-                //$this->plugin->prepareNether(); //some issue with this
+                //$this->plugin->prepareNether();
                 $server->getLogger()->info("World reset completed");
                 break;
             case 2:

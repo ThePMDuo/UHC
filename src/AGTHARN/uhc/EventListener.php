@@ -218,7 +218,9 @@ class EventListener implements Listener
                 break;
             case PhaseChangeEvent::GRACE:
                 if ($entity instanceof Player) {
-                    $event->setCancelled();
+                    if ($event->getCause() !== EntityDamageEvent::CAUSE_FALL) {
+                        $event->setCancelled();
+                    }
                 }
                 break;
             default:
@@ -235,6 +237,30 @@ class EventListener implements Listener
                     }
                 }
                 break;
+        }
+    }
+
+    /**
+     * handleStartFall
+     *
+     * @param  EntityDamageEvent $event
+     * @return void
+     */
+    public function handleStartFall(EntityDamageEvent $event): void
+    {
+        if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
+            switch ($this->plugin->getManager()->getPhase()) {
+                case PhaseChangeEvent::WAITING:
+                case PhaseChangeEvent::COUNTDOWN:
+                case PhaseChangeEvent::DEATHMATCH:
+                    if ($this->plugin->getManager()->deathmatch >= 890) {
+                        $event->setCancelled();
+                    }
+                    if ($this->plugin->getManager()->grace >= 1180) {
+                        $event->setCancelled();
+                    }
+                    break;
+            }
         }
     }
     
@@ -316,7 +342,7 @@ class EventListener implements Listener
         switch ($event->getBlock()->getId()) { // drops
             case Block::LEAVES:
                 $rand = mt_rand(0, 100);
-                if ($event->getItem()->equals(Item::get(Item::APPLE, 0, 1), false, false)) {
+                if ($event->getItem()->equals(Item::get(Item::SHEARS, 0, 1), false, false)) {
                     if ($rand <= 6) {
                         $event->setDrops([Item::get(Item::APPLE, 0, 1)]);
                     }
@@ -331,11 +357,11 @@ class EventListener implements Listener
                 $event->setDrops($drops);
                 break;
             case Block::IRON_ORE:
-                $drops[] = Item::get(Item::IRON_INGOT, 0, 2);
+                $drops[] = Item::get(Item::IRON_INGOT, 0, mt_rand(2, 4));
                 $event->setDrops($drops);
                 break;
             case Block::GOLD_ORE:
-                $drops[] = Item::get(Item::GOLD_INGOT, 0, 2);
+                $drops[] = Item::get(Item::GOLD_INGOT, 0, mt_rand(2, 4));
                 $event->setDrops($drops);
                 break;
         }
@@ -369,27 +395,6 @@ class EventListener implements Listener
             case PhaseChangeEvent::WINNER:
                 $event->setCancelled();
                 break;
-        }
-    }
-        
-    /**
-     * handleFallDamage
-     *
-     * @param  EntityDamageEvent $event
-     * @return void
-     */
-    public function handleFallDamage(EntityDamageEvent $event): void
-    {
-        if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
-            switch ($this->plugin->getManager()->getPhase()) {
-                case PhaseChangeEvent::WAITING:
-                case PhaseChangeEvent::COUNTDOWN:
-                case PhaseChangeEvent::DEATHMATCH:
-                    if ($this->plugin->getManager()->deathmatch >= 850) {
-                        $event->setCancelled();
-                    }
-                    break;
-            }
         }
     }
 
