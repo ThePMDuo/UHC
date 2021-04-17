@@ -49,6 +49,7 @@ class Kits
                 $this->giveStoneKid($player);
                 return "Stone Kid";
         }
+        return "ERROR - PLEASE REPORT";
     }
     
     /**

@@ -416,6 +416,7 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $item = $event->getItem();
+        $server = $this->plugin->getServer();
 
         if ($event->getItem()->getId() === Item::SAPLING) {
 			$pos = $event->getBlock()->getSide($event->getFace());

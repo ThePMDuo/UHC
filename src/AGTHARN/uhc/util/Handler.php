@@ -509,7 +509,8 @@ class Handler
                         }
                     }
                 }
-                $this->plugin->prepareLevels();
+                $this->plugin->prepareWorld();
+                //$this->plugin->prepareNether(); //some issue with this
                 $server->getLogger()->info("World reset completed");
                 break;
             case 2:

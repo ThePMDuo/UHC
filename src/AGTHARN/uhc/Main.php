@@ -139,7 +139,7 @@ class Main extends PluginBase
 
             $netherLevel = $this->getServer()->getLevelByName($this->map); // redefine so its not null
             $netherLevel->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
-            $this->getServer()->setNetherLevel($netherLevel);
+            $this->getServer()->setNetherLevel($netherLevel); /** @phpstan-ignore-line */
         }
     }
     
