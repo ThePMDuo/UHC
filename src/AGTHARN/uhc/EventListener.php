@@ -25,6 +25,7 @@ use pocketmine\utils\Process;
 use pocketmine\utils\Random;
 use pocketmine\block\Block;
 use pocketmine\level\Position;
+use pocketmine\math\Vector3;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
@@ -156,6 +157,7 @@ class EventListener implements Listener
             $session->setPlaying(false);
         }
         ScoreFactory::removeScore($player);
+        $this->plugin->getDeathChest()->spawnChest($player);
 
         if ($this->plugin->getHandler()->bossBar !== null) {
             $this->plugin->getHandler()->bossBar->hideFrom($player);
@@ -431,7 +433,7 @@ class EventListener implements Listener
 
         $player = $event->getPlayer();
         $block = $event->getBlock();
-        $pos = $event->getBlock()->getSide($event->getFace());
+        $pos = $event->getBlock()->getSide(Vector3::SIDE_DOWN);
 
         switch ($block->getId()) {
             case Block::SAPLING;
@@ -484,7 +486,7 @@ class EventListener implements Listener
         if ($event->getAction() === PlayerInteractEvent::RIGHT_CLICK_BLOCK) {
 			$block = $event->getBlock();
             $chestTile = $block->getLevel()->getTile($block);
-            $inv = $chestTile->getInventory();
+            $inv = $chestTile->getInventory(); /** @phpstan-ignore-line */
 
             if ($inv !== null) {
                 $inv->setContents($this->plugin->getChestSort()->sortChest(array_values($inv->getContents(false))));
