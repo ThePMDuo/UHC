@@ -7,9 +7,6 @@
 [submodule "src/AGTHARN/uhc/plugins/FlyPE"]
 	path = src/AGTHARN/uhc/plugins/FlyPE
 	url = https://github.com/AGTHARN/FlyPE.git
-[submodule "src/AGTHARN/uhc/plugins/BirdAC"]
-	path = src/AGTHARN/uhc/plugins/BirdAC
-	url = https://github.com/brokiem/BirdAC.git
 [submodule "src/AGTHARN/uhc/plugins/InvisibleSkinBlocker"]
 	path = src/AGTHARN/uhc/plugins/InvisibleSkinBlocker
 	url = https://github.com/Unickorn/InvisibleSkinBlocker
@@ -22,3 +19,6 @@
 [submodule "src/AGTHARN/uhc/plugins/VPNProtect"]
 	path = src/AGTHARN/uhc/plugins/VPNProtect
 	url = https://github.com/AGTHARN/VPNProtect
+[submodule "src/AGTHARN/uhc/plugins/WeirdBird"]
+	path = src/AGTHARN/uhc/plugins/WeirdBird
+	url = https://github.com/Blackjack200/Wierdbird
