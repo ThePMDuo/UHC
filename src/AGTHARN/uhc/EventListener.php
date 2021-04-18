@@ -263,7 +263,7 @@ class EventListener implements Listener
                 $entity->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
                 
                 // call event so death event still runs :3
-                $this->getServer()->getPluginManager()->callEvent(new PlayerDeathEvent($entity, $entity->getInventory()->getContents()));
+                $this->plugin->getServer()->getPluginManager()->callEvent(new PlayerDeathEvent($entity, $entity->getInventory()->getContents()));
             }
         }
     }
@@ -280,22 +280,9 @@ class EventListener implements Listener
         $cause = $player->getLastDamageCause();
         $eliminatedSession = $this->plugin->getSessionManager()->getSession($player);
         $sessionManager = $this->plugin->getSessionManager();
-
-        $pos = $sender->getPosition();
-        $level = $sender->getLevel();
-        $chest = Block::get(Block::CHEST);
-        $x = ((int)$pos->getX());
-        $y = ((int)$pos->getY());
-        $z = ((int)$pos->getZ());
-        $nbt = Chest::createNBT(new Vector3($x,$y,$z));
-        $tile = Tile::createTile(Tile::CHEST, $level, $nbt);
-
-        $ev->setDrops([]);
-        $level->setBlock(new Vector3($x, $y, $z), $chest);
-
-        if ($tile instanceof Chest) {
-            $tile->getInventory()->setContents($player->getInventory()->getContents()); 
-        }
+        
+        $this->plugin->getDeathChest()->spawnChest($player);
+        $event->setDrops([]);
 
         $player->setGamemode(Player::SPECTATOR);
         $player->sendMessage("§eYou have been eliminated! Type /spectate to spectate a player.");
@@ -500,7 +487,7 @@ class EventListener implements Listener
             $inv = $chestTile->getInventory();
 
             if ($inv !== null) {
-                $inv->setContents($this->plugin->getChestSort->sortChest(array_values($inv->getContents(false))));
+                $inv->setContents($this->plugin->getChestSort()->sortChest(array_values($inv->getContents(false))));
             }
 		}
     }

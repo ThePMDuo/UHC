@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace AGTHARN\uhc\util;
 
 use pocketmine\item\Item;
-use pocketmine\Player;
 
 use AGTHARN\uhc\Main;
 
@@ -23,7 +22,13 @@ class ChestSort
     {
         $this->plugin = $plugin;
     }
-
+    
+    /**
+     * sortChest
+     *
+     * @param  array $contents
+     * @return array
+     */
     public function sortChest(array $contents): array
     {
         for ($i = 0; $i < count($contents); $i++) {

@@ -16,6 +16,7 @@ use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\session\SessionManager;
+use AGTHARN\uhc\util\DeathChest;
 use AGTHARN\uhc\util\ChestSort;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\util\Items;
@@ -272,6 +273,16 @@ class Main extends PluginBase
     public function getChestSort(): ChestSort
     {
         return new ChestSort($this);
+    }
+    
+    /**
+     * getDeathChest
+     *
+     * @return DeathChest
+     */
+    public function getDeathChest(): DeathChest
+    {
+        return new DeathChest($this);
     }
     
     /**
