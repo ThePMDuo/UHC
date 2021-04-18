@@ -19,3 +19,9 @@
 [submodule "src/AGTHARN/uhc/plugins/InvSee"]
 	path = src/AGTHARN/uhc/plugins/InvSee
 	url = https://github.com/BlockHorizons/InvSee
+[submodule "src/AGTHARN/uhc/plugins/UHCRedstone"]
+	path = src/AGTHARN/uhc/plugins/UHCRedstone
+	url = https://github.com/AGTHARN/UHCRedstone
+[submodule "src/AGTHARN/uhc/plugins/VPNProtect"]
+	path = src/AGTHARN/uhc/plugins/VPNProtect
+	url = https://github.com/AGTHARN/VPNProtect
