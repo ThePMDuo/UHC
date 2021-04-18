@@ -107,7 +107,7 @@ class EventListener implements Listener
 
         $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber . " © 2021 MineUHC");
         $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalColoredMessage());
-        $player->sendMessage("THREADS: " . Process::getThreadCount() . " | RAM BALANCED: " . number_format(round(($mUsage[2] / 1024) / 1024, 2), 2) . " MB.");
+        $player->sendMessage("THREADS: " . Process::getThreadCount() . " | RAM ALLOCATED: " . number_format(round(($mUsage[2] / 1024) / 1024, 2), 2) . " MB.");
         $player->sendMessage("NODE: " . $this->plugin->node);
 
         if (!$this->plugin->getOperational()) {
@@ -250,7 +250,7 @@ class EventListener implements Listener
                 break;
         }
 
-        if ($entity instanceof Player) {
+        if ($event instanceof EntityDamageByEntityEvent && $entity instanceof Player && $event->getDamager() instanceof Player) {
             // ENTITYDEATHEVENT MOVED HERE
             if ($event->getFinalDamage() >= $entity->getHealth()) {
                 // act like real death
@@ -484,12 +484,14 @@ class EventListener implements Listener
         }
 
         if ($event->getAction() === PlayerInteractEvent::RIGHT_CLICK_BLOCK) {
-			$block = $event->getBlock();
-            $chestTile = $block->getLevel()->getTile($block);
-            $inv = $chestTile->getInventory(); /** @phpstan-ignore-line */
+            if ($event->getBlock() === Block::get(Block::CHEST)) {
+			    $block = $event->getBlock();
+                $chestTile = $block->getLevel()->getTile($block);
+                $inv = $chestTile->getInventory(); /** @phpstan-ignore-line */
 
-            if ($inv !== null) {
-                $inv->setContents($this->plugin->getChestSort()->sortChest(array_values($inv->getContents(false))));
+                if ($inv !== null) {
+                    $inv->setContents($this->plugin->getChestSort()->sortChest(array_values($inv->getContents(false))));
+                }
             }
 		}
     }

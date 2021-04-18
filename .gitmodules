@@ -4,9 +4,6 @@
 [submodule "src/AGTHARN/uhc/plugins/PiggyPersonaSkins"]
 	path = src/AGTHARN/uhc/plugins/PiggyPersonaSkins
 	url = https://github.com/DaPigGuy/PiggyPersonaSkins.git
-[submodule "src/AGTHARN/uhc/plugins/FlyPE"]
-	path = src/AGTHARN/uhc/plugins/FlyPE
-	url = https://github.com/AGTHARN/FlyPE.git
 [submodule "src/AGTHARN/uhc/plugins/InvisibleSkinBlocker"]
 	path = src/AGTHARN/uhc/plugins/InvisibleSkinBlocker
 	url = https://github.com/Unickorn/InvisibleSkinBlocker
@@ -19,6 +16,6 @@
 [submodule "src/AGTHARN/uhc/plugins/VPNProtect"]
 	path = src/AGTHARN/uhc/plugins/VPNProtect
 	url = https://github.com/AGTHARN/VPNProtect
-[submodule "src/AGTHARN/uhc/plugins/WeirdBird"]
-	path = src/AGTHARN/uhc/plugins/WeirdBird
-	url = https://github.com/Blackjack200/Wierdbird
+[submodule "src/AGTHARN/uhc/plugins/SteveAC"]
+	path = src/AGTHARN/uhc/plugins/SteveAC
+	url = https://github.com/AGTHARN/SteveAC
