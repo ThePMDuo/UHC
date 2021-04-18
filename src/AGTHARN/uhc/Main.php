@@ -16,6 +16,7 @@ use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\session\SessionManager;
+use AGTHARN\uhc\util\ChestSort;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\util\Items;
 use AGTHARN\uhc\kits\Kits;
@@ -25,6 +26,8 @@ class Main extends PluginBase
 {   
     /** @var string */
     public $uhcServer = "GAME-1";
+    /** @var string */
+    public $node = "NYC-01";
     /** @var string */
     public $buildNumber = "BETA-1";
     /** @var bool */
@@ -259,6 +262,16 @@ class Main extends PluginBase
     public function getUtilItems(): Items
     {
         return new Items($this);
+    }
+
+    /**
+     * getChestSort
+     *
+     * @return ChestSort
+     */
+    public function getChestSort(): ChestSort
+    {
+        return new ChestSort($this);
     }
     
     /**

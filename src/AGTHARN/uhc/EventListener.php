@@ -106,8 +106,8 @@ class EventListener implements Listener
 
         $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber . " © 2021 MineUHC");
         $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalColoredMessage());
-        $player->sendMessage("THREADS: " . Process::getThreadCount() . " | RAM USAGE: " . number_format(round(($mUsage[1] / 1024) / 1024, 2), 2) . " MB");
-        $player->sendMessage("AntiCheat powered by BirdAC & MineGuard");
+        $player->sendMessage("THREADS: " . Process::getThreadCount() . " | RAM BALANCED: " . number_format(round(($mUsage[2] / 1024) / 1024, 2), 2) . " MB.");
+        $player->sendMessage("NODE: " . $this->plugin->node);
 
         if (!$this->plugin->getOperational()) {
             $player->kick($this->plugin->getOperationalColoredMessage() . ": SERVER RESETTING! SHOULD NOT TAKE LONGER THAN 10 SECONDS!");
@@ -247,6 +247,73 @@ class EventListener implements Listener
                 }
                 break;
         }
+
+        if ($entity instanceof Player) {
+            // ENTITYDEATHEVENT MOVED HERE
+            if ($event->getFinalDamage() >= $entity->getHealth()) {
+                // act like real death
+                $event->setCancelled();
+                $entity->setFood($entity->getMaxFood());
+                $entity->setHealth($entity->getMaxHealth());
+                $entity->removeAllEffects();
+                $entity->getInventory()->clearAll();
+                $entity->getArmorInventory()->clearAll();
+                $entity->getCursorInventory()->clearAll();
+                $entity->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
+                $entity->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
+                
+                // call event so death event still runs :3
+                $this->getServer()->getPluginManager()->callEvent(new PlayerDeathEvent($entity, $entity->getInventory()->getContents()));
+            }
+        }
+    }
+    
+    /**
+     * handleDeath
+     *
+     * @param  PlayerDeathEvent $event
+     * @return void
+     */
+    public function handleDeath(PlayerDeathEvent $event): void
+    {
+        $player = $event->getPlayer();
+        $cause = $player->getLastDamageCause();
+        $eliminatedSession = $this->plugin->getSessionManager()->getSession($player);
+        $sessionManager = $this->plugin->getSessionManager();
+
+        $pos = $sender->getPosition();
+        $level = $sender->getLevel();
+        $chest = Block::get(Block::CHEST);
+        $x = ((int)$pos->getX());
+        $y = ((int)$pos->getY());
+        $z = ((int)$pos->getZ());
+        $nbt = Chest::createNBT(new Vector3($x,$y,$z));
+        $tile = Tile::createTile(Tile::CHEST, $level, $nbt);
+
+        $ev->setDrops([]);
+        $level->setBlock(new Vector3($x, $y, $z), $chest);
+
+        if ($tile instanceof Chest) {
+            $tile->getInventory()->setContents($player->getInventory()->getContents()); 
+        }
+
+        $player->setGamemode(Player::SPECTATOR);
+        $player->sendMessage("§eYou have been eliminated! Type /spectate to spectate a player.");
+
+        if (!$sessionManager->hasSession($player)) return;
+        if ($cause instanceof EntityDamageByEntityEvent) {
+            $damager = $cause->getDamager();
+            if ($damager instanceof Player) {
+                if ($sessionManager->hasSession($damager)) {
+                    $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
+
+                    $damagerSession->addEliminations();
+                    $event->setDeathMessage("§c" . $player->getName() . "§7 (§f" . $eliminatedSession->getEliminations() . "§7)" . "§e was eliminated by §c" . $damager->getName() . "§7(§f" . $damagerSession->getEliminations() . "§7)");
+                }
+            }
+        } else {
+            $event->setDeathMessage("§c" . $player->getName() . "§7 (§f" . $eliminatedSession->getEliminations() . "§7)" . "§e has been eliminated somehow!");
+        }
     }
 
     /**
@@ -287,39 +354,6 @@ class EventListener implements Listener
             case EntityRegainHealthEvent::CAUSE_CUSTOM:
                 $event->setCancelled();
                 break;
-        }
-    }
-    
-    /**
-     * handleDeath
-     *
-     * @param  PlayerDeathEvent $event
-     * @return void
-     */
-    public function handleDeath(PlayerDeathEvent $event): void
-    {
-        $player = $event->getPlayer();
-        $cause = $player->getLastDamageCause();
-        $eliminatedSession = $this->plugin->getSessionManager()->getSession($player);
-        $sessionManager = $this->plugin->getSessionManager();
-        
-        $player->setGamemode(Player::SPECTATOR);
-        $player->sendMessage("§eYou have been eliminated! Type /spectate to spectate a player.");
-
-        if (!$sessionManager->hasSession($player)) return;
-        
-        if ($cause instanceof EntityDamageByEntityEvent) {
-            $damager = $cause->getDamager();
-            if ($damager instanceof Player) {
-                if ($sessionManager->hasSession($damager)) {
-                    $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
-
-                    $damagerSession->addEliminations();
-                    $event->setDeathMessage("§c" . $player->getName() . "§7 (§f" . $eliminatedSession->getEliminations() . "§7)" . "§e was eliminated by §c" . $damager->getName() . "§7(§f" . $damagerSession->getEliminations() . "§7)");
-                }
-            }
-        } else {
-            $event->setDeathMessage("§c" . $player->getName() . "§7 (§f" . $eliminatedSession->getEliminations() . "§7)" . "§e has been eliminated somehow!");
         }
     }
 
@@ -407,6 +441,16 @@ class EventListener implements Listener
                 $event->setCancelled();
                 break;
         }
+
+        $player = $event->getPlayer();
+        $block = $event->getBlock();
+        $pos = $event->getBlock()->getSide($event->getFace());
+
+        switch ($block->getId()) {
+            case Block::SAPLING;
+                Tree::growTree($block->getLevel(), (int)$pos->x, (int)$pos->y, (int)$pos->z, new Random(mt_rand()), $block->getDamage());
+                break;
+        }
     }
 
     /**
@@ -434,22 +478,6 @@ class EventListener implements Listener
         $item = $event->getItem();
         $server = $this->plugin->getServer();
 
-        if ($event->getItem()->getId() === Item::SAPLING) {
-			$pos = $event->getBlock()->getSide($event->getFace());
-
-			switch ($pos->getSide(0)->getId()) {
-				case Block::DIRT:
-				case Block::GRASS:
-				case Block::PODZOL:
-					Tree::growTree($event->getBlock()->getLevel(), (int)$pos->x, (int)$pos->y, (int)$pos->z, new Random(mt_rand()), $item->getDamage());
-					if ($player->isSurvival()) {
-						$player->getInventory()->removeItem($item);
-					}
-					$event->setCancelled();
-					break;
-			}
-		}
-
         // to do use waterdogpe api instead
         switch ($item->getId()) {
             case Item::BED:
@@ -465,6 +493,16 @@ class EventListener implements Listener
                 }
                 break;
         }
+
+        if ($event->getAction() === PlayerInteractEvent::RIGHT_CLICK_BLOCK) {
+			$block = $event->getBlock();
+            $chestTile = $block->getLevel()->getTile($block);
+            $inv = $chestTile->getInventory();
+
+            if ($inv !== null) {
+                $inv->setContents($this->plugin->getChestSort->sortChest(array_values($inv->getContents(false))));
+            }
+		}
     }
         
     /**
