@@ -15,9 +15,9 @@ use function mb_strtolower;
 class ScoreFactory{
 
 	/** @var string */
-	private const OBJECTIVE_NAME = "objective";
+	private const OBJECTIVE_NAME = 'objective';
 	/** @var string */
-	private const CRITERIA_NAME = "dummy";
+	private const CRITERIA_NAME = 'dummy';
 
 	/** @var int */
 	private const MIN_LINES = 1;
@@ -30,11 +30,11 @@ class ScoreFactory{
 	public const SORT_DESCENDING = 1;
 
 	/** @var string */
-	public const SLOT_LIST = "list";
+	public const SLOT_LIST = 'list';
 	/** @var string */
-	public const SLOT_SIDEBAR = "sidebar";
+	public const SLOT_SIDEBAR = 'sidebar';
 	/** @var string */
-	public const SLOT_BELOW_NAME = "belowname";
+	public const SLOT_BELOW_NAME = 'belowname';
 
 	/** @var string[] */
 	private static array $scoreboards = [];
@@ -110,11 +110,11 @@ class ScoreFactory{
 	 */
 	public static function setScoreLine(Player $player, int $line, string $message, int $type = ScorePacketEntry::TYPE_FAKE_PLAYER): void{
 		if(!isset(self::$scoreboards[mb_strtolower($player->getName())])){
-			throw new BadFunctionCallException("Cannot set a score to a player without a scoreboard");
+			throw new BadFunctionCallException('Cannot set a score to a player without a scoreboard');
 		}
 
 		if($line < self::MIN_LINES || $line > self::MAX_LINES){
-			throw new OutOfBoundsException("$line is out of range, expected value between " . self::MIN_LINES . " and " . self::MAX_LINES);
+			throw new OutOfBoundsException('$line is out of range, expected value between ' . self::MIN_LINES . ' and ' . self::MAX_LINES);
 		}
 
 		$entry = new ScorePacketEntry();

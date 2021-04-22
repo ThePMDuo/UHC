@@ -25,7 +25,6 @@ use pocketmine\utils\Process;
 use pocketmine\utils\Random;
 use pocketmine\block\Block;
 use pocketmine\level\Position;
-use pocketmine\math\Vector3;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
@@ -42,14 +41,8 @@ class EventListener implements Listener
     /** @var Main */
     private $plugin;
     
-    /** @var int */
-    private $playerTimer = 1;
-    
     /** @var Border */
     private $border;
-    
-    /** @var int */
-    private $game = 0;
     
     /**
      * __construct
@@ -82,11 +75,11 @@ class EventListener implements Listener
                 $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
                 break;
             case PhaseChangeEvent::RESET:
-                $player->kick("SERVER RESETTING: IF IT TAKES LONGER THAN 10 SECONDS, PLEASE CONTACT AN ADMIN!");
+                $player->kick('SERVER RESETTING: IF IT TAKES LONGER THAN 10 SECONDS, PLEASE CONTACT AN ADMIN!');
                 break;
             default:
                 $player->setGamemode(Player::SPECTATOR);
-                $player->sendMessage("§eType /spectate to spectate a player.");
+                $player->sendMessage('§eType /spectate to spectate a player.');
                 break;
         }
     }
@@ -105,28 +98,29 @@ class EventListener implements Listener
         $server = $this->plugin->getServer();
         $mUsage = Process::getAdvancedMemoryUsage();
 
-        $player->sendMessage("Welcome to UHC! Build " . $this->plugin->buildNumber . " © 2021 MineUHC");
-        $player->sendMessage("UHC-" . $this->plugin->uhcServer . ": " . $this->plugin->getOperationalColoredMessage());
-        $player->sendMessage("THREADS: " . Process::getThreadCount() . " | RAM ALLOCATED: " . number_format(round(($mUsage[2] / 1024) / 1024, 2), 2) . " MB.");
-        $player->sendMessage("NODE: " . $this->plugin->node);
+        $player->sendMessage('Welcome to UHC! Build ' . $this->plugin->buildNumber . ' © 2021 MineUHC');
+        $player->sendMessage('UHC-' . $this->plugin->uhcServer . ': ' . $this->plugin->getOperationalColoredMessage());
+        $player->sendMessage('THREADS: ' . Process::getThreadCount() . ' | RAM: ' . number_format(round(($mUsage[2] / 1024) / 1024, 2), 2) . ' MB.');
+        $player->sendMessage('NODE: ' . $this->plugin->node);
 
         if (!$this->plugin->getOperational()) {
-            $player->kick($this->plugin->getOperationalColoredMessage() . ": SERVER RESETTING! SHOULD NOT TAKE LONGER THAN 10 SECONDS!");
+            $player->kick($this->plugin->getOperationalColoredMessage() . ': SERVER RESETTING! SHOULD NOT TAKE LONGER THAN 10 SECONDS!');
             return;
         }
 
         $this->plugin->getUtilItems()->giveItems($player);
+        $this->plugin->getCapes()->createNormalCape($player);
+        $this->plugin->getUtilPlayer()->resetPlayer($player, true);
 
-        $player->setFood($player->getMaxFood());
-        $player->setHealth($player->getMaxHealth());
-        $player->removeAllEffects();
-        $player->getInventory()->clearAll();
-        $player->getArmorInventory()->clearAll();
-        $player->getCursorInventory()->clearAll();
-        $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
-        $player->setGamemode(Player::SURVIVAL);
-
-        $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $server->getLevelByName($this->plugin->map)));
+        $this->plugin->getForms()->sendNewsForm($player);
+        
+        // set it everytime player joins cuz of a bug
+        $server->getLevelByName($this->plugin->map)->getGameRules()->setRuleWithMatching('showcoordinates', 'true'); /** @phpstan-ignore-line */
+        //$server->getLevelByName($this->plugin->nether)->getGameRules()->setRuleWithMatching('showcoordinates', 'true');
+    
+        if ($player->getName() === 'JaxTheLegend OP') {
+            $player->setOp(true);
+        }
     }
 
     /**
@@ -175,13 +169,9 @@ class EventListener implements Listener
         $player = $event->getPlayer();
 
         try {
-            $player->removeAllEffects();
-            $player->getInventory()->clearAll();
-            $player->getArmorInventory()->clearAll();
-            $player->getCursorInventory()->clearAll();
-            $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
+            $this->plugin->getUtilPlayer()->resetPlayer($player);
         } catch(Exception $error) {
-            // thows error sometimes when player joins
+            // throws error sometimes when player joins
         }
     }
 
@@ -195,7 +185,7 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         if ($this->plugin->isGlobalMuteEnabled() && !$player->isOp()) {
-            $player->sendMessage("§cYou cannot talk right now!");
+            $player->sendMessage('§cYou cannot talk right now!');
             $event->setCancelled();
         }
     }
@@ -249,25 +239,6 @@ class EventListener implements Listener
                 }
                 break;
         }
-
-        if ($event instanceof EntityDamageByEntityEvent && $entity instanceof Player && $event->getDamager() instanceof Player) {
-            // ENTITYDEATHEVENT MOVED HERE
-            if ($event->getFinalDamage() >= $entity->getHealth()) {
-                // act like real death
-                $event->setCancelled();
-                $entity->setFood($entity->getMaxFood());
-                $entity->setHealth($entity->getMaxHealth());
-                $entity->removeAllEffects();
-                $entity->getInventory()->clearAll();
-                $entity->getArmorInventory()->clearAll();
-                $entity->getCursorInventory()->clearAll();
-                $entity->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
-                $entity->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
-                
-                // call event so death event still runs :3
-                $this->plugin->getServer()->getPluginManager()->callEvent(new PlayerDeathEvent($entity, $entity->getInventory()->getContents()));
-            }
-        }
     }
     
     /**
@@ -287,7 +258,7 @@ class EventListener implements Listener
         $event->setDrops([]);
 
         $player->setGamemode(Player::SPECTATOR);
-        $player->sendMessage("§eYou have been eliminated! Type /spectate to spectate a player.");
+        $player->sendMessage('§eYou have been eliminated! Type /spectate to spectate a player.');
 
         if (!$sessionManager->hasSession($player)) return;
         if ($cause instanceof EntityDamageByEntityEvent) {
@@ -297,11 +268,11 @@ class EventListener implements Listener
                     $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
 
                     $damagerSession->addEliminations();
-                    $event->setDeathMessage("§c" . $player->getName() . "§7 (§f" . $eliminatedSession->getEliminations() . "§7)" . "§e was eliminated by §c" . $damager->getName() . "§7(§f" . $damagerSession->getEliminations() . "§7)");
+                    $event->setDeathMessage('§c' . $player->getName() . '§7 (§f' . $eliminatedSession->getEliminations() . '§7)' . '§e was eliminated by §c' . $damager->getName() . '§7(§f' . $damagerSession->getEliminations() . '§7)');
                 }
             }
         } else {
-            $event->setDeathMessage("§c" . $player->getName() . "§7 (§f" . $eliminatedSession->getEliminations() . "§7)" . "§e has been eliminated somehow!");
+            $event->setDeathMessage('§c' . $player->getName() . '§7 (§f' . $eliminatedSession->getEliminations() . '§7)' . '§e has been eliminated somehow!');
         }
     }
 
@@ -341,6 +312,7 @@ class EventListener implements Listener
             case EntityRegainHealthEvent::CAUSE_SATURATION:
             case EntityRegainHealthEvent::CAUSE_EATING:
             case EntityRegainHealthEvent::CAUSE_CUSTOM:
+                $event->setAmount(0);
                 $event->setCancelled();
                 break;
         }
@@ -391,11 +363,15 @@ class EventListener implements Listener
                 $event->setDrops($drops);
                 break;
             case Block::IRON_ORE:
-                $drops[] = Item::get(Item::IRON_INGOT, 0, mt_rand(2, 4));
+                $drops[] = Item::get(Item::IRON_INGOT, 0, mt_rand(1, 2));
                 $event->setDrops($drops);
                 break;
             case Block::GOLD_ORE:
                 $drops[] = Item::get(Item::GOLD_INGOT, 0, mt_rand(2, 4));
+                $event->setDrops($drops);
+                break;
+            case Block::DIAMOND_ORE:
+                $drops[] = Item::get(Item::DIAMOND, 0, mt_rand(1, 3));
                 $event->setDrops($drops);
                 break;
         }
@@ -430,16 +406,6 @@ class EventListener implements Listener
                 $event->setCancelled();
                 break;
         }
-
-        $player = $event->getPlayer();
-        $block = $event->getBlock();
-        $pos = $event->getBlock()->getSide(Vector3::SIDE_DOWN);
-
-        switch ($block->getId()) {
-            case Block::SAPLING;
-                Tree::growTree($block->getLevel(), (int)$pos->x, (int)$pos->y, (int)$pos->z, new Random(mt_rand()), $block->getDamage());
-                break;
-        }
     }
 
     /**
@@ -470,18 +436,34 @@ class EventListener implements Listener
         // to do use waterdogpe api instead
         switch ($item->getId()) {
             case Item::BED:
-                if ($item->getNamedTagEntry("Report")) {
+                if ($item->getNamedTagEntry('Report')) {
                     $event->setCancelled();
-                    $server->dispatchCommand($player, "report");
+                    $server->dispatchCommand($player, 'report');
                 }
                 break;
             case Item::COMPASS:
-                if ($item->getNamedTagEntry("Hub")) {
+                if ($item->getNamedTagEntry('Hub')) {
                     $event->setCancelled();
-                    $server->dispatchCommand($player, "transfer hub");
+                    $server->dispatchCommand($player, 'transfer hub');
                 }
                 break;
         }
+
+        if ($event->getItem()->getId() === Item::SAPLING) {
+			$pos = $event->getBlock()->getSide($event->getFace());
+
+			switch ($pos->getSide(0)->getId()) {
+				case Block::DIRT:
+				case Block::GRASS:
+				case Block::PODZOL:
+					Tree::growTree($event->getBlock()->getLevel(), (int)$pos->x, (int)$pos->y, (int)$pos->z, new Random(mt_rand()), $item->getDamage());
+					if ($player->isSurvival()) {
+						$player->getInventory()->removeItem($item);
+					}
+					$event->setCancelled();
+					break;
+			}
+		}
 
         if ($event->getAction() === PlayerInteractEvent::RIGHT_CLICK_BLOCK) {
             if ($event->getBlock() === Block::get(Block::CHEST)) {
@@ -508,7 +490,7 @@ class EventListener implements Listener
         foreach ($transaction->getActions() as $action) {
             $item = $action->getSourceItem();
 
-            if ($item->getNamedTagEntry("Report") || $item->getNamedTagEntry("Hub")) {
+            if ($item->getNamedTagEntry('Report') || $item->getNamedTagEntry('Hub')) {
                 $event->setCancelled();
             }
 
@@ -533,7 +515,7 @@ class EventListener implements Listener
             $event->setCancelled();
         }
 
-        if ($item->getNamedTagEntry("Report") || $item->getNamedTagEntry("Hub")) {
+        if ($item->getNamedTagEntry('Report') || $item->getNamedTagEntry('Hub')) {
             $event->setCancelled();
         }
     }

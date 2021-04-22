@@ -21,9 +21,9 @@ class SpectatorCommand extends BaseCommand
      */
     public function __construct(Main $plugin)
     {
-        parent::__construct("spectate");
+        parent::__construct('spectate');
         $this->plugin = $plugin;
-        $this->setUsage("/spectate <playerName>");
+        $this->setUsage('/spectate <playerName>');
     }
     
     /**
@@ -36,7 +36,7 @@ class SpectatorCommand extends BaseCommand
     public function onExecute(Player $sender, array $args) : void
     {
         if ($sender->getGamemode() !== Player::SPECTATOR) {
-            $sender->sendMessage("§cYou must be eliminated to use this command!");
+            $sender->sendMessage('§cYou must be eliminated to use this command!');
             return;
         }
 
@@ -46,16 +46,16 @@ class SpectatorCommand extends BaseCommand
 
         $player = $this->plugin->getServer()->getPlayer(mb_strtolower($args[0]));
         if ($player === null) {
-            $sender->sendMessage("§cThat player is not in the game!");
+            $sender->sendMessage('§cThat player is not in the game!');
             return;
         }
 
         if ($player === $sender) {
-            $sender->sendMessage("§cYou can't spectate yourself!");
+            $sender->sendMessage('§cYou cant spectate yourself!');
             return;
         } else {
             $sender->teleport($player->getPosition());
-            $sender->sendMessage("§aCurrently spectating " . $player->getDisplayName());
+            $sender->sendMessage('§aCurrently spectating ' . $player->getDisplayName());
             return;
         }
     }

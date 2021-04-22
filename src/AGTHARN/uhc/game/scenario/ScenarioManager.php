@@ -23,7 +23,7 @@ class ScenarioManager
     public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
-        $this->loadDirectoryScenarios($plugin->getDataFolder() . "scenarios/");
+        $this->loadDirectoryScenarios($plugin->getDataFolder() . 'scenarios/');
     }
     
     /**
@@ -40,16 +40,16 @@ class ScenarioManager
         $dir = scandir($directory);
         if (is_array($dir)) {
             foreach ($dir as $file) {
-                if (substr($file, -4) === ".php") {
+                if (substr($file, -4) === '.php') {
                     $fileLocation = $directory . $file;
                     try {
                         require($fileLocation);
-                        $class = "\\" . str_replace(".php", "", $file);
+                        $class = '\\' . str_replace('.php', '', $file);
                         if (($scenario = new $class($this->plugin)) instanceof Scenario) {
                             $this->registerScenario($scenario);
                         }
                     } catch (Throwable $error) {
-                        $this->plugin->getLogger()->error("File $file failed to load with reason: " . $error->getMessage());
+                        $this->plugin->getLogger()->error('File $file failed to load with reason: ' . $error->getMessage());
                     }
                 }
             }
@@ -86,7 +86,7 @@ class ScenarioManager
     public function registerScenario(Scenario $scenario): void
     {
         if(isset($this->registeredScenarios[$scenario->getName()])){
-            $this->plugin->getLogger()->notice("Ignored duplicate scenario: {$scenario->getName()}");
+            $this->plugin->getLogger()->notice('Ignored duplicate scenario: {$scenario->getName()}');
         }
         $this->registeredScenarios[$scenario->getName()] = $scenario;
     }

@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\level\generator\GeneratorManager;
 use pocketmine\entity\utils\Bossbar;
 use pocketmine\plugin\PluginBase;
 use pocketmine\block\Block;
@@ -16,32 +15,36 @@ use AGTHARN\uhc\game\team\TeamManager;
 use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\session\SessionManager;
+use AGTHARN\uhc\util\UtilPlayer;
+use AGTHARN\uhc\util\Generators;
 use AGTHARN\uhc\util\DeathChest;
 use AGTHARN\uhc\util\ChestSort;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\util\Items;
+use AGTHARN\uhc\util\Capes;
+use AGTHARN\uhc\util\Forms;
 use AGTHARN\uhc\kits\Kits;
 use AGTHARN\uhc\EventListener;
 
 class Main extends PluginBase
 {   
     /** @var string */
-    public $uhcServer = "GAME-1";
+    public $uhcServer = 'GAME-1';
     /** @var string */
-    public $node = "NYC-01";
+    public $node = 'NYC-01';
     /** @var string */
-    public $buildNumber = "BETA-1";
+    public $buildNumber = 'BETA-1';
     /** @var bool */
     public $operational = true;
     
     /** @var int */
     public $normalSeed;
     /** @var string */
-    public $map = "UHC";
+    public $map = 'UHC';
     /** @var int */
     public $netherSeed;
     /** @var string */
-    public $nether = "nether";
+    public $nether = 'nether';
 
     /** @var int */
     public $spawnPosX = 0;
@@ -60,6 +63,24 @@ class Main extends PluginBase
     private $scenarioManager;
     /** @var Handler */
     private $utilHandler;
+    /** @var Border */
+    private $border;
+    /** @var Items */
+    private $items;
+    /** @var ChestSort */
+    private $chestSort;
+    /** @var DeathChest */
+    private $deathChest;
+    /** @var Kits */
+    private $kits;
+    /** @var Capes */
+    private $capes;
+    /** @var Generators */
+    private $generators;
+    /** @var UtilPlayer */
+    private $utilplayer;
+    /** @var Forms */
+    private $forms;
 
     /** @var bool */
     private $globalMuteEnabled = false;
@@ -71,98 +92,37 @@ class Main extends PluginBase
      */
     public function onEnable(): void
     {   
-        @mkdir($this->getDataFolder() . "scenarios");
+        if (!extension_loaded('gd')) {
+            $this->getServer()->getLogger()->error('GD Lib is disabled! Turning on safe mode!');
+            $this->setOperational(false);
+        }
+        @mkdir($this->getDataFolder() . 'scenarios');
+        $this->saveResource('normal_cape.png');
 
-        $this->prepareWorld();
-        //$this->prepareNether();
-        
+        $this->getGenerators()->prepareWorld();
+        //$this->getGenerators()->prepareNether();
+
         $this->gameManager = new GameManager($this, $this->getBorder());
-        $this->teamManager = new TeamManager();
-        $this->sessionManager = new SessionManager();
         $this->scenarioManager = new ScenarioManager($this);
+        $this->sessionManager = new SessionManager();
+        $this->teamManager = new TeamManager();
         $this->utilHandler = new Handler($this, $this->getBorder());
+        $this->border = new Border($this->getServer()->getLevelByName($this->map));
+        $this->items = new Items($this);
+        $this->chestSort = new ChestSort($this);
+        $this->deathChest = new DeathChest($this);
+        $this->kits = new Kits();
+        $this->capes = new Capes($this);
+        $this->generators = new Generators($this);
+        $this->utilplayer = new UtilPlayer($this);
+        $this->forms = new Forms();
+
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this, $this->getBorder()), $this);
         
-        $this->getServer()->getCommandMap()->registerAll("uhc", [
+        $this->getServer()->getCommandMap()->registerAll('uhc', [
             new SpectatorCommand($this)
         ]);
-    }
-    
-    /**
-     * prepareWorld
-     *
-     * @return void
-     */
-    public function prepareWorld(): void
-    {   
-        $uhcName = $this->map;
-        $uhcLevel = $this->getServer()->getLevelByName($uhcName);
-
-        $worldAPI = $this->getServer()->getPluginManager()->getPlugin("MultiWorld")->getWorldManagementAPI(); /** @phpstan-ignore-line */
-
-        if ($worldAPI->isLevelGenerated($uhcName)) {
-            if ($worldAPI->isLevelLoaded($uhcName)) {  
-                $worldAPI->unloadLevel($uhcLevel);
-            }
-            $worldAPI->removeLevel($uhcName);
-            $this->prepareWorld();
-        } else {
-            $this->normalSeed = $this->generateRandomSeed();
-
-            if ($this->normalSeed === 0) {
-                $this->normalSeed = $this->generateRandomSeed();
-            }
-            $worldAPI->generateLevel($uhcName, $this->normalSeed, 1);  
-            $worldAPI->loadLevel($uhcName);
-
-            $uhcLevel = $this->getServer()->getLevelByName($this->map); // redefine so its not null
-            $uhcLevel->getGameRules()->setRuleWithMatching("domobspawning", "true"); /** @phpstan-ignore-line */
-            $uhcLevel->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
-        }
-    }
-    
-    /**
-     * prepareNether
-     *
-     * @return void
-     */
-    public function prepareNether(): void
-    {
-        $netherName = $this->nether;
-        $netherLevel = $this->getServer()->getLevelByName($netherName);
-
-        $worldAPI = $this->getServer()->getPluginManager()->getPlugin("MultiWorld")->getWorldManagementAPI(); /** @phpstan-ignore-line */
-
-        if ($worldAPI->isLevelGenerated($netherName)) {
-            if ($worldAPI->isLevelLoaded($netherName)) {  
-                $worldAPI->unloadLevel($netherLevel);
-            }
-            $worldAPI->removeLevel($netherName);
-            $this->prepareNether();
-        } else {
-            $this->netherSeed = $this->generateRandomSeed();
-
-            if ($this->netherSeed === 0) {
-                $this->netherSeed = $this->generateRandomSeed();
-            }
-            $this->getServer()->generateLevel($netherName, $this->netherSeed, GeneratorManager::getGenerator("nether"));
-            $worldAPI->loadLevel($netherName);
-
-            $netherLevel = $this->getServer()->getLevelByName($this->nether); // redefine so its not null
-            $netherLevel->getGameRules()->setRuleWithMatching("showcoordinates", "true"); /** @phpstan-ignore-line */
-            $this->getServer()->setNetherLevel($netherLevel); /** @phpstan-ignore-line */
-        }
-    }
-    
-    /**
-     * generateRandomSeed
-     *
-     * @return int
-     */
-    public function generateRandomSeed(): int
-    {
-        return intval(rand(0, intval(time() / memory_get_usage(true) * (int) str_shuffle("127469453645108") / (int) str_shuffle("12746945364"))));
     }
     
     /**
@@ -192,7 +152,7 @@ class Main extends PluginBase
      */
     public function getManager(): GameManager
     {
-        return $this->gameManager;
+        return $this->gameManager ?? new GameManager($this, $this->getBorder());
     }
 
     /**
@@ -202,7 +162,7 @@ class Main extends PluginBase
      */
     public function getScenarioManager(): ScenarioManager
     {
-        return $this->scenarioManager;
+        return $this->scenarioManager ?? new ScenarioManager($this);
     }
     
     /**
@@ -211,8 +171,8 @@ class Main extends PluginBase
      * @return SessionManager
      */
     public function getSessionManager(): SessionManager
-    {
-        return $this->sessionManager;
+    {   
+        return $this->sessionManager ?? new SessionManager();
     }
     
 
@@ -223,7 +183,7 @@ class Main extends PluginBase
      */
     public function getTeamManager(): TeamManager
     {
-        return $this->teamManager;
+        return $this->teamManager ?? new TeamManager();
     }
     
     /**
@@ -232,7 +192,7 @@ class Main extends PluginBase
      * @return Handler
      */
     public function getHandler(): Handler {
-        return $this->utilHandler;
+        return $this->utilHandler ?? new Handler($this, $this->getBorder());
     }
 
     /**
@@ -252,7 +212,7 @@ class Main extends PluginBase
      */
     public function getBorder(): Border
     {
-        return new Border($this->getServer()->getLevelByName($this->map));
+        return $this->border ?? new Border($this->getServer()->getLevelByName($this->map));
     }
     
     /**
@@ -262,7 +222,7 @@ class Main extends PluginBase
      */
     public function getUtilItems(): Items
     {
-        return new Items($this);
+        return $this->items ?? new Items($this);
     }
 
     /**
@@ -272,7 +232,7 @@ class Main extends PluginBase
      */
     public function getChestSort(): ChestSort
     {
-        return new ChestSort($this);
+        return $this->chestSort ?? new ChestSort($this);
     }
     
     /**
@@ -282,7 +242,7 @@ class Main extends PluginBase
      */
     public function getDeathChest(): DeathChest
     {
-        return new DeathChest($this);
+        return $this->deathChest ?? new DeathChest($this);
     }
     
     /**
@@ -292,7 +252,47 @@ class Main extends PluginBase
      */
     public function getKits(): Kits
     {
-        return new Kits();
+        return $this->kits ?? new Kits();
+    }
+
+    /**
+     * getCapes
+     *
+     * @return Capes
+     */
+    public function getCapes(): Capes
+    {
+        return $this->capes ?? new Capes($this);
+    }
+    
+    /**
+     * getGenerators
+     *
+     * @return Generators
+     */
+    public function getGenerators(): Generators
+    {
+        return $this->generators ?? new Generators($this);
+    }
+
+    /**
+     * getUtilPlayer
+     *
+     * @return UtilPlayer
+     */
+    public function getUtilPlayer(): UtilPlayer
+    {
+        return $this->utilplayer ?? new UtilPlayer($this);
+    }
+    
+    /**
+     * getForms
+     *
+     * @return Forms
+     */
+    public function getForms(): Forms
+    {
+        return $this->forms ?? new Forms();
     }
     
     /**
@@ -347,9 +347,9 @@ class Main extends PluginBase
     public function getOperationalColoredMessage(): string
     {
         if ($this->getOperational()) {
-            return "§aSERVER OPERATIONAL";
+            return '§aSERVER OPERATIONAL';
         }
-        return "§cSERVER UNOPERATIONAL: POSSIBLY RESETTING";
+        return '§cSERVER UNOPERATIONAL: POSSIBLY RESETTING';
     }
 
     /**
@@ -360,8 +360,8 @@ class Main extends PluginBase
     public function getOperationalMessage(): string
     {
         if ($this->getOperational()) {
-            return "SERVER OPERATIONAL";
+            return 'SERVER OPERATIONAL';
         }
-        return "SERVER UNOPERATIONAL: POSSIBLY RESETTING";
+        return 'SERVER UNOPERATIONAL: POSSIBLY RESETTING';
     }
 }

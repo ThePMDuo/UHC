@@ -33,10 +33,10 @@ class Items
      */
     public function giveItems(Player $player): void
     {
-        $hub = Item::get(Item::COMPASS)->setCustomName("§aReturn To Hub");;
-        $hub->setNamedTagEntry(new StringTag("Hub"));
-        $report = Item::get(Item::BED)->setCustomName("§cReport");
-        $report->setNamedTagEntry(new StringTag("Report"));
+        $hub = Item::get(Item::COMPASS)->setCustomName('§aReturn To Hub');;
+        $hub->setNamedTagEntry(new StringTag('Hub'));
+        $report = Item::get(Item::BED)->setCustomName('§cReport');
+        $report->setNamedTagEntry(new StringTag('Report'));
 
         $player->getInventory()->setItem(0 , $hub);
         $player->getInventory()->setItem(8 , $report);

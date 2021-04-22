@@ -98,12 +98,12 @@ class GameManager extends Task
         }
         if ($this->hasStarted()) {
             $this->game++;
-            $server->getNetwork()->setName("STARTED");
+            $server->getNetwork()->setName('STARTED');
         } else {
-            $server->getNetwork()->setName("NOT STARTED");
+            $server->getNetwork()->setName('NOT STARTED');
         }
 
-        if (!$this->plugin->getOperational()){
+        if (!$this->plugin->getOperational()) {
             $server->getNetwork()->setName($this->plugin->getOperationalMessage());
         }
         

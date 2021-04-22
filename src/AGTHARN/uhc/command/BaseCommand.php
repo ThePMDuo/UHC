@@ -32,7 +32,7 @@ class BaseCommand extends Command
     public function execute(CommandSender $sender, string $commandLabel, array $args): void
     {
         if(!$sender instanceof Player){
-            $sender->sendMessage("You must be a player to use this command!");
+            $sender->sendMessage('You must be a player to use this command!');
             return;
         }
         $this->onExecute($sender, $args);
