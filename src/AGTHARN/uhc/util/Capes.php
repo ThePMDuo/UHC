@@ -35,7 +35,7 @@ class Capes
         $img = imagecreatefrompng($this->plugin->getDataFolder() . 'normal_cape.png');
         $rgba = '';
 
-        if (getimagesize($img) !== false) {
+        if ($img !== false || $img !== null) {
             for ($y = 0; $y < imagesy($img); $y++) {
                 for ($x = 0; $x < imagesx($img); $x++) {
                     $argb = imagecolorat($img, $x, $y);
