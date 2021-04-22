@@ -42,12 +42,12 @@ class Generators
             $worldAPI->removeLevel($uhcName);
             $this->prepareWorld();
         } else {
-            $this->normalSeed = $this->generateRandomSeed();
+            $this->plugin->normalSeed = $this->generateRandomSeed();
 
-            if ($this->normalSeed === 0) {
-                $this->normalSeed = $this->generateRandomSeed();
+            if ($this->plugin->normalSeed === 0) {
+                $this->plugin->normalSeed = $this->generateRandomSeed();
             }
-            $worldAPI->generateLevel($uhcName, $this->normalSeed, 1);  
+            $worldAPI->generateLevel($uhcName, $this->plugin->normalSeed, 1);  
             $worldAPI->loadLevel($uhcName);
 
             $uhcLevel = $this->plugin->getServer()->getLevelByName($uhcName); // redefine so its not null
@@ -76,12 +76,12 @@ class Generators
             $worldAPI->removeLevel($netherName);
             $this->prepareNether();
         } else {
-            $this->netherSeed = $this->generateRandomSeed();
+            $this->plugin->netherSeed = $this->generateRandomSeed();
 
-            if ($this->netherSeed === 0) {
-                $this->netherSeed = $this->generateRandomSeed();
+            if ($this->plugin->netherSeed === 0) {
+                $this->plugin->netherSeed = $this->generateRandomSeed();
             }
-            $this->plugin->getServer()->generateLevel($netherName, $this->netherSeed, GeneratorManager::getGenerator('nether'));
+            $this->plugin->getServer()->generateLevel($netherName, $this->plugin->netherSeed, GeneratorManager::getGenerator('nether'));
             $worldAPI->loadLevel($netherName);
 
             $netherLevel = $this->plugin->getServer()->getLevelByName($netherName); // redefine so its not null

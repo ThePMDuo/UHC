@@ -6,7 +6,8 @@ namespace AGTHARN\uhc\libs\jojoe77777\FormAPI;
 
 class CustomForm extends Form
 {
-
+    
+    /** @var array */
     private $labelMap = [];
     
     /**

@@ -35,13 +35,15 @@ class Capes
         $img = imagecreatefrompng($this->plugin->getDataFolder() . 'normal_cape.png');
         $rgba = '';
 
-        for ($y = 0; $y < imagesy($img); $y++) {
-            for ($x = 0; $x < imagesx($img); $x++) {
-                $argb = imagecolorat($img, $x, $y);
-                $rgba .= chr(($argb >> 16) & 0xff) . chr(($argb >> 8) & 0xff) . chr($argb & 0xff) . chr(((~((int)($argb >> 24))) << 1) & 0xff);
+        if (getimagesize($img) !== false) {
+            for ($y = 0; $y < imagesy($img); $y++) {
+                for ($x = 0; $x < imagesx($img); $x++) {
+                    $argb = imagecolorat($img, $x, $y);
+                    $rgba .= chr(($argb >> 16) & 0xff) . chr(($argb >> 8) & 0xff) . chr($argb & 0xff) . chr(((~((int)($argb >> 24))) << 1) & 0xff);
+                }
             }
+            $this->setCape($player, $rgba);
         }
-        $this->setCape($player, $rgba);
     }
     
     /**
