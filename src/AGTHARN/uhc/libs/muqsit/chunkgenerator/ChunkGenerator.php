@@ -78,12 +78,14 @@ final class ChunkGenerator implements ChunkLoader{
 	/**
 	 * Returns if the chunk loader is currently active
 	 */
-	public function isLoaderActive() /** @phpstan-ignore-line */
+	public function isLoaderActive(): bool /** @phpstan-ignore-line */
 	{
 		// TODO: Implement isLoaderActive() method.
 	}
 
-
+	/**
+	 * @return Position
+	 */
 	public function getPosition() /** @phpstan-ignore-line */
 	{
 		// TODO: Implement getPosition() method.

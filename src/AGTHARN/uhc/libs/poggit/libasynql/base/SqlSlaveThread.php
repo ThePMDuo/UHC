@@ -114,16 +114,16 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 		$this->bufferSend->scheduleQuery($queryId, $mode, $query, $params);
 	}
 
-	//public function readResults(array &$callbacks) : void{
-		//while($this->bufferRecv->fetchResult($queryId, $result)){
-			//if(!isset($callbacks[$queryId])){
-				//throw new InvalidArgumentException("Missing handler for query #$queryId");
-			//}
+	public function readResults(array &$callbacks) : void{
+		while($this->bufferRecv->fetchResult($queryId, $result)){ /** @phpstan-ignore-line */
+			if(!isset($callbacks[$queryId])){ /** @phpstan-ignore-line */
+				throw new InvalidArgumentException("Missing handler for query #$queryId"); /** @phpstan-ignore-line */
+			}
 
-			//$callbacks[$queryId]($result);
-			//unset($callbacks[$queryId]);
-		//}
-	//}
+			$callbacks[$queryId]($result); /** @phpstan-ignore-line */
+			unset($callbacks[$queryId]); /** @phpstan-ignore-line */
+		}
+	}
 
 	public function connCreated() : bool{
 		return $this->connCreated;

@@ -39,7 +39,7 @@ class QuerySendQueue extends Threaded{
 
 	public function scheduleQuery(int $queryId, int $mode, string $query, array $params) : void{
 		if($this->invalidated){
-			throw new QueueShutdownException("You cannot schedule a query on an invalidated queue.");
+			throw new QueueShutdownException("You cannot schedule a query on an invalidated queue."); /** @phpstan-ignore-line */
 		}
 		$this->synchronized(function() use ($queryId, $mode, $query, $params) : void{
 			$this->queries[] = serialize([$queryId, $mode, $query, $params]);

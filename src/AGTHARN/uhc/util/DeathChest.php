@@ -42,9 +42,6 @@ class DeathChest
         $z = ((int)$pos->getZ());
         $chest = Block::get(Block::CHEST);
 
-        $level->setBlock(new Vector3($x, $y, $z), $chest);
-        $level->setblock(new Vector3($x + 1, $y, $z), $chest);
-
         $chest1 = $level->getBlock(new Vector3($x, $y, $z));
         $chest2 = $level->getBlock(new Vector3($x + 1, $y, $z));
 
@@ -53,8 +50,8 @@ class DeathChest
         $nbt2 = Chest::createNBT(new Vector3($x + 1, $y, $z));
         $tile2 = Tile::createTile(Tile::CHEST, $level, $nbt2);
 
-        $chest1->pairwith($chest2);
-        $chest2->pairwith($chest1);
+        $tile->pairwith($tile2); /** @phpstan-ignore-line */
+        $tile2->pairwith($tile); /** @phpstan-ignore-line */
 
         if ($tile instanceof Chest) {
             $tile->getInventory()->setContents($player->getInventory()->getContents()); 

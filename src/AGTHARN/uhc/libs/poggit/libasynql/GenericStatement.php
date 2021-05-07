@@ -62,5 +62,5 @@ interface GenericStatement{
 	 * @param mixed     &$outArgs    will be filled with the variables to be passed to the backend
 	 * @return string
 	 */
-	public function format(array $vars, ?string $placeHolder, ?array &$outArgs) : string;
+	public function format(array $vars, ?string $placeHolder, ?array &$outArgs) : string; /** @phpstan-ignore-line */
 }
