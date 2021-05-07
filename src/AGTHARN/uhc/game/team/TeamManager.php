@@ -77,7 +77,9 @@ class TeamManager
      */
     public function resetTeams(): void
     {
+        foreach ($this->teams as $team) {
+            unset($team);
+        }
         $this->teamNumbers = 1;
-        $this->teams = [];
     }
 }

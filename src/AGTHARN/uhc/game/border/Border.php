@@ -17,6 +17,9 @@ class Border
     private $safeX;
     /** @var int */
     private $safeZ;
+
+    /** @var int */
+    private $reductionSize = 0;
     
     /**
      * __construct
@@ -40,6 +43,16 @@ class Border
     public function setSize(int $size): void
     {
         $this->size = $size;
+    }
+    
+    /**
+     * setReduction
+     *
+     * @return void
+     */
+    public function setReduction(int $size): void
+    {
+        $this->reductionSize = $size;
     }
     
     /**

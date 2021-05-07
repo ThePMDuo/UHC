@@ -1,5 +1,5 @@
 main: AGTHARN\uhc\Main
 name: UHC
 author: AGTHARN
-version: 3.0.0
-api: 3.0.0
+version: 1 # based off build number
+api: 3.19.0

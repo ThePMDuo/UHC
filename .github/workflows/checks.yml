@@ -11,7 +11,7 @@ jobs:
         - name: "Checkout"
           uses: actions/checkout@v2
         - name: phpstan
-          uses: nxtlvlsoftware/pmmp-phpstan-action@stable
+          uses: Paroxity/pmmp-phpstan-action@master
           with:
             phpstan-config: phpstan.neon.dist
         - name: PHP Copy Paste Detector

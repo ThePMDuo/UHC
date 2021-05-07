@@ -16,5 +16,5 @@ final class GameTimer
     /** @var int */
     public const TIMER_WINNER = 60;
     /** @var int */
-    public const TIMER_RESET = 20;
+    public const TIMER_RESET = 60;
 }

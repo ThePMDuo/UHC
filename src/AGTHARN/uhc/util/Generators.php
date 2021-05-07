@@ -51,9 +51,7 @@ class Generators
             $worldAPI->loadLevel($uhcName);
 
             $uhcLevel = $this->plugin->getServer()->getLevelByName($uhcName); // redefine so its not null
-            $uhcLevel->getGameRules()->setRuleWithMatching('domobspawning', 'true'); /** @phpstan-ignore-line */
-            $uhcLevel->getGameRules()->setRuleWithMatching('showcoordinates', 'true'); /** @phpstan-ignore-line */
-            $uhcLevel->getGameRules()->setRuleWithMatching('doimmediaterespawn', 'true'); /** @phpstan-ignore-line */
+            $uhcLevel->setAutoSave(false);
         }
     }
     

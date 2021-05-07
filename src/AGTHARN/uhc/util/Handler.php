@@ -5,9 +5,13 @@ namespace AGTHARN\uhc\util;
 
 use pocketmine\level\sound\BlazeShootSound;
 use pocketmine\level\sound\ClickSound;
+use pocketmine\level\particle\RedstoneParticle;
+use pocketmine\level\Position;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
-use pocketmine\level\Position;
+use pocketmine\level\Level;
+use pocketmine\scheduler\Task;
+use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\item\Item;
 use pocketmine\Player;
@@ -64,7 +68,7 @@ class Handler
 
             if ($session !== null) {
                 $name = (string)$session->getTeam()->getNumber() ?? 'NO TEAM';
-                $player->setNameTag('§6[$name] ' . $player->getDisplayName());
+                $player->setNameTag('§6[' . $name . '] ' . $player->getDisplayName());
             }
 
             if (!$player->hasEffect(16)) {
@@ -85,25 +89,22 @@ class Handler
      */
     public function handleWaiting(): void
     {
-        $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
-        $playerstartcount = self::MIN_PLAYERS - count($server->getOnlinePlayers());
+        $sessionManager = $this->plugin->getSessionManager();
 
         $this->border->setSize(500);
-        
-        if (count($server->getOnlinePlayers()) >= self::MIN_PLAYERS) {
+        if (count($sessionManager->getPlaying()) >= self::MIN_PLAYERS) {
             $gameManager->setPhase(PhaseChangeEvent::COUNTDOWN);
         }
 
-        foreach ($server->getOnlinePlayers() as $player) {
+        foreach ($sessionManager->getPlaying() as $session) {
+            $player = $session->getPlayer();
             $inventory = $player->getInventory();
-            $session = $this->plugin->getSessionManager()->getSession($player);
             
             $this->handleScoreboard($player);
-            $this->plugin->getUtilPlayer()->resetPlayer($player);
 
-            if (count($server->getOnlinePlayers()) <= self::MIN_PLAYERS) {
-                $player->sendPopup('§c' . $playerstartcount . ' more players required...');
+            if (count($sessionManager->getPlaying()) <= self::MIN_PLAYERS) {
+                $player->sendPopup('§c' . self::MIN_PLAYERS - count($sessionManager->getPlaying()) . ' more players required...');
             }
         }
     }
@@ -117,75 +118,60 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
+        $sessionManager = $this->plugin->getSessionManager();
 
         switch ($gameManager->countdown) {
             case 60:
-                $gameManager->setResetTimer(3);
+                $gameManager->setResetTimer(60);
                 $gameManager->setGameTimer(0);
 
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rGame starting in ' . '§b60 seconds!');
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rAll players will be teleported in ' . '§b30 seconds!');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rGame starting in §b60 seconds!');
+                $server->broadcastMessage('§aJAX §7»» §rAll players will be teleported in §b30 seconds!');
+                $this->sendSound(1);
                 break;
             case 45:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rAll players will be teleported in ' . '§b15 seconds!');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rAll players will be teleported in §b15 seconds!');
+                $this->sendSound(1);
                 break;
             case 30:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $gameManager->randomizeCoordinates(-250, 250, 180, 200, -250, 250);
-                    
+                $server->broadcastMessage('§aJAX §7»» §rThe game will begin in §b30 seconds.');
+                $this->sendSound(1);
+                foreach ($sessionManager->getPlaying() as $session) {
+                    $player = $session->getPlayer();
+
+                    $gameManager->randomizeCoordinates(-450, 450, 180, 200, -450, 450);
                     $this->plugin->getUtilPlayer()->resetPlayer($player);
                     $player->setImmobile(true);
-
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe game will begin in ' . '§b30 seconds.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 20:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rAll kits will be deployed in ' . '§b40 seconds.');
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rElytras have been deployed.');
-                    $player->getArmorInventory()->setChestplate(Item::get(Item::ELYTRA));
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+                $server->broadcastMessage('§aJAX §7»» §rAll kits will be deployed in §b40 seconds.');
+                $server->broadcastMessage('§aJAX §7»» §rElytras have been deployed.');
+                $this->sendSound(1);
+                foreach ($sessionManager->getPlaying() as $session) {
+                    $session->getPlayer()->getArmorInventory()->setChestplate(Item::get(Item::ELYTRA));
                 }
                 break;
             case 10:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe game will begin in ' . '§b10 seconds.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe game will begin in §b10 seconds.');
+                $this->sendSound(1);
                 break;
+            case 5:
+            case 4:
             case 3:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe game will begin in ' . '§b3 seconds.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
-                break;
             case 2:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe game will begin in ' . '§b2 seconds.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
-                break;
             case 1:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe game will begin in ' . '§b1 second.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe game will begin in §b' . $gameManager->countdown . ' second(s).');
+                $this->sendSound(1);
                 break;
             case 0:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» §r§c§lThe match has begun!');
-                    $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                    $player->setImmobile(false);
+                $server->broadcastMessage('§aJAX §7»» §r§c§lThe match has begun!');
+                $this->sendSound(2);
+                foreach ($sessionManager->getPlaying() as $session) {
+                    $session->getPlayer()->setImmobile(false);
                 }
+                $this->plugin->startingPlayers = count($this->plugin->getSessionManager()->getPlaying());
                 $gameManager->setPhase(PhaseChangeEvent::GRACE);
-                $gameManager->setGraceTimer(60 * 20);
                 break;
         }
         $gameManager->countdown--;
@@ -200,77 +186,59 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
+        $sessionManager = $this->plugin->getSessionManager();
 
         switch ($gameManager->getGraceTimer()) {
             case 1190:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rFinal heal in ' . '§b10 minutes.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rFinal heal in §b10 minutes.');
+                $this->sendSound(1);
                 break;
             case 1180:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->getArmorInventory()->clearAll();
-
+                foreach ($sessionManager->getPlaying() as $session) {
+                    $player = $session->getPlayer();
                     $kit = $this->plugin->getKits()->giveKit($player);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rAll kits have been deployed. You have gotten: §b' . $kit);
+
+                    $player->getArmorInventory()->clearAll();
+                    $player->sendMessage('§aJAX §7»» §rAll kits have been deployed. You have gotten: §b' . $kit);
                 }
+                $this->sendSound(2);
+                break;
             case 600:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->setHealth($player->getMaxHealth());
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rFinal Heal has ' . '§boccurred!');
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cPVP will enable in 10 minutes.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+                $server->broadcastMessage('§aJAX §7»» §rFinal Heal has §boccurred!');
+                $server->broadcastMessage('§aJAX §7»» §r§cPVP will enable in §b10 minutes.');
+                $this->sendSound(1);
+                foreach ($sessionManager->getPlaying() as $session) {
+                    $session->getPlayer()->setHealth($player->getMaxHealth());
                 }
                 break;
             case 300:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cPVP will enable in 5 minutes.');
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe border will start shrinking to ' . '§b400' . '§f in ' . '§b10 minutes.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §r§cPVP will enable in §b5 minutes.');
+                $server->broadcastMessage('§aJAX §7»» §rThe border will start shrinking to §b400' . '§f in §b10 minutes.');
+                $this->sendSound(1);
                 break;
             case 60:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cPVP will enable in 1 minute.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §r§cPVP will enable in §b1 minute.');
+                $this->sendSound(1);
                 break;
             case 30:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cPVP will enable in 30 seconds.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §r§cPVP will enable in §b30 seconds.');
+                $this->sendSound(1);
                 break;
             case 10:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cPVP will enable in 10 seconds.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §r§cPVP will enable in §b10 seconds.');
+                $this->sendSound(1);
                 break;
+            case 5:
+            case 4:
             case 3:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cPvP will be enabled in 3 seconds.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
-                break;
             case 2:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cPvP will be enabled in 2 seconds.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
-                break;
             case 1:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cPvP will be enabled in 1 second.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §r§cPvP will be enabled in §b' . $gameManager->grace . ' second(s).');
+                $this->sendSound(1);
                 break;
             case 0:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cPvP has been enabled!');
-                    $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §r§cPvP has been enabled!');
+                $this->sendSound(2);
                 $gameManager->setPhase(PhaseChangeEvent::PVP);
                 break;
         }
@@ -290,40 +258,35 @@ class Handler
         $gameManager->setShrinking(true);
         switch ($gameManager->getPVPTimer()) {
             case 1199:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe border will start shrinking to ' . '§b400' . '§f in ' . '§b5 minutes');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe border will start shrinking to §b400 §fin §b5 minutes');
+                $this->sendSound(1);
                 break;
             case 900:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    //$this->border->setSize(400);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe border is now shrinking to ' . '§b400.\n' . '§aJAX ' . '§7»» ' . '§rShrinking to ' . '§b300' . '§f in ' . '§b5 minutes.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe border is now shrinking to §b400.');
+                $server->broadcastMessage('§aJAX §7»» §rShrinking to §b300 §fin §b5 minutes.');
+                $this->border->setReduction(100);
+                $this->sendSound(1);
                 break;
             case 600:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    //$this->border->setSize(300);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe border is now shrinking to ' . '§b300.\n' . '§aJAX ' . '§7»» ' . '§rShrinking to ' . '§b200' . '§f in ' . '§b5 minutes.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe border is now shrinking to §b300.');
+                $server->broadcastMessage('§aJAX §7»» §rShrinking to §b200 §fin §b5 minutes.');
+                $this->border->setReduction(100);
+                $this->sendSound(1);
                 break;
             case 300:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    //$this->border->setSize(200);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe border is now shrinking to ' . '§b200.\n' . '§aJAX ' . '§7»» ' . '§rShrinking to ' . '§b100' . '§f in ' . '§b5 minutes.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cDeathmatch starts in ' . '§b10 minutes' . '.\n' . '§aJAX ' . '§7»» ' . '§r§cAll players would be teleported before the Deathmatch starts.');
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe border is now shrinking to §b200.');
+                $server->broadcastMessage('§aJAX §7»» §rShrinking to §b100 §fin §b5 minutes.');
+                $server->broadcastMessage('§aJAX §7»» §r§cDeathmatch starts in §b10 minutes.');
+                $server->broadcastMessage('§aJAX §7»» §r§cAll players would be teleported before the Deathmatch starts.');
+                $this->border->setReduction(100);
+                $this->sendSound(1);
                 break;
             case 0:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    //$this->border->setSize(100);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe border is now shrinking to ' . '§b100.');
-                    $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cDeathmatch starts in ' . '§b5 minutes' . '.\n' . '§aJAX ' . '§7»» ' . '§r§cAll players would be teleported before the Deathmatch starts.');
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe border is now shrinking to §b100.');
+                $server->broadcastMessage('§aJAX §7»» §r§cDeathmatch starts in §b5 minutes.');
+                $server->broadcastMessage('§aJAX §7»» §r§cAll players would be teleported before the Deathmatch starts.');
+                $this->border->setReduction(100);
+                $this->sendSound(2);
                 $gameManager->setPhase(PhaseChangeEvent::DEATHMATCH);
                 break;
         }
@@ -339,56 +302,52 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
+        $sessionManager = $this->plugin->getSessionManager();
 
         switch ($gameManager->getDeathmatchTimer()) {
             case 960:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cDeathmatch starts in ' . '§b1 minute' . '.\n' . '§aJAX ' . '§7»» ' . '§r§cAll players would be teleported in 30 seconds.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §r§cDeathmatch starts in §b1 minute.');
+                $server->broadcastMessage('§aJAX §7»» §r§cAll players would be teleported in §b30 seconds.');
+                $this->sendSound(1);
                 break;
             case 930:
-                foreach ($server->getOnlinePlayers() as $player) {
+                $server->broadcastMessage('§aJAX §7»» §r§cDeathmatch starts in §b30 seconds.');
+                $server->broadcastMessage('§aJAX §7»» §r§cAll players have been teleported.');
+                $this->sendSound(1);
+                foreach ($sessionManager->getPlaying() as $session) {
                     $gameManager->randomizeCoordinates(-99, 99, 180, 200, -99, 99);
-                    $player->setImmobile(true);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cDeathmatch starts in 30 seconds' . '.\n' . '§aJAX ' . '§7»» ' . '§r§cAll players have been teleported.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+                    $session->getPlayer()->setImmobile(true);
                 }
                 break;
             case 900:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->setImmobile(false);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rDeathmatch has started, ' . '§bGOOD LUCK!\n' . '§aJAX ' . '§7»» ' . '§rBorder is shrinking to ' . '§b100' . '§f in ' . '§b5 minutes.');
-                    $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+                $server->broadcastMessage('§aJAX §7»» §rDeathmatch has started, §bGOOD LUCK!');
+                $server->broadcastMessage('§aJAX §7»» §rBorder is shrinking to §b100 §fin §b5 minutes.');
+                $this->sendSound(1);
+                foreach ($sessionManager->getPlaying() as $session) {
+                    $session->getPlayer()->setImmobile(false);
                 }
                 break;
             case 700:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    //$this->border->setSize(50);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe border is now shrinking to ' . '§b50.\n' . '§aJAX ' . '§7»» ' . '§rShrinking to ' . '§b75' . '§f in ' . '§b5 minutes.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe border is now shrinking to §b50.');
+                $server->broadcastMessage('§aJAX §7»» §rShrinking to §b75 §fin §b5 minutes.');
+                $this->border->setReduction(50);
+                $this->sendSound(1);
                 break;
             case 400:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    //$this->border->setSize(10);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe border is now shrinking to ' . '§b10.\n' . '§aJAX ' . '§7»» ' . '§rShrinking to ' . '§b50' . '§f in ' . '§b5 minutes.');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe border is now shrinking to §b10.');
+                $server->broadcastMessage('§aJAX §7»» §rShrinking to §b50 §fin §b5 minutes.');
+                $this->border->setReduction(40);
+                $this->sendSound(1);
                 break;
             case 300:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    //$this->border->setSize(1);
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThe border is now shrinking to ' . '§b1.');
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cTHE GAME IS ENDING IN 5 MINS!!!');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThe border is now shrinking to §b1.');
+                $server->broadcastMessage('§aJAX §7»» §r§cTHE GAME IS ENDING IN 5 MINS!!!');
+                $this->border->setReduction(9);
+                $this->sendSound(1);
                 break;
             case 0:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cGAME OVER!');
-                    $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §r§cGAME OVER!');
+                $this->sendSound(2);
                 $gameManager->setPhase(PhaseChangeEvent::WINNER);
                 break;
         }
@@ -404,65 +363,50 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
+        $sessionManager = $this->plugin->getSessionManager();
         
         switch ($gameManager->getWinnerTimer()) {
             case 60:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§aCongratulations to the winner!');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+                $this->sendSound(1);
+                foreach ($sessionManager->getPlaying() as $session) {
+                    $player = $session->getPlayer();
+
                     $player->setImmobile(false);
-                    $this->plugin->getUtilPlayer()->resetPlayer($player);
+                    $this->plugin->getUtilPlayer()->resetPlayer($player, true);
                     $this->handleScoreboard($player);
 
                     $session = $this->plugin->getSessionManager()->getSession($player);
-                    $player->teleport($server->getLevelByName($this->plugin->map)->getSafeSpawn());
+                    $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
                     $player->setGamemode(Player::SURVIVAL);
+
+                    $gameManager->setShrinking(false);
+                    $this->border->setSize(500);
+
+                    if ($session->isPlaying()) {
+                        $server->broadcastMessage('§aJAX §7»» §r§aCongratulations to the winner! ' . $player->getName());
+                    }
                 }
                 $gameManager->setShrinking(false);
                 break;
             case 45:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rAll players would be sent back to the Hub in ' . '§b40 seconds as map resets!');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rServer would reset in §b40 seconds!');
+                $this->sendSound(1);
                 break;
             case 30:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rAll players would be sent back to the Hub in ' . '§b25 seconds as map resets!');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rServer would reset in §b25 seconds!');
+                $this->sendSound(1);
                 break;
             case 10:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rAll players will be sent back to the Hub in ' . '§b5 seconds!');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
+                $server->broadcastMessage('§aJAX §7»» §rServer would reset in §b5 seconds!');
+                $this->sendSound(1);
                 break;
             case 7:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§rThanks for playing on ' . '§bMineUHC!');
-                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
-                break;
-            case 5:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->sendMessage('§aJAX ' . '§7»» ' . '§r§cALL PLAYERS TELEPORTING!');
-                    $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
-                }
-                break;
-            case 4:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $this->plugin->getServer()->dispatchCommand($player, 'transfer hub');
-                }
-                break;
-            case 1:
-                foreach ($server->getOnlinePlayers() as $player) {
-                    $player->kick();
-                }
+                $server->broadcastMessage('§aJAX §7»» §rThanks for playing on §bMineUHC!');
+                $this->sendSound(1);
                 break;
             case 0:
                 $gameManager->setPhase(PhaseChangeEvent::RESET);
-                $this->plugin->setOperational(false);
+                $this->plugin->setOperational(false); // still required cuz we wont try to handle join events at that time
                 break;
         }
         $gameManager->winner--;
@@ -477,15 +421,13 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
+        $resetStatus = $this->plugin->getResetStatus();
         
         switch ($gameManager->getResetTimer()) {
-            case 3:
-                $server->getLogger()->info('Starting reset');
+            case 60: // entities
+                $server->getLogger()->info('Starting Reset - Entities');
+                $resetStatus->entitiesReset = true;
 
-                foreach ($server->getOnlinePlayers() as $player) { // ik this is the 2nd time. its just for safety measures
-                    $player->kick();
-                }
-            
                 foreach ($server->getLevels() as $level) {
                     foreach ($level->getEntities() as $entity) {
                         if (!$entity instanceof Player) {
@@ -493,27 +435,68 @@ class Handler
                         }
                     }
                 }
+                $server->getLogger()->info('Completed Reset - Entities');
+                break;
+            case 59: // worlds
+                $server->getLogger()->info('Starting Reset - Worlds');
+                $resetStatus->worldReset = true;
+
                 $this->plugin->getGenerators()->prepareWorld();
                 //$this->plugin->getGenerators()->prepareNether();
-                $server->getLogger()->info('World reset completed');
+
+                $server->getLogger()->info('Completed Reset - Worlds');
                 break;
-            case 2:
+            case 55: // timers
+                $server->getLogger()->info('Starting Reset - Timers');
+                $resetStatus->timerReset = true;
+
                 $gameManager->setGameTimer(0);
                 $gameManager->setCountdownTimer(60);
                 $gameManager->setGraceTimer(60 * 20);
                 $gameManager->setPVPTimer(60 * 20);
                 $gameManager->setDeathmatchTimer(60 * 20);
                 $gameManager->setWinnerTimer(60);
-                $gameManager->setShrinking(false);
-                $this->border->setSize(500);
-                $this->plugin->getTeamManager()->resetTeams();
             
-                $server->getLogger()->info('Timers, Teams & Borders have been reset');
+                $server->getLogger()->info('Completed Reset - Timers');
                 break;
-            case 0:
-                $gameManager->setPhase(PhaseChangeEvent::WAITING);
+            case 53: // teams
+                $server->getLogger()->info('Starting Reset - Teams');
+                $resetStatus->teamReset = true;
+
+                $this->plugin->getTeamManager()->resetTeams();
+
+                foreach ($server->getOnlinePlayers() as $player) {
+                    $session = $this->plugin->getSessionManager()->getSession($player);
+                    $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
+                }
+
+                $server->getLogger()->info('Completed Reset - Teams');
+                break;
+            case 50: // chunk preload  
+                $level = $server->getLevelByName($this->plugin->map);
+                $minX = -50;
+                $minZ = -50;
+			    $maxX = 50;
+			    $maxZ = 50;
+                
+                $server->getLogger()->info('Starting Reset - Chunks');
+
+                $this->plugin->getChunkLoader()->generateChunks($level, $minX, $minZ, $maxX, $maxZ, 100);
+                break;
+            case 3:
+                $resetStatus->chunkReset = true;
+                $server->getLogger()->info('Completed Reset - Chunks');
+            case 0: // complete
+                $resetStatus->entitiesReset = false;
+                $resetStatus->worldReset = false;
+                $resetStatus->timerReset = false;
+                $resetStatus->teamReset = false;
+                $resetStatus->chunkReset = false;
+
                 $this->plugin->setOperational(true);
-                $server->getLogger()->info('Changed to waiting phase and is operational');
+                $gameManager->setPhase(PhaseChangeEvent::WAITING);
+
+                $server->getLogger()->info('Completed Reset Phase');
                 break;
         }
         $gameManager->reset--;
@@ -529,32 +512,70 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
+        $sessionManager = $this->plugin->getSessionManager();
+        $resetStatus = $this->plugin->getResetStatus();
+
+        $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
+        $numberPlaying = $this->plugin->getManager()->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
+
+        $session = $sessionManager->getSession($player);
 
         ScoreFactory::setScore($player, '§7»» §f§eMineUHC UHC-' . $this->plugin->uhcServer . ' §7««');
-        if ($gameManager->hasStarted()) {
-            ScoreFactory::setScoreLine($player, 1, '§7§l[-------------------]');
-            ScoreFactory::setScoreLine($player, 2, ' §fGame Time: §a' . gmdate('H:i:s', $gameManager->game));
-            ScoreFactory::setScoreLine($player, 3, ' ');
-            ScoreFactory::setScoreLine($player, 4, ' §fPlayers: §a' . count($this->plugin->getSessionManager()->getPlaying()) . '§f§7/' . $server->getMaxPlayers());
-            ScoreFactory::setScoreLine($player, 5, '  ');
-            ScoreFactory::setScoreLine($player, 6, $this->plugin->getSessionManager()->hasSession($player) !== true ? ' §fKills: §a0' : ' §fKills: §a' . $this->plugin->getSessionManager()->getSession($player)->getEliminations());
-            ScoreFactory::setScoreLine($player, 7, ' §fTPS: §a' . $server->getTicksPerSecond());
-            ScoreFactory::setScoreLine($player, 8, '   ');
-            ScoreFactory::setScoreLine($player, 9, ' §fBorder: §a± ' . $this->border->getSize());
-            ScoreFactory::setScoreLine($player, 10, ' §fCenter: §a0, 0');
-            ScoreFactory::setScoreLine($player, 11, '    ');
-            ScoreFactory::setScoreLine($player, 12, '§7§l[-------------------] ');
-            ScoreFactory::setScoreLine($player, 13, ' §eplay.mineuhc.xyz');
-        } else {
-            ScoreFactory::setScoreLine($player, 1, '§7§l[-------------------]');
-            ScoreFactory::setScoreLine($player, 2, ' §fPlayers §f');
-            ScoreFactory::setScoreLine($player, 3, ' §a' . count($server->getOnlinePlayers()) . '§f§7/' . $server->getMaxPlayers());
-            ScoreFactory::setScoreLine($player, 4, ' ');
-            ScoreFactory::setScoreLine($player, 5, $gameManager->getPhase() === PhaseChangeEvent::WAITING ? '§7 Waiting for more players...' : '§7 Starting in:§f' . $gameManager->countdown);
-            ScoreFactory::setScoreLine($player, 6, '  ');
-            ScoreFactory::setScoreLine($player, 7, '§7§l[-------------------] ');
-            ScoreFactory::setScoreLine($player, 8, ' §eplay.mineuhc.xyz');
+        switch ($gameManager->getPhase()) {
+            case PhaseChangeEvent::WAITING:
+            case PhaseChangeEvent::COUNTDOWN:
+                ScoreFactory::setScoreLine($player, 1, '§7§l[-------------------]');
+                ScoreFactory::setScoreLine($player, 2, ' §fPlayers §f');
+                ScoreFactory::setScoreLine($player, 3, ' §a' . $numberPlaying . '§f§7/' . $numberPlayingMax);
+                ScoreFactory::setScoreLine($player, 4, ' ');
+                ScoreFactory::setScoreLine($player, 5, $gameManager->getPhase() === PhaseChangeEvent::WAITING ? '§7 Waiting for more players...' : '§7 Starting in: §f' . $gameManager->countdown);
+                ScoreFactory::setScoreLine($player, 6, '  ');
+                ScoreFactory::setScoreLine($player, 7, '§7§l[-------------------] ');
+                ScoreFactory::setScoreLine($player, 8, ' §eplay.mineuhc.xyz');
+                break;
+            case PhaseChangeEvent::GRACE:
+            case PhaseChangeEvent::PVP:
+            case PhaseChangeEvent::DEATHMATCH:
+                $teamMembers = $session->getTeam()->getMembers();
+                unset($teamMembers[$player->getUniqueId()->toString()]);
+
+                ScoreFactory::setScoreLine($player, 1, '§7§l[-------------------]');
+                ScoreFactory::setScoreLine($player, 2, ' §fGame Time: §a' . gmdate('H:i:s', $gameManager->game));
+                ScoreFactory::setScoreLine($player, 3, ' §fPlayers: §a' . $numberPlaying . '§f§7/' . $numberPlayingMax);
+                ScoreFactory::setScoreLine($player, 4, ' ');
+                ScoreFactory::setScoreLine($player, 5, ' §fTeams: §a' . count($this->plugin->getTeamManager()->getTeams()));
+                ScoreFactory::setScoreLine($player, 6, ' §fTeam Number: §a' . $session->getTeam()->getNumber() ?? 'NO TEAM');
+                ScoreFactory::setScoreLine($player, 7, ' §fTeam Members: §a' . implode(", ", $teamMembers));
+                ScoreFactory::setScoreLine($player, 8, '  ');
+                ScoreFactory::setScoreLine($player, 9, $sessionManager->hasSession($player) !== true ? ' §fKills: §a0' : ' §fKills: §a' . $session->getEliminations());
+                ScoreFactory::setScoreLine($player, 10, ' §fTPS: §a' . $server->getTicksPerSecond());
+                ScoreFactory::setScoreLine($player, 11, '   ');
+                ScoreFactory::setScoreLine($player, 12, ' §fBorder: §a± ' . $this->border->getSize());
+                //ScoreFactory::setScoreLine($player, 10, ' §fCenter: §a0, 0');
+                ScoreFactory::setScoreLine($player, 13, '    ');
+                ScoreFactory::setScoreLine($player, 14, '§7§l[-------------------] ');
+                ScoreFactory::setScoreLine($player, 15, ' §eplay.mineuhc.xyz');
+                break;
+            case PhaseChangeEvent::WINNER:
+                // to do
+                break;
+            case PhaseChangeEvent::RESET:
+                ScoreFactory::setScoreLine($player, 1, '§7§l[-------------------]');
+                ScoreFactory::setScoreLine($player, 2, ' §fPlayers §f');
+                ScoreFactory::setScoreLine($player, 3, ' §a' . $numberPlaying . '§f§7/' . $numberPlayingMax);
+                ScoreFactory::setScoreLine($player, 4, ' ');
+                ScoreFactory::setScoreLine($player, 5, ' §fCurrently ongoing a reset:');
+                ScoreFactory::setScoreLine($player, 6, ' §aEntities Reset: §f[§r' . ($resetStatus->entitiesReset === true ? '✔' : '⛌') . '§f]');
+                ScoreFactory::setScoreLine($player, 7, ' §aWorlds Reset: §f[§r' . ($resetStatus->worldReset === true ? '✔' : '⛌') . '§f]');
+                ScoreFactory::setScoreLine($player, 8, ' §aTimers Reset: §f[§r' . ($resetStatus->timerReset === true ? '✔' : '⛌') . '§f]');
+                ScoreFactory::setScoreLine($player, 9, ' §aTeams Reset: §f[§r' . ($resetStatus->teamReset === true ? '✔' : '⛌') . '§f]');
+                ScoreFactory::setScoreLine($player, 10, ' §aChunks Reset: §f[§r' . ($resetStatus->chunkReset === true ? '✔' : '⛌') . '§f]');
+                ScoreFactory::setScoreLine($player, 11, '  ');
+                ScoreFactory::setScoreLine($player, 12, '§7§l[-------------------] ');
+                ScoreFactory::setScoreLine($player, 13, ' §eplay.mineuhc.xyz');
+                break;
         }
+        ScoreFactory::send($player);
     }
     
     /**
@@ -575,15 +596,16 @@ class Handler
 
         switch ($gameManager->getPhase()) {
             case PhaseChangeEvent::GRACE:
-                $changedTime = $gameManager->getGraceTimer() - 601;
-                if ($changedTime >= 0) {
-                    $this->bossBar = $this->plugin->getBossBar('§fFinal Heal In: §a' . gmdate('i:s', $changedTime), floatval($changedTime / 599));
+                $changedTimeGrace = $gameManager->getGraceTimer() - 601;
+                $changedTimePVP = $gameManager->getGraceTimer();
+
+                if ($changedTimeGrace >= 0) {
+                    $this->bossBar = $this->plugin->getBossBar('§fPVP Enables In: §a' . gmdate('i:s', $changedTimePVP) . "\n\n" . '§fFinal Heal In: §a' . gmdate('i:s', $changedTimeGrace), floatval($changedTimeGrace / 599));
                 } else {
-                    $changedTime = $gameManager->getGraceTimer();
                     if ($gameManager->getGraceTimer() >= 300) {
-                        $this->bossBar = $this->plugin->getBossBar('§fPVP Enables In: §a' . gmdate('i:s', $changedTime), floatval($changedTime / 599));
+                        $this->bossBar = $this->plugin->getBossBar('§fPVP Enables In: §a' . gmdate('i:s', $changedTimePVP), floatval($changedTimePVP / 599));
                     } else {
-                        $this->bossBar = $this->plugin->getBossBar('§fPVP Enables In: §c' . gmdate('i:s', $changedTime), floatval($changedTime / 599));
+                        $this->bossBar = $this->plugin->getBossBar('§fPVP Enables In: §c' . gmdate('i:s', $changedTimePVP), floatval($changedTimePVP / 599));
                     }
                 }
                 break;
@@ -663,17 +685,28 @@ class Handler
     {   
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getManager();
+        $borderSize = $this->border->getSize();
+
+        if ($gameManager->shrinking === true) {
+            if ($this->border->reductionSize !== 0) {
+                $this->border->setSize($this->border->getSize() - 1);
+                $this->border->reductionSize--;
+            }
+        }
+
         foreach ($server->getOnlinePlayers() as $player) {
+            $minX = -$borderSize;
+			$maxX = $borderSize;
+			$minZ = -$borderSize;
+			$maxZ = $borderSize;
+
             $playerx = $player->getFloorX();
             $playery = $player->getFloorY();
             $playerz = $player->getFloorZ();
-
-            if ($playerx >= $this->border->getSize() - 20 || -$playerx >= $this->border->getSize() - 20 || $playery >= $this->border->getSize() - 20 || $playerz >= $this->border->getSize() - 20 || -$playerz >= $this->border->getSize() - 20) {
-                $player->sendPopup('§cBORDER IS CLOSE!');
-            }
-            
-            if ($playerx >= $this->border->getSize() || -$playerx >= $this->border->getSize() || $playery >= $this->border->getSize() || $playerz >= $this->border->getSize() || -$playerz >= $this->border->getSize()) {
-                switch ($gameManager->getPhase()) {
+			
+			$aabb = new AxisAlignedBB($minX, 0, $minZ, $maxX, $player->getLevel()->getWorldHeight(), $maxZ);
+			if (!$aabb->isVectorInXZ($player->getPosition())) {
+				switch ($gameManager->getPhase()) {
                     case PhaseChangeEvent::WAITING:
                     case PhaseChangeEvent::COUNTDOWN:
                         $level = $server->getLevelByName($this->plugin->map);
@@ -686,37 +719,101 @@ class Handler
                         }
                         break;
                 }
+			}
+
+            $aabb2 = new AxisAlignedBB($minX + 20, 0, $minZ + 20, $maxX - 20, $player->getLevel()->getWorldHeight(), $maxZ - 20);
+            if (!$aabb2->isVectorInXZ($player->getPosition())) {
+                $player->sendPopup('§cBORDER IS CLOSE!');
             }
         }
+    }
+    
+    /**
+     * spawnBorders
+     *
+     * @param  array $worlds
+     * @return void
+     */
+    public function spawnBorders(array $worlds = null) {
+        $borderSize = $this->border->getSize();
+        $minX = -$borderSize;
+        $maxX = $borderSize;
+        $minZ = -$borderSize;
+        $maxZ = $borderSize;
 
-        if ($gameManager->shrinking === true) {
-            switch ($gameManager->getPhase()) {
-                case PhaseChangeEvent::PVP:
-                    if ($gameManager->getPVPTimer() >= 801 && $gameManager->getPVPTimer() <= 900) {
-                        $this->border->setSize($this->border->getSize() - 1);
+        if (!isset($worlds)) $worlds = $this->plugin->getServer()->getLevels();
+        foreach ($worlds as $world) {
+            $aabb = new AxisAlignedBB($minX, 0, $minZ, $maxX, 100, $maxZ);
+            $this->plugin->getScheduler()->scheduleRepeatingTask(new class($aabb, $world) extends Task {
+                private $aabb;
+                private $level;
+                public function __construct(AxisAlignedBB $aabb, Level $level) {
+                    $this->aabb = $aabb;
+                    $this->level = $level;
+                }
+                public function onRun(int $currentTick) {
+                    $retA = false;
+                    $retB = false;
+                    for ($x = $this->aabb->minX; $x <= $this->aabb->maxX; $x++) {
+                        for ($y = 0; $y >= 90 && $y <= 100; $y++) {
+                            if ($this->level->getBlockIdAt((int)$x, $y, (int)$this->aabb->minZ) === 0 && !$retA) {
+                                $this->level->addParticle(new RedstoneParticle(new Vector3($x, $y + 2, $this->aabb->minZ), 1));
+                                $retA = true;
+                            }
+                            if ($this->level->getBlockIdAt((int)$x, $y, (int)$this->aabb->maxZ) === 0 && !$retB) {
+                                $this->level->addParticle(new RedstoneParticle(new Vector3($x, $y + 2, $this->aabb->maxZ), 1));
+                                $retB = true;
+                            }
+                            if ($retA && $retB) {
+                                break;
+                            }
+                        }
+                        $retA = false;
+                        $retB = false;
                     }
-                    if ($gameManager->getPVPTimer() >= 501 && $gameManager->getPVPTimer() <= 600) {
-                        $this->border->setSize($this->border->getSize() - 1);
+                    $retA = false;
+                    $retB = false;
+                    for ($z = $this->aabb->minZ; $z <= $this->aabb->maxZ; $z++) {
+                        for ($y = 0; $y >= 90 && $y <= 100; $y++) {
+                            if ($this->level->getBlockIdAt((int)$this->aabb->minX, $y, (int)$z) === 0 && !$retA) {
+                                $this->level->addParticle(new RedstoneParticle(new Vector3($this->aabb->minX, $y + 2, $z), 1));
+                                $retB = true;
+                            }
+                            if ($this->level->getBlockIdAt((int)$this->aabb->maxX, $y, (int)$z) === 0 && !$retB) {
+                                $this->level->addParticle(new RedstoneParticle(new Vector3($this->aabb->maxX, $y + 2, $z), 1));
+                                $retB = true;
+                            }
+                            if ($retA && $retB) {
+                                break;
+                            }
+                        }
+                        $retA = false;
+                        $retB = false;
                     }
-                    if ($gameManager->getPVPTimer() >= 201 && $gameManager->getPVPTimer() <= 300) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    break;
-                case PhaseChangeEvent::DEATHMATCH:
-                    if ($gameManager->getDeathmatchTimer() >= 1101) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    if ($gameManager->getDeathmatchTimer() >= 651 && $gameManager->getDeathmatchTimer() <= 700) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    if ($gameManager->getDeathmatchTimer() >= 361 && $gameManager->getDeathmatchTimer() <= 400) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    if ($gameManager->getDeathmatchTimer() >= 291 && $gameManager->getDeathmatchTimer() <= 300) {
-                        $this->border->setSize($this->border->getSize() - 1);
-                    }
-                    break;
-            }
+                }
+            }, 50);
+        }
+    }
+    
+    /**
+     * sendSound
+     *
+     * @param  int $soundType
+     * @return void
+     */
+    public function sendSound(int $soundType = 1): void
+    {      
+        switch ($soundType) {
+            case 1:
+                foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
+                    $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+                }
+                break;
+            case 2:
+                foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
+                    $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
+                }
+                break;
         }
     }
 }

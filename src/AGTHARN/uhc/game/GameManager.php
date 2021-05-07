@@ -44,6 +44,9 @@ class GameManager extends Task
         
     /** @var bool */
     public $shrinking = false;
+
+    /** @var bool */
+    private $globalMuteEnabled = false;
     
     /**
      * __construct
@@ -106,6 +109,11 @@ class GameManager extends Task
         if (!$this->plugin->getOperational()) {
             $server->getNetwork()->setName($this->plugin->getOperationalMessage());
         }
+
+        $gameRuleUHC = $server->getLevelByName($this->plugin->map)->getGameRules();
+        //$gameRuleUHC->setRuleWithMatching('doMobSpawning', 'true'); /** @phpstan-ignore-line */
+        $gameRuleUHC->setRuleWithMatching('showcoordinates', 'true'); /** @phpstan-ignore-line */
+        $gameRuleUHC->setRuleWithMatching('doimmediaterespawn', 'true'); /** @phpstan-ignore-line */
         
         if (count($this->plugin->getSessionManager()->getPlaying()) <= 1) {
             switch ($this->getPhase()) {
@@ -318,5 +326,26 @@ class GameManager extends Task
     public function setShrinking(bool $shrinking)
     {
         $this->shrinking = $shrinking;
+    }
+
+    /**
+     * setGlobalMute
+     *
+     * @param  bool $enabled
+     * @return void
+     */
+    public function setGlobalMute(bool $enabled): void
+    {
+        $this->globalMuteEnabled = $enabled;
+    }
+
+    /**
+     * isGlobalMuteEnabled
+     *
+     * @return bool
+     */
+    public function isGlobalMuteEnabled(): bool
+    {
+        return $this->globalMuteEnabled;
     }
 }

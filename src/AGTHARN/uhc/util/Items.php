@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace AGTHARN\uhc\util;
 
 use pocketmine\nbt\tag\StringTag;
+use pocketmine\block\Block;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
@@ -35,10 +36,38 @@ class Items
     {
         $hub = Item::get(Item::COMPASS)->setCustomName('§aReturn To Hub');;
         $hub->setNamedTagEntry(new StringTag('Hub'));
+        $capes = Item::get(Block::WOOL)->setCustomName('§eCapes');
+        $capes->setNamedTagEntry(new StringTag('Capes'));
         $report = Item::get(Item::BED)->setCustomName('§cReport');
         $report->setNamedTagEntry(new StringTag('Report'));
 
         $player->getInventory()->setItem(0 , $hub);
+        $player->getInventory()->setItem(4 , $capes);
         $player->getInventory()->setItem(8 , $report);
+    }
+    
+    /**
+     * getGoldenHead
+     *
+     * @return Item
+     */
+    public function getGoldenHead(): Item
+    {   
+        $item = Item::get(Item::GOLDEN_APPLE, 0, 1)->setCustomName('§6Golden Head');
+        $item->setNamedTagEntry(new StringTag('golden_head_1'));
+        return $item;
+    }
+    
+    /**
+     * getHead
+     *
+     * @param  Player $player
+     * @return Item
+     */
+    public function getHead(Player $player): Item
+    {   
+        $item = Item::get(Item::MOB_HEAD, 3, 1)->setCustomName('§6' . $player->getName() . 's Head');
+        $item->setNamedTagEntry(new StringTag('player_head_1'));
+        return $item;
     }
 }

@@ -5,26 +5,40 @@ namespace AGTHARN\uhc;
 
 use pocketmine\entity\utils\Bossbar;
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\Config;
 use pocketmine\block\Block;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
 use AGTHARN\uhc\game\scenario\ScenarioManager;
-use AGTHARN\uhc\game\border\Border;
+use AGTHARN\uhc\game\reset\ResetStatus;
 use AGTHARN\uhc\game\team\TeamManager;
-use AGTHARN\uhc\game\GameManager;
+use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\command\SpectatorCommand;
+use AGTHARN\uhc\command\ReportCommand;
+use AGTHARN\uhc\command\PingCommand;
 use AGTHARN\uhc\session\SessionManager;
+use AGTHARN\uhc\game\GameManager;
+use AGTHARN\uhc\util\ChunkLoader;
 use AGTHARN\uhc\util\UtilPlayer;
 use AGTHARN\uhc\util\Generators;
 use AGTHARN\uhc\util\DeathChest;
 use AGTHARN\uhc\util\ChestSort;
+use AGTHARN\uhc\util\Directory;
+use AGTHARN\uhc\util\Profanity;
+use AGTHARN\uhc\util\Database;
+use AGTHARN\uhc\util\Discord;
 use AGTHARN\uhc\util\Handler;
+use AGTHARN\uhc\util\Recipes;
+use AGTHARN\uhc\util\Spoon;
 use AGTHARN\uhc\util\Items;
 use AGTHARN\uhc\util\Capes;
 use AGTHARN\uhc\util\Forms;
 use AGTHARN\uhc\kits\Kits;
 use AGTHARN\uhc\EventListener;
+
+use AGTHARN\uhc\libs\poggit\libasynql\DataConnector;
+use AGTHARN\uhc\libs\poggit\libasynql\libasynql;
 
 class Main extends PluginBase
 {   
@@ -36,6 +50,9 @@ class Main extends PluginBase
     public $buildNumber = 'BETA-1';
     /** @var bool */
     public $operational = true;
+
+    /** @var int */
+    public $startingPlayers = 0;
     
     /** @var int */
     public $normalSeed;
@@ -45,6 +62,15 @@ class Main extends PluginBase
     public $netherSeed;
     /** @var string */
     public $nether = 'nether';
+
+    /** @var Config */
+    public $secrets;
+    /** @var string */
+    public $reportWebhook = '';
+    /** @var string */
+    public $serverReportsWebhook = '';
+    /** @var string */
+    public $serverPowerWebhook = '';
 
     /** @var int */
     public $spawnPosX = 0;
@@ -81,9 +107,25 @@ class Main extends PluginBase
     private $utilplayer;
     /** @var Forms */
     private $forms;
+    /** @var Directory */
+    private $directory;
+    /** @var Discord */
+    private $discord;
+    /** @var Recipes */
+    private $recipes;
+    /** @var Spoon */
+    private $spoon;
+    /** @var Profanity */
+    private $profanity;
+    /** @var ResetStatus */
+    private $resetStatus;
+    /** @var ChunkLoader */
+    private $chunkLoader;
 
-    /** @var bool */
-    private $globalMuteEnabled = false;
+    /** @var Database */
+    private $database;
+    /** @var DataConnector */
+    private $sql;
     
     /**
      * onEnable
@@ -97,10 +139,23 @@ class Main extends PluginBase
             $this->setOperational(false);
         }
         @mkdir($this->getDataFolder() . 'scenarios');
-        $this->saveResource('normal_cape.png');
+        $this->saveResource("secrets.yml");
+        $this->saveResource('capes/normal_cape.png');
+        $this->saveResource('capes/potion_cape.png');
+        $this->saveResource("swearwords.yml");
+        $this->getSpoon()->makeTheCheck();
 
         $this->getGenerators()->prepareWorld();
         //$this->getGenerators()->prepareNether();
+        //$this->getHandler()->spawnBorders();
+
+        $this->getRecipes()->registerGoldenHead();
+
+        $this->secrets = new Config($this->getDataFolder() . "secrets.yml", Config::YAML);
+
+        $this->reportWebhook = $this->secrets->get('reportWebhook');
+        $this->serverReportsWebhook = $this->secrets->get('serverReportsWebhook');
+        $this->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
 
         $this->gameManager = new GameManager($this, $this->getBorder());
         $this->scenarioManager = new ScenarioManager($this);
@@ -115,14 +170,59 @@ class Main extends PluginBase
         $this->capes = new Capes($this);
         $this->generators = new Generators($this);
         $this->utilplayer = new UtilPlayer($this);
-        $this->forms = new Forms();
+        $this->forms = new Forms($this);
+        $this->directory = new Directory();
+        $this->discord = new Discord($this);
+        $this->recipes = new Recipes($this);
+        $this->spoon = new Spoon($this);
+        $this->profanity = new Profanity($this);
+        $this->resetStatus = new ResetStatus($this);
+        $this->chunkLoader = new ChunkLoader($this);
+        $this->database = new Database($this);
 
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this, $this->getBorder()), $this);
+        $this->registerCommands();
+    
+        $this->getDiscord()->sendStartReport($this->getServer()->getVersion(), $this->buildNumber, $this->node, $this->uhcServer);
         
-        $this->getServer()->getCommandMap()->registerAll('uhc', [
-            new SpectatorCommand($this)
-        ]);
+        $this->sql = $this->database->initDatabase();
+        $this->sql->executeGeneric("uhc.init");
+    }
+    
+    /**
+     * onDisable
+     *
+     * @return void
+     */
+    public function onDisable(): void
+    {   
+        if (isset($this->sql)) $this->sql->close();
+    }
+    
+    /**
+     * registerCommands
+     *
+     * @return void
+     */
+    public function registerCommands(): void
+    {
+        $this->getServer()->getCommandMap()->register('spectate', new SpectatorCommand($this, 'spectate', 'Spectates a player!', [
+            'spectator'
+        ]));
+        $this->getServer()->getCommandMap()->register('report', new ReportCommand($this, 'report', 'Report a player for breaking a rule!', [
+            'reports', 
+            'reporter', 
+            'reporting', 
+            'callmod', 
+            'modcall', 
+            'admincall', 
+            'calladmin'
+        ]));
+        $this->getServer()->getCommandMap()->register('ping', new PingCommand($this, 'ping', 'Provides a report on your ping!', [
+            'myping',
+            'getping'
+        ]));
     }
     
     /**
@@ -292,28 +392,97 @@ class Main extends PluginBase
      */
     public function getForms(): Forms
     {
-        return $this->forms ?? new Forms();
+        return $this->forms ?? new Forms($this);
     }
     
     /**
-     * setGlobalMute
+     * getDirectory
      *
-     * @param  bool $enabled
-     * @return void
+     * @return Directory
      */
-    public function setGlobalMute(bool $enabled): void
+    public function getDirectory(): Directory
     {
-        $this->globalMuteEnabled = $enabled;
+        return $this->directory ?? new Directory();
     }
-    
+
     /**
-     * isGlobalMuteEnabled
+     * getDiscord
      *
-     * @return bool
+     * @return Discord
      */
-    public function isGlobalMuteEnabled(): bool
+    public function getDiscord(): Discord
     {
-        return $this->globalMuteEnabled;
+        return $this->discord ?? new Discord($this);
+    }
+
+    /**
+     * getRecipes
+     *
+     * @return Recipes
+     */
+    public function getRecipes(): Recipes
+    {
+        return $this->recipes ?? new Recipes($this);
+    }
+
+    /**
+     * getSpoon
+     *
+     * @return Spoon
+     */
+    public function getSpoon(): Spoon
+    {
+        return $this->spoon ?? new Spoon($this);
+    }
+
+    /**
+     * getProfanity
+     *
+     * @return Profanity
+     */
+    public function getProfanity(): Profanity
+    {
+        return $this->profanity ?? new Profanity($this);
+    }
+
+    /**
+     * getResetStatus
+     *
+     * @return ResetStatus
+     */
+    public function getResetStatus(): ResetStatus
+    {
+        return $this->resetStatus ?? new ResetStatus($this);
+    }
+
+    /**
+     * getChunkLoader
+     *
+     * @return ChunkLoader
+     */
+    public function getChunkLoader(): ChunkLoader
+    {
+        return $this->chunkLoader ?? new ChunkLoader($this);
+    }
+
+    /**
+     * getDatabase
+     *
+     * @return Database
+     */
+    public function getDatabase(): Database
+    {
+        return $this->database ?? new Database($this);
+    }
+
+    /**
+     * getSQL
+     *
+     * @return DataConnector
+     */
+    public function getSQL(): DataConnector
+    {
+        return $this->sql;
     }
     
     /**
