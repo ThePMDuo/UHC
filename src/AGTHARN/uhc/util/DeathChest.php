@@ -42,12 +42,15 @@ class DeathChest
         $z = ((int)$pos->getZ());
         $chest = Block::get(Block::CHEST);
 
-        $chest1 = $level->setBlock(new Vector3($x, $y, $z), $chest);
-        $chest2 = $level->setblock(new Vector3($x+1, $y, $z), $chest);
+        $level->setBlock(new Vector3($x, $y, $z), $chest);
+        $level->setblock(new Vector3($x + 1, $y, $z), $chest);
+
+        $chest1 = $level->getBlock(new Vector3($x, $y, $z));
+        $chest2 = $level->getBlock(new Vector3($x + 1, $y, $z));
 
         $nbt = Chest::createNBT(new Vector3($x, $y, $z));
         $tile = Tile::createTile(Tile::CHEST, $level, $nbt);
-        $nbt2 = Chest::createNBT(new Vector3($x+1, $y, $z));
+        $nbt2 = Chest::createNBT(new Vector3($x + 1, $y, $z));
         $tile2 = Tile::createTile(Tile::CHEST, $level, $nbt2);
 
         $chest1->pairwith($chest2);

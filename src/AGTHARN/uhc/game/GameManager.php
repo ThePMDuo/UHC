@@ -112,8 +112,8 @@ class GameManager extends Task
 
         $gameRuleUHC = $server->getLevelByName($this->plugin->map)->getGameRules(); /** @phpstan-ignore-line */
         //$gameRuleUHC->setRuleWithMatching('doMobSpawning', 'true');
-        $gameRuleUHC->setRuleWithMatching('showcoordinates', 'true'); /** @phpstan-ignore-line */
-        $gameRuleUHC->setRuleWithMatching('doimmediaterespawn', 'true'); /** @phpstan-ignore-line */
+        $gameRuleUHC->setRuleWithMatching('showcoordinates', 'true');
+        $gameRuleUHC->setRuleWithMatching('doimmediaterespawn', 'true');
         
         if (count($this->plugin->getSessionManager()->getPlaying()) <= 1) {
             switch ($this->getPhase()) {

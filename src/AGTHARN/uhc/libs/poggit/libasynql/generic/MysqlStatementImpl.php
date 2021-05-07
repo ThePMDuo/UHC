@@ -97,7 +97,7 @@ class MysqlStatementImpl extends GenericStatementImpl{
 
 			case GenericVariable::TYPE_TIMESTAMP:
 				assert(is_int($value) || is_float($value));
-				if($value === GenericVariable::TIME_NOW){
+				if($value == GenericVariable::TIME_NOW){
 					return "CURRENT_TIMESTAMP";
 				}
 				return "FROM_UNIXTIME($value)";

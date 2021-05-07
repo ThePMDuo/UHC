@@ -40,7 +40,7 @@ class Spoon
     {   
         $server = $this->plugin->getServer();
         $reflectionClass = new \ReflectionClass($server);
-        $method = $reflectionClass->getMethod("getName") ? $reflectionClass->getMethod("getName") : '';
+        $method = $reflectionClass->getMethod("getName"); /** @phpstan-ignore-line */
         $start = $method->getStartLine();
         $end = $method->getEndLine();
 

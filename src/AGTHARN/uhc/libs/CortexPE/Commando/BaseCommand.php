@@ -128,7 +128,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 				}
 			}
 
-			$passArgs = $this->attemptArgumentParsing($cmd, $args); /** @phpstan-ignore-line */
+			$passArgs = $this->attemptArgumentParsing($cmd, $args);
 		} elseif($this->hasRequiredArguments()){
 			$this->sendError(self::ERR_INSUFFICIENT_ARGUMENTS);
 			return;
@@ -151,7 +151,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 	 * @return array|null
 	 */
 	private function attemptArgumentParsing($ctx, array $args): ?array {
-		$dat = $ctx->parseArguments($args, $this->currentSender); /** @phpstan-ignore-line */
+		$dat = $ctx->parseArguments($args, $this->currentSender);
 		if(!empty(($errors = $dat["errors"]))) {
 			foreach($errors as $error) {
 				$this->sendError($error["code"], $error["data"]);

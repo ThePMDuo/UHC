@@ -22,6 +22,8 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\libs\poggit\libasynql\base;
 
+use AGTHARN\uhc\libs\poggit\libasynql\base\QueueShutdownException;
+
 use Threaded;
 use function serialize;
 

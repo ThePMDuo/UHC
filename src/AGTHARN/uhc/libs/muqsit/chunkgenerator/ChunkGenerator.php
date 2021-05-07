@@ -6,7 +6,6 @@ namespace AGTHARN\uhc\libs\muqsit\chunkgenerator;
 
 use Closure;
 use pocketmine\level\Level;
-use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\level\ChunkLoader;
 use pocketmine\level\format\Chunk;
@@ -38,11 +37,11 @@ final class ChunkGenerator implements ChunkLoader{
 		$this->loaderId = Level::generateChunkLoaderId($this);
 	}
 
-	public function getX() : int{
+	public function getX() : int{ /** @phpstan-ignore-line */
 		return (int)$this->chunkX;
 	}
 
-	public function getZ() : int{
+	public function getZ() : int{ /** @phpstan-ignore-line */
 		return (int)$this->chunkZ;
 	}
 
@@ -79,15 +78,13 @@ final class ChunkGenerator implements ChunkLoader{
 	/**
 	 * Returns if the chunk loader is currently active
 	 */
-	public function isLoaderActive(): void
+	public function isLoaderActive() /** @phpstan-ignore-line */
 	{
 		// TODO: Implement isLoaderActive() method.
 	}
 
-	/**
-	 * @return void
-	 */
-	public function getPosition()
+
+	public function getPosition() /** @phpstan-ignore-line */
 	{
 		// TODO: Implement getPosition() method.
 	}

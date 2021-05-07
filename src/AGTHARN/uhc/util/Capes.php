@@ -54,9 +54,9 @@ class Capes
         $img = imagecreatefrompng($this->plugin->getDataFolder() . 'capes' . DIRECTORY_SEPARATOR . 'normal_cape.png');
         $rgba = '';
 
-        for ($y = 0; $y < imagesy($img); $y++) { /** @phpstan-ignore-line */
-            for ($x = 0; $x < imagesx($img); $x++) { /** @phpstan-ignore-line */
-                $argb = imagecolorat($img, $x, $y); /** @phpstan-ignore-line */
+        for ($y = 0; $y < imagesy($img); $y++) {
+            for ($x = 0; $x < imagesx($img); $x++) {
+                $argb = imagecolorat($img, $x, $y);
                 $rgba .= chr(($argb >> 16) & 0xff) . chr(($argb >> 8) & 0xff) . chr($argb & 0xff) . chr(((~((int)($argb >> 24))) << 1) & 0xff);
             }
         }
@@ -74,9 +74,9 @@ class Capes
         $img = imagecreatefrompng($this->plugin->getDataFolder() . 'capes' . DIRECTORY_SEPARATOR . 'potion_cape.png');
         $rgba = '';
 
-        for ($y = 0; $y < imagesy($img); $y++) { /** @phpstan-ignore-line */
-            for ($x = 0; $x < imagesx($img); $x++) { /** @phpstan-ignore-line */
-                $argb = imagecolorat($img, $x, $y); /** @phpstan-ignore-line */
+        for ($y = 0; $y < imagesy($img); $y++) {
+            for ($x = 0; $x < imagesx($img); $x++) {
+                $argb = imagecolorat($img, $x, $y);
                 $rgba .= chr(($argb >> 16) & 0xff) . chr(($argb >> 8) & 0xff) . chr($argb & 0xff) . chr(((~((int)($argb >> 24))) << 1) & 0xff);
             }
         }

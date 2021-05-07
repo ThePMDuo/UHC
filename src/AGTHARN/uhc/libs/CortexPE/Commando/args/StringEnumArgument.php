@@ -65,7 +65,7 @@ abstract class StringEnumArgument extends BaseArgument {
 	 * getValue
 	 *
 	 * @param  string $string
-	 * @return void
+	 * @return mixed
 	 */
 	public function getValue(string $string) {
 		return static::VALUES[strtolower($string)];

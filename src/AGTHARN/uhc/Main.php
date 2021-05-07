@@ -113,7 +113,7 @@ class Main extends PluginBase
         $this->serverReportsWebhook = $this->secrets->get('serverReportsWebhook');
         $this->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
 
-        $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
+        $this->getScheduler()->scheduleRepeatingTask($this->getManager(), 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this, $this->getBorder()), $this);
         $this->registerCommands();
     

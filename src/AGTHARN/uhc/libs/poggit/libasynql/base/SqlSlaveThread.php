@@ -58,7 +58,7 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 			/** @noinspection PhpUndefinedMethodInspection */
 			/** @noinspection NullPointerExceptionInspection */
 			/** @var ClassLoader $cl */
-			$cl = Server::getInstance()->getPluginManager()->getPlugin("DEVirion")->getVirionClassLoader();
+			$cl = Server::getInstance()->getPluginManager()->getPlugin("DEVirion")->getVirionClassLoader(); /** @phpstan-ignore-line */
 			$this->setClassLoader($cl);
 		}
 		$this->start(PTHREADS_INHERIT_INI | PTHREADS_INHERIT_CONSTANTS);
@@ -114,16 +114,16 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 		$this->bufferSend->scheduleQuery($queryId, $mode, $query, $params);
 	}
 
-	public function readResults(array &$callbacks) : void{
-		while($this->bufferRecv->fetchResult($queryId, $result)){
-			if(!isset($callbacks[$queryId])){
-				throw new InvalidArgumentException("Missing handler for query #$queryId");
-			}
+	//public function readResults(array &$callbacks) : void{
+		//while($this->bufferRecv->fetchResult($queryId, $result)){
+			//if(!isset($callbacks[$queryId])){
+				//throw new InvalidArgumentException("Missing handler for query #$queryId");
+			//}
 
-			$callbacks[$queryId]($result);
-			unset($callbacks[$queryId]);
-		}
-	}
+			//$callbacks[$queryId]($result);
+			//unset($callbacks[$queryId]);
+		//}
+	//}
 
 	public function connCreated() : bool{
 		return $this->connCreated;
