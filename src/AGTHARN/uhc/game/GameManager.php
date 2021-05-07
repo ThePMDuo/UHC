@@ -110,8 +110,8 @@ class GameManager extends Task
             $server->getNetwork()->setName($this->plugin->getOperationalMessage());
         }
 
-        $gameRuleUHC = $server->getLevelByName($this->plugin->map)->getGameRules();
-        //$gameRuleUHC->setRuleWithMatching('doMobSpawning', 'true'); /** @phpstan-ignore-line */
+        $gameRuleUHC = $server->getLevelByName($this->plugin->map)->getGameRules(); /** @phpstan-ignore-line */
+        //$gameRuleUHC->setRuleWithMatching('doMobSpawning', 'true');
         $gameRuleUHC->setRuleWithMatching('showcoordinates', 'true'); /** @phpstan-ignore-line */
         $gameRuleUHC->setRuleWithMatching('doimmediaterespawn', 'true'); /** @phpstan-ignore-line */
         

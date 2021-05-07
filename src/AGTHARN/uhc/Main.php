@@ -24,7 +24,6 @@ use AGTHARN\uhc\util\UtilPlayer;
 use AGTHARN\uhc\util\Generators;
 use AGTHARN\uhc\util\DeathChest;
 use AGTHARN\uhc\util\ChestSort;
-use AGTHARN\uhc\util\Directory;
 use AGTHARN\uhc\util\Profanity;
 use AGTHARN\uhc\util\Database;
 use AGTHARN\uhc\util\Discord;
@@ -79,49 +78,6 @@ class Main extends PluginBase
     /** @var int */
     public $spawnPosZ = 0;
 
-    /** @var GameManager */
-    private $gameManager;
-    /** @var TeamManager */
-    private $teamManager;
-    /** @var SessionManager */
-    private $sessionManager;
-    /** @var ScenarioManager */
-    private $scenarioManager;
-    /** @var Handler */
-    private $utilHandler;
-    /** @var Border */
-    private $border;
-    /** @var Items */
-    private $items;
-    /** @var ChestSort */
-    private $chestSort;
-    /** @var DeathChest */
-    private $deathChest;
-    /** @var Kits */
-    private $kits;
-    /** @var Capes */
-    private $capes;
-    /** @var Generators */
-    private $generators;
-    /** @var UtilPlayer */
-    private $utilplayer;
-    /** @var Forms */
-    private $forms;
-    /** @var Directory */
-    private $directory;
-    /** @var Discord */
-    private $discord;
-    /** @var Recipes */
-    private $recipes;
-    /** @var Spoon */
-    private $spoon;
-    /** @var Profanity */
-    private $profanity;
-    /** @var ResetStatus */
-    private $resetStatus;
-    /** @var ChunkLoader */
-    private $chunkLoader;
-
     /** @var Database */
     private $database;
     /** @var DataConnector */
@@ -156,29 +112,6 @@ class Main extends PluginBase
         $this->reportWebhook = $this->secrets->get('reportWebhook');
         $this->serverReportsWebhook = $this->secrets->get('serverReportsWebhook');
         $this->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
-
-        $this->gameManager = new GameManager($this, $this->getBorder());
-        $this->scenarioManager = new ScenarioManager($this);
-        $this->sessionManager = new SessionManager();
-        $this->teamManager = new TeamManager();
-        $this->utilHandler = new Handler($this, $this->getBorder());
-        $this->border = new Border($this->getServer()->getLevelByName($this->map));
-        $this->items = new Items($this);
-        $this->chestSort = new ChestSort($this);
-        $this->deathChest = new DeathChest($this);
-        $this->kits = new Kits();
-        $this->capes = new Capes($this);
-        $this->generators = new Generators($this);
-        $this->utilplayer = new UtilPlayer($this);
-        $this->forms = new Forms($this);
-        $this->directory = new Directory();
-        $this->discord = new Discord($this);
-        $this->recipes = new Recipes($this);
-        $this->spoon = new Spoon($this);
-        $this->profanity = new Profanity($this);
-        $this->resetStatus = new ResetStatus($this);
-        $this->chunkLoader = new ChunkLoader($this);
-        $this->database = new Database($this);
 
         $this->getScheduler()->scheduleRepeatingTask($this->gameManager, 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this, $this->getBorder()), $this);
@@ -252,7 +185,7 @@ class Main extends PluginBase
      */
     public function getManager(): GameManager
     {
-        return $this->gameManager ?? new GameManager($this, $this->getBorder());
+        return new GameManager($this, $this->getBorder());
     }
 
     /**
@@ -262,7 +195,7 @@ class Main extends PluginBase
      */
     public function getScenarioManager(): ScenarioManager
     {
-        return $this->scenarioManager ?? new ScenarioManager($this);
+        return new ScenarioManager($this);
     }
     
     /**
@@ -272,7 +205,7 @@ class Main extends PluginBase
      */
     public function getSessionManager(): SessionManager
     {   
-        return $this->sessionManager ?? new SessionManager();
+        return new SessionManager();
     }
     
 
@@ -283,7 +216,7 @@ class Main extends PluginBase
      */
     public function getTeamManager(): TeamManager
     {
-        return $this->teamManager ?? new TeamManager();
+        return new TeamManager();
     }
     
     /**
@@ -292,7 +225,7 @@ class Main extends PluginBase
      * @return Handler
      */
     public function getHandler(): Handler {
-        return $this->utilHandler ?? new Handler($this, $this->getBorder());
+        return new Handler($this, $this->getBorder());
     }
 
     /**
@@ -312,7 +245,7 @@ class Main extends PluginBase
      */
     public function getBorder(): Border
     {
-        return $this->border ?? new Border($this->getServer()->getLevelByName($this->map));
+        return new Border($this->getServer()->getLevelByName($this->map));
     }
     
     /**
@@ -322,7 +255,7 @@ class Main extends PluginBase
      */
     public function getUtilItems(): Items
     {
-        return $this->items ?? new Items($this);
+        return new Items($this);
     }
 
     /**
@@ -332,7 +265,7 @@ class Main extends PluginBase
      */
     public function getChestSort(): ChestSort
     {
-        return $this->chestSort ?? new ChestSort($this);
+        return new ChestSort($this);
     }
     
     /**
@@ -342,7 +275,7 @@ class Main extends PluginBase
      */
     public function getDeathChest(): DeathChest
     {
-        return $this->deathChest ?? new DeathChest($this);
+        return new DeathChest($this);
     }
     
     /**
@@ -352,7 +285,7 @@ class Main extends PluginBase
      */
     public function getKits(): Kits
     {
-        return $this->kits ?? new Kits();
+        return new Kits();
     }
 
     /**
@@ -362,7 +295,7 @@ class Main extends PluginBase
      */
     public function getCapes(): Capes
     {
-        return $this->capes ?? new Capes($this);
+        return new Capes($this);
     }
     
     /**
@@ -372,7 +305,7 @@ class Main extends PluginBase
      */
     public function getGenerators(): Generators
     {
-        return $this->generators ?? new Generators($this);
+        return new Generators($this);
     }
 
     /**
@@ -382,7 +315,7 @@ class Main extends PluginBase
      */
     public function getUtilPlayer(): UtilPlayer
     {
-        return $this->utilplayer ?? new UtilPlayer($this);
+        return new UtilPlayer($this);
     }
     
     /**
@@ -392,17 +325,7 @@ class Main extends PluginBase
      */
     public function getForms(): Forms
     {
-        return $this->forms ?? new Forms($this);
-    }
-    
-    /**
-     * getDirectory
-     *
-     * @return Directory
-     */
-    public function getDirectory(): Directory
-    {
-        return $this->directory ?? new Directory();
+        return new Forms($this);
     }
 
     /**
@@ -412,7 +335,7 @@ class Main extends PluginBase
      */
     public function getDiscord(): Discord
     {
-        return $this->discord ?? new Discord($this);
+        return new Discord($this);
     }
 
     /**
@@ -422,7 +345,7 @@ class Main extends PluginBase
      */
     public function getRecipes(): Recipes
     {
-        return $this->recipes ?? new Recipes($this);
+        return new Recipes($this);
     }
 
     /**
@@ -432,7 +355,7 @@ class Main extends PluginBase
      */
     public function getSpoon(): Spoon
     {
-        return $this->spoon ?? new Spoon($this);
+        return new Spoon($this);
     }
 
     /**
@@ -442,7 +365,7 @@ class Main extends PluginBase
      */
     public function getProfanity(): Profanity
     {
-        return $this->profanity ?? new Profanity($this);
+        return new Profanity($this);
     }
 
     /**
@@ -452,7 +375,7 @@ class Main extends PluginBase
      */
     public function getResetStatus(): ResetStatus
     {
-        return $this->resetStatus ?? new ResetStatus($this);
+        return new ResetStatus();
     }
 
     /**
@@ -462,7 +385,7 @@ class Main extends PluginBase
      */
     public function getChunkLoader(): ChunkLoader
     {
-        return $this->chunkLoader ?? new ChunkLoader($this);
+        return new ChunkLoader($this);
     }
 
     /**
@@ -472,7 +395,7 @@ class Main extends PluginBase
      */
     public function getDatabase(): Database
     {
-        return $this->database ?? new Database($this);
+        return new Database($this);
     }
 
     /**

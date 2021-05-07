@@ -47,14 +47,14 @@ class DiscordWebhookSendTask extends AsyncTask {
 
 	public function onRun(){
 		$ch = curl_init($this->webhook->getURL());
-		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($this->message));
-		curl_setopt($ch, CURLOPT_POST,true);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
-		$this->setResult([curl_exec($ch), curl_getinfo($ch, CURLINFO_RESPONSE_CODE)]);
-		curl_close($ch);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($this->message)); /** @phpstan-ignore-line */
+		curl_setopt($ch, CURLOPT_POST,true); /** @phpstan-ignore-line */
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); /** @phpstan-ignore-line */
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); /** @phpstan-ignore-line */
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); /** @phpstan-ignore-line */
+		curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]); /** @phpstan-ignore-line */
+		$this->setResult([curl_exec($ch), curl_getinfo($ch, CURLINFO_RESPONSE_CODE)]); /** @phpstan-ignore-line */
+		curl_close($ch); /** @phpstan-ignore-line */
 	}
 
 	public function onCompletion(Server $server){

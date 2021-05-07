@@ -30,7 +30,7 @@ declare(strict_types=1);
 namespace AGTHARN\uhc\libs\CortexPE\Commando\constraint;
 
 
-use CortexPE\Commando\IRunnable;
+use AGTHARN\uhc\libs\CortexPE\Commando\IRunnable;
 use pocketmine\command\CommandSender;
 
 abstract class BaseConstraint {

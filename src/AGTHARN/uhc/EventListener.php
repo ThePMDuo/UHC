@@ -46,6 +46,7 @@ use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\event\PhaseChangeEvent;
 use AGTHARN\uhc\Main;
 
+use AGTHARN\uhc\libs\muqsit\chunkgenerator\ChunkGenerator;
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 
 use Exception;
@@ -678,7 +679,7 @@ class EventListener implements Listener
     /**
      * handleDataPacketReceived
      *
-     * @param  mixed $event
+     * @param  DataPacketReceiveEvent $event
      * @return void
      */
     public function handleDataPacketReceived(DataPacketReceiveEvent $event): void

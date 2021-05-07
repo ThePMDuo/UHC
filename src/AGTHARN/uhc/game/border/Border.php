@@ -19,7 +19,7 @@ class Border
     private $safeZ;
 
     /** @var int */
-    private $reductionSize = 0;
+    public $reductionSize = 0;
     
     /**
      * __construct

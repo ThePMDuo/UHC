@@ -100,11 +100,12 @@ class Handler
         foreach ($sessionManager->getPlaying() as $session) {
             $player = $session->getPlayer();
             $inventory = $player->getInventory();
+            $playersRequired = self::MIN_PLAYERS - count($sessionManager->getPlaying());
             
             $this->handleScoreboard($player);
 
             if (count($sessionManager->getPlaying()) <= self::MIN_PLAYERS) {
-                $player->sendPopup('§c' . self::MIN_PLAYERS - count($sessionManager->getPlaying()) . ' more players required...');
+                $player->sendPopup('§c' . $playersRequired . ' more players required...');
             }
         }
     }
@@ -208,7 +209,8 @@ class Handler
                 $server->broadcastMessage('§aJAX §7»» §r§cPVP will enable in §b10 minutes.');
                 $this->sendSound(1);
                 foreach ($sessionManager->getPlaying() as $session) {
-                    $session->getPlayer()->setHealth($player->getMaxHealth());
+                    $player = $session->getPlayer();
+                    $player->setHealth($player->getMaxHealth());
                 }
                 break;
             case 300:
@@ -725,73 +727,6 @@ class Handler
             if (!$aabb2->isVectorInXZ($player->getPosition())) {
                 $player->sendPopup('§cBORDER IS CLOSE!');
             }
-        }
-    }
-    
-    /**
-     * spawnBorders
-     *
-     * @param  array $worlds
-     * @return void
-     */
-    public function spawnBorders(array $worlds = null) {
-        $borderSize = $this->border->getSize();
-        $minX = -$borderSize;
-        $maxX = $borderSize;
-        $minZ = -$borderSize;
-        $maxZ = $borderSize;
-
-        if (!isset($worlds)) $worlds = $this->plugin->getServer()->getLevels();
-        foreach ($worlds as $world) {
-            $aabb = new AxisAlignedBB($minX, 0, $minZ, $maxX, 100, $maxZ);
-            $this->plugin->getScheduler()->scheduleRepeatingTask(new class($aabb, $world) extends Task {
-                private $aabb;
-                private $level;
-                public function __construct(AxisAlignedBB $aabb, Level $level) {
-                    $this->aabb = $aabb;
-                    $this->level = $level;
-                }
-                public function onRun(int $currentTick) {
-                    $retA = false;
-                    $retB = false;
-                    for ($x = $this->aabb->minX; $x <= $this->aabb->maxX; $x++) {
-                        for ($y = 0; $y >= 90 && $y <= 100; $y++) {
-                            if ($this->level->getBlockIdAt((int)$x, $y, (int)$this->aabb->minZ) === 0 && !$retA) {
-                                $this->level->addParticle(new RedstoneParticle(new Vector3($x, $y + 2, $this->aabb->minZ), 1));
-                                $retA = true;
-                            }
-                            if ($this->level->getBlockIdAt((int)$x, $y, (int)$this->aabb->maxZ) === 0 && !$retB) {
-                                $this->level->addParticle(new RedstoneParticle(new Vector3($x, $y + 2, $this->aabb->maxZ), 1));
-                                $retB = true;
-                            }
-                            if ($retA && $retB) {
-                                break;
-                            }
-                        }
-                        $retA = false;
-                        $retB = false;
-                    }
-                    $retA = false;
-                    $retB = false;
-                    for ($z = $this->aabb->minZ; $z <= $this->aabb->maxZ; $z++) {
-                        for ($y = 0; $y >= 90 && $y <= 100; $y++) {
-                            if ($this->level->getBlockIdAt((int)$this->aabb->minX, $y, (int)$z) === 0 && !$retA) {
-                                $this->level->addParticle(new RedstoneParticle(new Vector3($this->aabb->minX, $y + 2, $z), 1));
-                                $retB = true;
-                            }
-                            if ($this->level->getBlockIdAt((int)$this->aabb->maxX, $y, (int)$z) === 0 && !$retB) {
-                                $this->level->addParticle(new RedstoneParticle(new Vector3($this->aabb->maxX, $y + 2, $z), 1));
-                                $retB = true;
-                            }
-                            if ($retA && $retB) {
-                                break;
-                            }
-                        }
-                        $retA = false;
-                        $retB = false;
-                    }
-                }
-            }, 50);
         }
     }
     

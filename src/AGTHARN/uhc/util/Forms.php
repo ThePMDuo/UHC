@@ -15,6 +15,13 @@ class Forms
     /** @var Main */
     private $plugin;
 
+    /** @var array */
+    private $playerArray;
+    /** @var array */
+    private $reportsArray;
+    /** @var array */
+    private $players;
+
     /**
      * __construct
      *
@@ -78,9 +85,9 @@ class Forms
         });
 
         foreach ($this->plugin->getServer()->getOnlinePlayers() as $player){
-            $players[] = $player->getName();
+            $this->players[] = $player->getName();
         }
-        $this->playerArray[$player->getName()] = $players;
+        $this->playerArray[$player->getName()] = $this->players;
         $this->reportsArray[$player->getName()] = ['Bug', 'Exploits', 'Disrespectful', 'Inappropriate', 'Griefing/Stealing', 'Impersonation', 'Unobtainable Items', 'Advertising', 'Spamming'];
 
         $form->setTitle('§l§7< §6MineUHC Reporting §7>');

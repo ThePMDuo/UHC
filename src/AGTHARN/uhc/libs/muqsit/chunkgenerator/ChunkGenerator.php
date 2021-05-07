@@ -26,6 +26,7 @@ final class ChunkGenerator implements ChunkLoader{
 	private $on_populate;
 	/** @var Level */
 	private $level;
+	/** @var int */
 	private $loaderId = 0;
 
 	public function __construct(Level $level, int $chunkX, int $chunkZ, Closure $populate, Closure $on_populate){
@@ -38,11 +39,11 @@ final class ChunkGenerator implements ChunkLoader{
 	}
 
 	public function getX() : int{
-		return $this->chunkX;
+		return (int)$this->chunkX;
 	}
 
 	public function getZ() : int{
-		return $this->chunkZ;
+		return (int)$this->chunkZ;
 	}
 
 	public function onChunkLoaded(Chunk $chunk) : void{
@@ -78,13 +79,13 @@ final class ChunkGenerator implements ChunkLoader{
 	/**
 	 * Returns if the chunk loader is currently active
 	 */
-	public function isLoaderActive(): bool
+	public function isLoaderActive(): void
 	{
 		// TODO: Implement isLoaderActive() method.
 	}
 
 	/**
-	 * @return Position
+	 * @return void
 	 */
 	public function getPosition()
 	{

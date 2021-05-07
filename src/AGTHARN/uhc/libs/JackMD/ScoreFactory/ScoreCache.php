@@ -70,9 +70,13 @@ class ScoreCache{
 
 	/**
 	 * Index should be in between 1 and 15
+	 *
+	 * @param  int $index
+	 * @param  ScorePacketEntry $entry
+	 * @return void
 	 */
 	public function setEntry(int $index, ScorePacketEntry $entry){
-		$this->entries[$index] = $entry;
+		$this->entries[$index] = $entry; /** @phpstan-ignore-line */
 	}
 
 	public function __destruct(){

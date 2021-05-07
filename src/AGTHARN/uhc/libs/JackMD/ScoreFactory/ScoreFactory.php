@@ -102,6 +102,12 @@ class ScoreFactory{
 	/**
 	 * Send scoreboard to the player by first removing the existing scoreboard, creating a new one
 	 * and then sending its lines.
+	 *
+	 * @param  Player $player
+	 * @param  bool $sendObjective
+	 * @param  bool $sendLines
+	 * @param  bool $removeObjective
+	 * @return void
 	 */
 	public static function send(Player $player, bool $sendObjective = true, bool $sendLines = true, bool $removeObjective = true){
 		if(!isset(self::$cache[$player->getRawUniqueId()])){
@@ -116,7 +122,7 @@ class ScoreFactory{
 		if($sendLines){
 			$pk = new SetScorePacket();
 			$pk->type = $pk::TYPE_CHANGE;
-			$pk->entries = $cache->getEntries();
+			$pk->entries = $cache->getEntries(); /** @phpstan-ignore-line */
 			$player->sendDataPacket($pk);
 		}
 	}

@@ -49,8 +49,13 @@ interface IRunnable {
     public function getAliases(): array;
 
     public function getUsageMessage():string;
-
-    public function getPermission(); // f*ck. PM didn't declare a return type... reeee
+    
+    /**
+     * getPermission
+     *
+     * @return mixed
+     */
+    public function getPermission():mixed; // f*ck. PM didn't declare a return type... reeee
 
     /**
      * @return BaseConstraint[]
