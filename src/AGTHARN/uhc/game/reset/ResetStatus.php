@@ -14,5 +14,5 @@ class ResetStatus
     /** @var bool */
     public $teamReset = false;
     /** @var bool */
-    public $chunkReset = false;
+    public $othersReset = false;
 }

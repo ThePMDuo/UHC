@@ -55,31 +55,31 @@ class SpectatorCommand extends BaseCommand
      */
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
         if (!$sender instanceof Player) {
-            $sender->sendMessage('JAX »» You can only use this command in-game!');
+            $sender->sendMessage('COSMIC »» You can only use this command in-game!');
             return;
         }
 
         if ($sender->getGamemode() !== Player::SPECTATOR) {
-            $sender->sendMessage('§aJAX §7»» §cYou must be eliminated to use this command!');
+            $sender->sendMessage('§6COSMIC §7»» §cYou must be eliminated to use this command!');
             return;
         }
 
         if (!isset($args[0])) {
-            $sender->sendMessage('§aJAX §7»» §cPlease specify a player to spectate!');
+            $sender->sendMessage('§6COSMIC §7»» §cPlease specify a player to spectate!');
             return;
         }
 
         $player = $this->plugin->getServer()->getPlayer(mb_strtolower($args[0])) ?? null;
         if ($player === null) {
-            $sender->sendMessage('§aJAX §7»» §cThat player is not in the game!');
+            $sender->sendMessage('§6COSMIC §7»» §cThat player is not in the game!');
             return;
         }
 
         if ($player === $sender) {
-            $sender->sendMessage('§aJAX §7»» §cYou cant spectate yourself!');
+            $sender->sendMessage('§6COSMIC §7»» §cYou cant spectate yourself!');
             return;
         }
         $sender->teleport($player->getPosition());
-        $sender->sendMessage('§aJAX §7»» §aTeleported you to: ' . $player->getName());
+        $sender->sendMessage('§6COSMIC §7»» §aTeleported you to: ' . $player->getName());
     }
 }

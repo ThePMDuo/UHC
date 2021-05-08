@@ -16,11 +16,9 @@ class Forms
     private $plugin;
 
     /** @var array */
-    private $playerArray;
+    private $playerArray = [];
     /** @var array */
-    private $reportsArray;
-    /** @var array */
-    private $players;
+    private $reportsArray = [];
 
     /**
      * __construct
@@ -55,7 +53,7 @@ class Forms
         }); 
 
         $form->setTitle('§l§7< §6MineUHC News §7>');
-        $form->setContent("Welcome to MineUHC! This is a solo project and is currently in development. I hope you enjoy your time here!\n\nIf you encounter any issues or any rule-breakers, feel free to report it with §a/report§r.");
+        $form->setContent("Welcome to MineUHC! This is a solo project and is currently in development. I hope you enjoy your time here!\n\nIf you encounter any issues or any rule-breakers, feel free to report it with §a/report§r.\n\n§rServer Bots:\n§aJAX §7- §rGame Manager§7; §rIn charge of running the UHC Game and controlling the events.\n§6COSMIC §7- §rAlerts Manager§7; §rIn charge of commands and small alerts.\n§cSteveAC §7- §rCheats Manager§7; §rIn charge of catching cheaters.\n");
         $form->addButton('§l§aView Updates');
         $form->addButton('§l§cExit');
         $form->sendToPlayer($player);
@@ -84,10 +82,10 @@ class Forms
             }
         });
 
-        foreach ($this->plugin->getServer()->getOnlinePlayers() as $player){
-            $this->players[] = $player->getName();
+        foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
+            $players[] = $player->getName();
         }
-        $this->playerArray[$player->getName()] = $this->players;
+        $this->playerArray[$player->getName()] = $players;
         $this->reportsArray[$player->getName()] = ['Bug', 'Exploits', 'Disrespectful', 'Inappropriate', 'Griefing/Stealing', 'Impersonation', 'Unobtainable Items', 'Advertising', 'Spamming'];
 
         $form->setTitle('§l§7< §6MineUHC Reporting §7>');

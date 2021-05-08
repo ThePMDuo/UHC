@@ -55,7 +55,7 @@ class ReportCommand extends BaseCommand
      */
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
         if (!$sender instanceof Player) {
-            $sender->sendMessage('JAX »» You can only use this command in-game!');
+            $sender->sendMessage('COSMIC »» You can only use this command in-game!');
             return;
         }
         $this->plugin->getForms()->sendReportForm($sender);

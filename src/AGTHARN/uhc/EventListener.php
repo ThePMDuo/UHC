@@ -19,7 +19,7 @@ use pocketmine\event\player\PlayerGameModeChangeEvent;
 use pocketmine\event\player\PlayerItemConsumeEvent;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerDeathEvent;
-use pocketmine\event\player\PlayerPreLoginEvent;
+use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\player\PlayerInteractEvent;
@@ -73,12 +73,12 @@ class EventListener implements Listener
     }
     
     /**
-     * handlePreLogin
+     * handleLogin
      *
-     * @param  PlayerPreLoginEvent $event
+     * @param  PlayerLoginEvent $event
      * @return void
      */
-    public function handlePreLogin(PlayerPreLoginEvent $event): void
+    public function handleLogin(PlayerLoginEvent $event): void
     {
         $player = $event->getPlayer();
         $sessionManager = $this->plugin->getSessionManager();
@@ -346,6 +346,10 @@ class EventListener implements Listener
             case EntityRegainHealthEvent::CAUSE_EATING:
                 $entity = $event->getEntity();
                 if ($entity instanceof Player) {
+                    if (!in_array($entity->getName(), $this->plugin->entityRegainNote)) {
+                        $entity->sendMessage('§6COSMIC §7»» §bNOTE: §rYou may be healing from Saturation but this is a client-side bug and the regenerated health is fake.');
+                        $this->plugin->entityRegainNote[] = $entity->getName();
+                    }
                     $event->setCancelled();
                     $event->setAmount(0);
                 }

@@ -51,9 +51,6 @@ class Main extends PluginBase
     public $operational = true;
 
     /** @var int */
-    public $startingPlayers = 0;
-    
-    /** @var int */
     public $normalSeed;
     /** @var string */
     public $map = 'UHC';
@@ -61,6 +58,14 @@ class Main extends PluginBase
     public $netherSeed;
     /** @var string */
     public $nether = 'nether';
+
+    /** @var int */
+    public $startingPlayers = 0;
+    /** @var int */
+    public $startingTeams = 0;
+
+    /** @var array */
+    public $entityRegainNote = [];
 
     /** @var Config */
     public $secrets;
@@ -77,6 +82,47 @@ class Main extends PluginBase
     public $spawnPosY = 125;
     /** @var int */
     public $spawnPosZ = 0;
+
+    /** @var GameManager */
+    private $gameManager;
+    /** @var TeamManager */
+    private $teamManager;
+    /** @var SessionManager */
+    private $sessionManager;
+    /** @var ScenarioManager */
+    private $scenarioManager;
+    /** @var Handler */
+    private $utilHandler;
+    /** @var Border */
+    private $border;
+    /** @var Items */
+    private $items;
+    /** @var ChestSort */
+    private $chestSort;
+    /** @var DeathChest */
+    private $deathChest;
+    /** @var Kits */
+    private $kits;
+    /** @var Capes */
+    private $capes;
+    /** @var Generators */
+    private $generators;
+    /** @var UtilPlayer */
+    private $utilplayer;
+    /** @var Forms */
+    private $forms;
+    /** @var Discord */
+    private $discord;
+    /** @var Recipes */
+    private $recipes;
+    /** @var Spoon */
+    private $spoon;
+    /** @var Profanity */
+    private $profanity;
+    /** @var ResetStatus */
+    private $resetStatus;
+    /** @var ChunkLoader */
+    private $chunkLoader;
 
     /** @var Database */
     private $database;
@@ -113,13 +159,36 @@ class Main extends PluginBase
         $this->serverReportsWebhook = $this->secrets->get('serverReportsWebhook');
         $this->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
 
+        // reason for this would be to supress errors from team adding
+        $this->gameManager = new GameManager($this, $this->getBorder());
+        $this->scenarioManager = new ScenarioManager($this);
+        $this->sessionManager = new SessionManager();
+        $this->teamManager = new TeamManager();
+        $this->utilHandler = new Handler($this, $this->getBorder());
+        $this->border = new Border($this->getServer()->getLevelByName($this->map));
+        $this->items = new Items($this);
+        $this->chestSort = new ChestSort($this);
+        $this->deathChest = new DeathChest($this);
+        $this->kits = new Kits();
+        $this->capes = new Capes($this);
+        $this->generators = new Generators($this);
+        $this->utilplayer = new UtilPlayer($this);
+        $this->forms = new Forms($this);
+        $this->discord = new Discord($this);
+        $this->recipes = new Recipes($this);
+        $this->spoon = new Spoon($this);
+        $this->profanity = new Profanity($this);
+        $this->resetStatus = new ResetStatus($this);
+        $this->chunkLoader = new ChunkLoader($this);
+        $this->database = new Database($this);
+
         $this->getScheduler()->scheduleRepeatingTask($this->getManager(), 20);
         $this->getServer()->getPluginManager()->registerEvents(new EventListener($this, $this->getBorder()), $this);
         $this->registerCommands();
     
         $this->getDiscord()->sendStartReport($this->getServer()->getVersion(), $this->buildNumber, $this->node, $this->uhcServer);
         
-        $this->sql = $this->database->initDatabase();
+        $this->sql = $this->getDatabase()->initDatabase();
         $this->sql->executeGeneric("uhc.init");
     }
     
@@ -185,7 +254,7 @@ class Main extends PluginBase
      */
     public function getManager(): GameManager
     {
-        return new GameManager($this, $this->getBorder());
+        return $this->gameManager ?? new GameManager($this, $this->getBorder());
     }
 
     /**
@@ -195,7 +264,7 @@ class Main extends PluginBase
      */
     public function getScenarioManager(): ScenarioManager
     {
-        return new ScenarioManager($this);
+        return $this->scenarioManager ?? new ScenarioManager($this);
     }
     
     /**
@@ -205,7 +274,7 @@ class Main extends PluginBase
      */
     public function getSessionManager(): SessionManager
     {   
-        return new SessionManager();
+        return $this->sessionManager ?? new SessionManager();
     }
     
 
@@ -216,7 +285,7 @@ class Main extends PluginBase
      */
     public function getTeamManager(): TeamManager
     {
-        return new TeamManager();
+        return $this->teamManager ?? new TeamManager();
     }
     
     /**
@@ -225,7 +294,7 @@ class Main extends PluginBase
      * @return Handler
      */
     public function getHandler(): Handler {
-        return new Handler($this, $this->getBorder());
+        return $this->utilHandler ?? new Handler($this, $this->getBorder());
     }
 
     /**
@@ -245,7 +314,7 @@ class Main extends PluginBase
      */
     public function getBorder(): Border
     {
-        return new Border($this->getServer()->getLevelByName($this->map));
+        return $this->border ?? new Border($this->getServer()->getLevelByName($this->map));
     }
     
     /**
@@ -255,7 +324,7 @@ class Main extends PluginBase
      */
     public function getUtilItems(): Items
     {
-        return new Items($this);
+        return $this->items ?? new Items($this);
     }
 
     /**
@@ -265,7 +334,7 @@ class Main extends PluginBase
      */
     public function getChestSort(): ChestSort
     {
-        return new ChestSort($this);
+        return $this->chestSort ?? new ChestSort($this);
     }
     
     /**
@@ -275,7 +344,7 @@ class Main extends PluginBase
      */
     public function getDeathChest(): DeathChest
     {
-        return new DeathChest($this);
+        return $this->deathChest ?? new DeathChest($this);
     }
     
     /**
@@ -285,7 +354,7 @@ class Main extends PluginBase
      */
     public function getKits(): Kits
     {
-        return new Kits();
+        return $this->kits ?? new Kits();
     }
 
     /**
@@ -295,7 +364,7 @@ class Main extends PluginBase
      */
     public function getCapes(): Capes
     {
-        return new Capes($this);
+        return $this->capes ?? new Capes($this);
     }
     
     /**
@@ -305,7 +374,7 @@ class Main extends PluginBase
      */
     public function getGenerators(): Generators
     {
-        return new Generators($this);
+        return $this->generators ?? new Generators($this);
     }
 
     /**
@@ -315,7 +384,7 @@ class Main extends PluginBase
      */
     public function getUtilPlayer(): UtilPlayer
     {
-        return new UtilPlayer($this);
+        return $this->utilplayer ?? new UtilPlayer($this);
     }
     
     /**
@@ -325,7 +394,7 @@ class Main extends PluginBase
      */
     public function getForms(): Forms
     {
-        return new Forms($this);
+        return $this->forms ?? new Forms($this);
     }
 
     /**
@@ -335,7 +404,7 @@ class Main extends PluginBase
      */
     public function getDiscord(): Discord
     {
-        return new Discord($this);
+        return $this->discord ?? new Discord($this);
     }
 
     /**
@@ -345,7 +414,7 @@ class Main extends PluginBase
      */
     public function getRecipes(): Recipes
     {
-        return new Recipes($this);
+        return $this->recipes ?? new Recipes($this);
     }
 
     /**
@@ -355,7 +424,7 @@ class Main extends PluginBase
      */
     public function getSpoon(): Spoon
     {
-        return new Spoon($this);
+        return $this->spoon ?? new Spoon($this);
     }
 
     /**
@@ -365,7 +434,7 @@ class Main extends PluginBase
      */
     public function getProfanity(): Profanity
     {
-        return new Profanity($this);
+        return $this->profanity ?? new Profanity($this);
     }
 
     /**
@@ -375,7 +444,7 @@ class Main extends PluginBase
      */
     public function getResetStatus(): ResetStatus
     {
-        return new ResetStatus();
+        return $this->resetStatus ?? new ResetStatus($this);
     }
 
     /**
@@ -385,7 +454,7 @@ class Main extends PluginBase
      */
     public function getChunkLoader(): ChunkLoader
     {
-        return new ChunkLoader($this);
+        return $this->chunkLoader ?? new ChunkLoader($this);
     }
 
     /**
@@ -395,7 +464,7 @@ class Main extends PluginBase
      */
     public function getDatabase(): Database
     {
-        return new Database($this);
+        return $this->database ?? new Database($this);
     }
 
     /**

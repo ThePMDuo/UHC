@@ -55,19 +55,19 @@ class PingCommand extends BaseCommand
      */
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
         if (!$sender instanceof Player) {
-            $sender->sendMessage('JAX »» You can only use this command in-game!');
+            $sender->sendMessage('COSMIC »» You can only use this command in-game!');
             return;
         }
         
         $ping = $sender->getPing();
         if ($ping <= 70) {
-			$sender->sendMessage("§aJAX §7»» §rPing: §a" . $ping . "ms");
+			$sender->sendMessage("§6COSMIC §7»» §rPing: §a" . $ping . "ms");
 		} elseif ($ping <= 150) {
-			$sender->sendMessage("§aJAX §7»» §rPing: §e" . $ping . "ms");
+			$sender->sendMessage("§6COSMIC §7»» §rPing: §e" . $ping . "ms");
 		} elseif ($ping <= 250) {
-			$sender->sendMessage("§aJAX §7»» §rPing: §6" . $ping . "ms");
+			$sender->sendMessage("§6COSMIC §7»» §rPing: §6" . $ping . "ms");
 		} else {
-			$sender->sendMessage("§aJAX §7»» §rPing: §c" . $ping . "ms");
+			$sender->sendMessage("§6COSMIC §7»» §rPing: §c" . $ping . "ms");
 		}
     }
 }

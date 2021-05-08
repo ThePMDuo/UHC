@@ -58,6 +58,8 @@ class Handler
             $session = $this->plugin->getSessionManager()->getSession($player);
             $gameManager = $this->plugin->getManager();
 
+            if ($player === null || $session === null) return;
+
             $this->handleScoreboard($player);
             if ($player->isSurvival()) {
                 $session->setPlaying(true);
@@ -172,6 +174,7 @@ class Handler
                     $session->getPlayer()->setImmobile(false);
                 }
                 $this->plugin->startingPlayers = count($this->plugin->getSessionManager()->getPlaying());
+                $this->plugin->startingTeams = count($this->plugin->getTeamManager()->getTeams());
                 $gameManager->setPhase(PhaseChangeEvent::GRACE);
                 break;
         }
@@ -426,7 +429,7 @@ class Handler
         $resetStatus = $this->plugin->getResetStatus();
         
         switch ($gameManager->getResetTimer()) {
-            case 60: // entities
+            case 10: // entities
                 $server->getLogger()->info('Starting Reset - Entities');
                 $resetStatus->entitiesReset = true;
 
@@ -439,7 +442,7 @@ class Handler
                 }
                 $server->getLogger()->info('Completed Reset - Entities');
                 break;
-            case 59: // worlds
+            case 9: // worlds
                 $server->getLogger()->info('Starting Reset - Worlds');
                 $resetStatus->worldReset = true;
 
@@ -448,7 +451,7 @@ class Handler
 
                 $server->getLogger()->info('Completed Reset - Worlds');
                 break;
-            case 55: // timers
+            case 4: // timers
                 $server->getLogger()->info('Starting Reset - Timers');
                 $resetStatus->timerReset = true;
 
@@ -461,7 +464,7 @@ class Handler
             
                 $server->getLogger()->info('Completed Reset - Timers');
                 break;
-            case 53: // teams
+            case 2: // teams
                 $server->getLogger()->info('Starting Reset - Teams');
                 $resetStatus->teamReset = true;
 
@@ -474,26 +477,21 @@ class Handler
 
                 $server->getLogger()->info('Completed Reset - Teams');
                 break;
-            case 50: // chunk preload  
-                $level = $server->getLevelByName($this->plugin->map);
-                $minX = -50;
-                $minZ = -50;
-			    $maxX = 50;
-			    $maxZ = 50;
-                
-                $server->getLogger()->info('Starting Reset - Chunks');
+            case 1: // others (arrays)
+                $server->getLogger()->info('Starting Reset - Others');
+                $resetStatus->othersReset = true;
 
-                $this->plugin->getChunkLoader()->generateChunks($level, $minX, $minZ, $maxX, $maxZ, 100);
-                break;
-            case 3:
-                $resetStatus->chunkReset = true;
-                $server->getLogger()->info('Completed Reset - Chunks');
+                unset($this->plugin->entityRegainNote);
+                unset($this->plugin->getForms()->playerArray);
+                unset($this->plugin->getForms()->reportsArray);
+
+                $server->getLogger()->info('Completed Reset - Others');
             case 0: // complete
                 $resetStatus->entitiesReset = false;
                 $resetStatus->worldReset = false;
                 $resetStatus->timerReset = false;
                 $resetStatus->teamReset = false;
-                $resetStatus->chunkReset = false;
+                $resetStatus->othersReset = false;
 
                 $this->plugin->setOperational(true);
                 $gameManager->setPhase(PhaseChangeEvent::WAITING);
@@ -520,6 +518,8 @@ class Handler
         $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
         $numberPlaying = $this->plugin->getManager()->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
 
+        $teamsMax = $this->plugin->startingTeams;
+
         $session = $sessionManager->getSession($player);
 
         ScoreFactory::setScore($player, '§7»» §f§eMineUHC UHC-' . $this->plugin->uhcServer . ' §7««');
@@ -545,7 +545,7 @@ class Handler
                 ScoreFactory::setScoreLine($player, 2, ' §fGame Time: §a' . gmdate('H:i:s', $gameManager->game));
                 ScoreFactory::setScoreLine($player, 3, ' §fPlayers: §a' . $numberPlaying . '§f§7/' . $numberPlayingMax);
                 ScoreFactory::setScoreLine($player, 4, ' ');
-                ScoreFactory::setScoreLine($player, 5, ' §fTeams: §a' . count($this->plugin->getTeamManager()->getTeams()));
+                ScoreFactory::setScoreLine($player, 5, ' §fTeams: §a' . count($this->plugin->getTeamManager()->getTeams()) . '§f§7/' . $teamsMax);
                 ScoreFactory::setScoreLine($player, 6, ' §fTeam Number: §a' . $session->getTeam()->getNumber() ?? 'NO TEAM');
                 ScoreFactory::setScoreLine($player, 7, ' §fTeam Members: §a' . implode(", ", $teamMembers));
                 ScoreFactory::setScoreLine($player, 8, '  ');
