@@ -5,12 +5,9 @@ namespace AGTHARN\uhc\util;
 
 use pocketmine\level\sound\BlazeShootSound;
 use pocketmine\level\sound\ClickSound;
-use pocketmine\level\particle\RedstoneParticle;
 use pocketmine\level\Position;
 use pocketmine\entity\EffectInstance;
 use pocketmine\entity\Effect;
-use pocketmine\level\Level;
-use pocketmine\scheduler\Task;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\item\Item;
@@ -58,7 +55,7 @@ class Handler
             $session = $this->plugin->getSessionManager()->getSession($player);
             $gameManager = $this->plugin->getManager();
 
-            if ($player === null || $session === null) return;
+            if ($session === null) return;
 
             $this->handleScoreboard($player);
             if ($player->isSurvival()) {
@@ -571,7 +568,7 @@ class Handler
                 ScoreFactory::setScoreLine($player, 7, ' §aWorlds Reset: §f[§r' . ($resetStatus->worldReset === true ? '✔' : '⛌') . '§f]');
                 ScoreFactory::setScoreLine($player, 8, ' §aTimers Reset: §f[§r' . ($resetStatus->timerReset === true ? '✔' : '⛌') . '§f]');
                 ScoreFactory::setScoreLine($player, 9, ' §aTeams Reset: §f[§r' . ($resetStatus->teamReset === true ? '✔' : '⛌') . '§f]');
-                ScoreFactory::setScoreLine($player, 10, ' §aChunks Reset: §f[§r' . ($resetStatus->chunkReset === true ? '✔' : '⛌') . '§f]');
+                ScoreFactory::setScoreLine($player, 10, ' §aOthers Reset: §f[§r' . ($resetStatus->othersReset === true ? '✔' : '⛌') . '§f]');
                 ScoreFactory::setScoreLine($player, 11, '  ');
                 ScoreFactory::setScoreLine($player, 12, '§7§l[-------------------] ');
                 ScoreFactory::setScoreLine($player, 13, ' §eplay.mineuhc.xyz');

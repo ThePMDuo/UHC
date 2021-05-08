@@ -81,7 +81,8 @@ class Forms
                 $player->sendMessage('§aThanks for the report! You can ask any staff for a follow-up if needed!');
             }
         });
-
+        
+        $players = [];
         foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
             $players[] = $player->getName();
         }

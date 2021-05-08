@@ -178,7 +178,7 @@ class Main extends PluginBase
         $this->recipes = new Recipes($this);
         $this->spoon = new Spoon($this);
         $this->profanity = new Profanity($this);
-        $this->resetStatus = new ResetStatus($this);
+        $this->resetStatus = new ResetStatus();
         $this->chunkLoader = new ChunkLoader($this);
         $this->database = new Database($this);
 
@@ -444,7 +444,7 @@ class Main extends PluginBase
      */
     public function getResetStatus(): ResetStatus
     {
-        return $this->resetStatus ?? new ResetStatus($this);
+        return $this->resetStatus ?? new ResetStatus();
     }
 
     /**

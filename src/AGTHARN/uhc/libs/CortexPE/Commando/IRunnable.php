@@ -50,7 +50,7 @@ interface IRunnable {
 
     public function getUsageMessage():string;
     
-    public function getPermission(); // f*ck. PM didn't declare a return type... reeee /** @phpstan-ignore-line */
+    public function getPermission(); // f*ck. PM didn't declare a return type... reeee
 
     /**
      * @return BaseConstraint[]
