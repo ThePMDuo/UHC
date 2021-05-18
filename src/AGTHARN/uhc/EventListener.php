@@ -6,6 +6,7 @@ namespace AGTHARN\uhc;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\TextPacket;
 use pocketmine\network\mcpe\protocol\EmotePacket;
+use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\level\generator\object\OakTree;
 use pocketmine\level\generator\object\Tree;
 use pocketmine\event\inventory\InventoryTransactionEvent;
@@ -155,7 +156,9 @@ class EventListener implements Listener
         $session = $sessionManager->getSession($player);
         $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
         $numberPlaying = $this->plugin->getManager()->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
-        $teamNumber = (string)$session->getTeam()->getNumber() ?? 'NO TEAM';
+        
+        $team = $session->getTeam() ?? null;
+        $teamNumber = (string)$team->getNumber() ?? 'NO TEAM';
 
         $event->setQuitMessage('§aJAX ' . '§7»» §e' . $player->getName() . ' has left the server! §7(' . $numberPlaying . '/' . $numberPlayingMax . ') (#' . $teamNumber . ')');
         if ($sessionManager->hasSession($player)) {
@@ -163,11 +166,10 @@ class EventListener implements Listener
                 if (!$session->isTeamLeader()) {
                     $session->removeFromTeam(); 
                 } else {
-                    $teamNumber = $session->getTeam()->getNumber();
-                    foreach ($session->getTeam()->getMembers() as $member) {
+                    foreach ($team->getMembers() as $member) {
                         $sessionManager->getSession($member)->removeFromTeam();
                     }
-                    $this->plugin->getTeamManager()->disbandTeam($teamNumber);
+                    $this->plugin->getTeamManager()->disbandTeam($team->getNumber());
                 }
             }
             $sessionManager->removeSession($player);
@@ -689,10 +691,18 @@ class EventListener implements Listener
     public function handleDataPacketReceived(DataPacketReceiveEvent $event): void
     {
 		$packet = $event->getPacket();
+        $player = $event->getPlayer();
+
 		if ($packet instanceof EmotePacket) {
 			$emoteId = $packet->getEmoteId();
-			$this->plugin->getServer()->broadcastPacket($event->getPlayer()->getViewers(), EmotePacket::create($event->getPlayer()->getId(), $emoteId, 1 << 0));
+			$this->plugin->getServer()->broadcastPacket($player->getViewers(), EmotePacket::create($player->getId(), $emoteId, 1 << 0));
 		}
+
+        if ($packet instanceof LoginPacket) {   
+            if (isset($packet->clientData["Waterdog_IP"])) {
+                $player->kick('uh oh!!');
+            }
+        }
 	}
     
     /**

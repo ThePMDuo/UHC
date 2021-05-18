@@ -19,3 +19,6 @@
 [submodule "src/AGTHARN/uhc/plugins/SteveAC"]
 	path = src/AGTHARN/uhc/plugins/SteveAC
 	url = https://github.com/AGTHARN/SteveAC
+[submodule "src/AGTHARN/uhc/plugins/MineMod"]
+	path = src/AGTHARN/uhc/plugins/MineMod
+	url = https://github.com/AGTHARN/MineMod.git
