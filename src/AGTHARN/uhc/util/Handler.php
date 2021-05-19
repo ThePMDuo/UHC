@@ -52,31 +52,27 @@ class Handler
     {
         $server = $this->plugin->getServer();
         foreach ($server->getOnlinePlayers() as $player) {
-            $session = $this->plugin->getSessionManager()->getSession($player);
+            $session = $this->plugin->getSessionManager()->getSession($player) ?? null;
+            $name = (string)$session->getTeam()->getNumber() ?? 'NO TEAM';
             $gameManager = $this->plugin->getManager();
 
-            if ($session === null) return;
-
-            $this->handleScoreboard($player);
-            if ($player->isSurvival()) {
-                $session->setPlaying(true);
-            } else {
-                $this->plugin->getUtilItems()->giveItems($player);
-                $session->setPlaying(false);
-            }
-
             if ($session !== null) {
-                $name = (string)$session->getTeam()->getNumber() ?? 'NO TEAM';
-                $player->setNameTag('§6[' . $name . '] ' . $player->getDisplayName());
-            }
+                if ($player->isSurvival()) {
+                    $session->setPlaying(true);
+                } else {
+                    $this->plugin->getUtilItems()->giveItems($player);
+                    $session->setPlaying(false);
+                }
 
-            if (!$player->hasEffect(16)) {
-                $player->addEffect(new EffectInstance(Effect::getEffect(16), 1000000, 1, false));
-            }
-            
-            if ($player->getLevel()->getName() !== $this->plugin->map) {
-                $level = $server->getLevelByName($this->plugin->map);
-                $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
+                if (!$player->hasEffect(16)) {
+                    $player->addEffect(new EffectInstance(Effect::getEffect(16), 1000000, 1, false));
+                }
+                if ($player->getLevel()->getName() !== $this->plugin->map) {
+                    $level = $server->getLevelByName($this->plugin->map);
+                    $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
+                }
+                $this->handleScoreboard($player);
+                $player->setNameTag('§7(#' . $name . ') §r' . $player->getDisplayName());
             }
         }
     }
@@ -90,6 +86,7 @@ class Handler
     {
         $gameManager = $this->plugin->getManager();
         $sessionManager = $this->plugin->getSessionManager();
+        $playersRequired = self::MIN_PLAYERS - count($sessionManager->getPlaying());
 
         $this->border->setSize(500);
         if (count($sessionManager->getPlaying()) >= self::MIN_PLAYERS) {
@@ -99,11 +96,9 @@ class Handler
         foreach ($sessionManager->getPlaying() as $session) {
             $player = $session->getPlayer();
             $inventory = $player->getInventory();
-            $playersRequired = self::MIN_PLAYERS - count($sessionManager->getPlaying());
             
             $this->handleScoreboard($player);
-
-            if (count($sessionManager->getPlaying()) <= self::MIN_PLAYERS) {
+            if (count($sessionManager->getPlaying()) < self::MIN_PLAYERS) {
                 $player->sendPopup('§c' . $playersRequired . ' more players required...');
             }
         }
@@ -215,7 +210,7 @@ class Handler
                 break;
             case 300:
                 $server->broadcastMessage('§aJAX §7»» §r§cPVP will enable in §b5 minutes.');
-                $server->broadcastMessage('§aJAX §7»» §rThe border will start shrinking to §b400' . '§f in §b10 minutes.');
+                $server->broadcastMessage('§aJAX §7»» §rThe border will start shrinking to §b400 §fin §b10 minutes.');
                 $this->sendSound(1);
                 break;
             case 60:
@@ -372,23 +367,21 @@ class Handler
                 $this->sendSound(1);
                 foreach ($sessionManager->getPlaying() as $session) {
                     $player = $session->getPlayer();
+                    $session = $this->plugin->getSessionManager()->getSession($player);
 
                     $player->setImmobile(false);
                     $this->plugin->getUtilPlayer()->resetPlayer($player, true);
                     $this->handleScoreboard($player);
 
-                    $session = $this->plugin->getSessionManager()->getSession($player);
                     $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
                     $player->setGamemode(Player::SURVIVAL);
-
-                    $gameManager->setShrinking(false);
-                    $this->border->setSize(500);
 
                     if ($session->isPlaying()) {
                         $server->broadcastMessage('§aJAX §7»» §r§aCongratulations to the winner! ' . $player->getName());
                     }
                 }
                 $gameManager->setShrinking(false);
+                $this->border->setSize(500);
                 break;
             case 45:
                 $server->broadcastMessage('§aJAX §7»» §rServer would reset in §b40 seconds!');

@@ -114,7 +114,6 @@ class PlayerSession
             $this->team = $team;
             return true;
         }
-
         return false;
     }
     
@@ -128,11 +127,10 @@ class PlayerSession
         if ($this->team->removeMember($this->getPlayer())) {
             $this->team = null;
             return true;
-        }elseif($this->isTeamLeader()){
+        } elseif($this->isTeamLeader()) {
             $this->team = null;
             return true;
         }
-
         return false;
     }
     

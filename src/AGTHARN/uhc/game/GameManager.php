@@ -314,7 +314,7 @@ class GameManager extends Task
      */
     public function hasStarted(): bool
     {
-        return $this->getPhase() >= PhaseChangeEvent::GRACE && $this->getPhase() <= PhaseChangeEvent::WINNER;
+        return $this->getPhase() >= PhaseChangeEvent::GRACE && $this->getPhase() <= PhaseChangeEvent::DEATHMATCH;
     }
         
     /**

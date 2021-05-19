@@ -85,7 +85,7 @@ class ScenarioManager
      */
     public function registerScenario(Scenario $scenario): void
     {
-        if(isset($this->registeredScenarios[$scenario->getName()])){
+        if (isset($this->registeredScenarios[$scenario->getName()])) {
             $this->plugin->getLogger()->notice('Ignored duplicate scenario: {$scenario->getName()}');
         }
         $this->registeredScenarios[$scenario->getName()] = $scenario;

@@ -14,7 +14,7 @@ class Team
     /** @var Player[] */
     private $members = [];
     /** @var int */
-    public const TEAM_LIMIT = 2;
+    public const TEAM_LIMIT = 1;
 
     public function __construct(int $teamNumber, Player $teamLeader)
     {
@@ -71,7 +71,6 @@ class Team
         if (!isset($this->members[$player->getUniqueId()->toString()]) || $player->getUniqueId() === $this->teamLeader->getUniqueId()) {
             return false;
         }
-
         unset($this->members[$player->getUniqueId()->toString()]);
         return true;
     }
