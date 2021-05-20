@@ -83,7 +83,7 @@ class Generators
             $worldAPI->loadLevel($netherName);
 
             $netherLevel = $this->plugin->getServer()->getLevelByName($netherName); // redefine so its not null
-            $netherLevel->getGameRules()->setRuleWithMatching('showcoordinates', 'true'); /** @phpstan-ignore-line */
+            $netherLevel->setAutoSave(false);
             $this->plugin->getServer()->setNetherLevel($netherLevel); /** @phpstan-ignore-line */
         }
     }

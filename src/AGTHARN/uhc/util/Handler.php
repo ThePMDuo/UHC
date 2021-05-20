@@ -31,6 +31,9 @@ class Handler
     /** @var mixed */
     public $bossBar;
 
+    /** @var array */
+    private $winnerNames = [];
+
     /**
      * __construct
      *
@@ -51,29 +54,27 @@ class Handler
     public function handlePlayers(): void
     {
         $server = $this->plugin->getServer();
-        foreach ($server->getOnlinePlayers() as $player) {
-            $session = $this->plugin->getSessionManager()->getSession($player) ?? null;
+        foreach ($this->plugin->getSessionManager()->getSessions() as $session) {
+            $player = $session->getPlayer();
             $name = (string)$session->getTeam()->getNumber() ?? 'NO TEAM';
             $gameManager = $this->plugin->getManager();
 
-            if ($session !== null) {
-                if ($player->isSurvival()) {
-                    $session->setPlaying(true);
-                } else {
-                    $this->plugin->getUtilItems()->giveItems($player);
-                    $session->setPlaying(false);
-                }
-
-                if (!$player->hasEffect(16)) {
-                    $player->addEffect(new EffectInstance(Effect::getEffect(16), 1000000, 1, false));
-                }
-                if ($player->getLevel()->getName() !== $this->plugin->map) {
-                    $level = $server->getLevelByName($this->plugin->map);
-                    $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
-                }
-                $this->handleScoreboard($player);
-                $player->setNameTag('§7(#' . $name . ') §r' . $player->getDisplayName());
+            if ($player->isSurvival()) {
+                $session->setPlaying(true);
+            } else {
+                $this->plugin->getUtilItems()->giveItems($player);
+                $session->setPlaying(false);
             }
+
+            if (!$player->hasEffect(16)) {
+                $player->addEffect(new EffectInstance(Effect::getEffect(16), 1000000, 1, false));
+            }
+            if ($player->getLevel()->getName() !== $this->plugin->map) {
+                $level = $server->getLevelByName($this->plugin->map);
+                $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
+            }
+            $this->handleScoreboard($player);
+            $player->setNameTag('§7(#' . $name . ') §r' . $player->getDisplayName());
         }
     }
         
@@ -345,6 +346,9 @@ class Handler
             case 0:
                 $server->broadcastMessage('§aJAX §7»» §r§cGAME OVER!');
                 $this->sendSound(2);
+                foreach ($sessionManager->getPlaying() as $session) {
+                    $this->winnerNames[] = $session->getPlayer()->getName();
+                }
                 $gameManager->setPhase(PhaseChangeEvent::WINNER);
                 break;
         }
@@ -365,8 +369,7 @@ class Handler
         switch ($gameManager->getWinnerTimer()) {
             case 60:
                 $this->sendSound(1);
-                foreach ($sessionManager->getPlaying() as $session) {
-                    $player = $session->getPlayer();
+                foreach ($server->getOnlinePlayers() as $player) {
                     $session = $this->plugin->getSessionManager()->getSession($player);
 
                     $player->setImmobile(false);
@@ -377,7 +380,7 @@ class Handler
                     $player->setGamemode(Player::SURVIVAL);
 
                     if ($session->isPlaying()) {
-                        $server->broadcastMessage('§aJAX §7»» §r§aCongratulations to the winner! ' . $player->getName());
+                        $server->broadcastMessage('§aJAX §7»» §r§aCongratulations to the winner(s)! ' . implode(', ', $this->winnerNames));
                     }
                 }
                 $gameManager->setShrinking(false);
@@ -474,6 +477,7 @@ class Handler
                 unset($this->plugin->entityRegainNote);
                 unset($this->plugin->getForms()->playerArray);
                 unset($this->plugin->getForms()->reportsArray);
+                unset($this->winnerNames);
 
                 $server->getLogger()->info('Completed Reset - Others');
             case 0: // complete
@@ -529,7 +533,6 @@ class Handler
             case PhaseChangeEvent::PVP:
             case PhaseChangeEvent::DEATHMATCH:
                 $teamMembers = $session->getTeam()->getMembers();
-                unset($teamMembers[$player->getUniqueId()->toString()]);
 
                 ScoreFactory::setScoreLine($player, 1, '§7§l[-------------------]');
                 ScoreFactory::setScoreLine($player, 2, ' §fGame Time: §a' . gmdate('H:i:s', $gameManager->game));
@@ -549,7 +552,15 @@ class Handler
                 ScoreFactory::setScoreLine($player, 15, ' §eplay.mineuhc.xyz');
                 break;
             case PhaseChangeEvent::WINNER:
-                // to do
+                ScoreFactory::setScoreLine($player, 1, '§7§l[-------------------]');
+                ScoreFactory::setScoreLine($player, 2, ' §fPlayers §f');
+                ScoreFactory::setScoreLine($player, 3, ' §a' . $numberPlaying . '§f§7/' . $numberPlayingMax);
+                ScoreFactory::setScoreLine($player, 4, ' ');
+                ScoreFactory::setScoreLine($player, 5, ' §fWinners:');
+                ScoreFactory::setScoreLine($player, 6, ' §a' . implode(', ', $this->winnerNames));
+                ScoreFactory::setScoreLine($player, 7, '  ');
+                ScoreFactory::setScoreLine($player, 8, '§7§l[-------------------] ');
+                ScoreFactory::setScoreLine($player, 9, ' §eplay.mineuhc.xyz');
                 break;
             case PhaseChangeEvent::RESET:
                 ScoreFactory::setScoreLine($player, 1, '§7§l[-------------------]');
@@ -581,8 +592,8 @@ class Handler
         $gameManager = $this->plugin->getManager();
 
         if (isset($this->bossBar)) {
-            foreach ($server->getOnlinePlayers() as $player) {
-                $this->bossBar->hideFrom($player);
+            foreach ($this->plugin->getSessionManager()->getSessions() as $session) {
+                $this->bossBar->hideFrom($session->getPlayer());
             }
         }
 
@@ -662,8 +673,8 @@ class Handler
         }
 
         if (isset($this->bossBar)) {
-            foreach ($server->getOnlinePlayers() as $player) {
-                $this->bossBar->showTo($player);
+            foreach ($this->plugin->getSessionManager()->getSessions() as $session) {
+                $this->bossBar->showTo($session->getPlayer());
             }
         }
     }
@@ -730,12 +741,14 @@ class Handler
     {      
         switch ($soundType) {
             case 1:
-                foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
+                foreach ($this->plugin->getSessionManager()->getSessions() as $session) {
+                    $player = $session->getPlayer();
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 2:
-                foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
+                foreach ($this->plugin->getSessionManager()->getSessions() as $session) {
+                    $player = $session->getPlayer();
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;

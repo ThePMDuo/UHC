@@ -149,7 +149,6 @@ class Main extends PluginBase
 
         $this->getGenerators()->prepareWorld();
         //$this->getGenerators()->prepareNether();
-        //$this->getHandler()->spawnBorders();
 
         $this->getRecipes()->registerGoldenHead();
 
