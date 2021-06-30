@@ -41,6 +41,7 @@ use AGTHARN\uhc\util\Forms;
 use AGTHARN\uhc\kits\Kits;
 // DONT OK
 
+use AGTHARN\uhc\libs\poggit\libasynql\DataConnector;
 use AGTHARN\uhc\libs\poggit\libasynql\libasynql;
 
 class Main extends PluginBase
