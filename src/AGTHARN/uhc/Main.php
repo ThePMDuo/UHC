@@ -89,6 +89,8 @@ class Main extends PluginBase
 
     /** @var ListenerManager */
     private $listenerManager;
+    /** @var DataConnector */
+    private $data;
     
     /**
      * onEnable
