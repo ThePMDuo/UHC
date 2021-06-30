@@ -54,6 +54,30 @@ class Generators
             $uhcLevel->setAutoSave(false);
         }
     }
+
+    /**
+     * removeWorld
+     *
+     * @return void
+     */
+    public function removeAllWorlds(): void
+    {   
+        $worldAPI = $this->plugin->getServer()->getPluginManager()->getPlugin('MultiWorld')->getWorldManagementAPI(); /** @phpstan-ignore-line */
+
+        foreach ($worldAPI->getAllLevels() as $levelName) {
+            $level = $this->plugin->getServer()->getLevelByName($levelName);
+            
+            if ($worldAPI->isLevelGenerated($levelName)) {
+                if ($level !== $this->plugin->getServer()->getDefaultLevel()) {
+                    if ($worldAPI->isLevelLoaded($levelName)) {  
+                        $worldAPI->unloadLevel($level);
+                    }
+                    $worldAPI->removeLevel($levelName);
+                }
+            }
+        }
+        
+    }
     
     /**
      * prepareNether

@@ -52,14 +52,8 @@ class Capes
     public function createNormalCape(Player $player): void
     {
         $img = imagecreatefrompng($this->plugin->getDataFolder() . 'capes' . DIRECTORY_SEPARATOR . 'normal_cape.png');
-        $rgba = '';
+        $rgba = $this->getRGBA($img);
 
-        for ($y = 0; $y < imagesy($img); $y++) {
-            for ($x = 0; $x < imagesx($img); $x++) {
-                $argb = imagecolorat($img, $x, $y);
-                $rgba .= chr(($argb >> 16) & 0xff) . chr(($argb >> 8) & 0xff) . chr($argb & 0xff) . chr(((~((int)($argb >> 24))) << 1) & 0xff);
-            }
-        }
         $this->setCape($player, $rgba);
     }
 
@@ -72,14 +66,8 @@ class Capes
     public function createPotionCape(Player $player): void
     {
         $img = imagecreatefrompng($this->plugin->getDataFolder() . 'capes' . DIRECTORY_SEPARATOR . 'potion_cape.png');
-        $rgba = '';
+        $rgba = $this->getRGBA($img);
 
-        for ($y = 0; $y < imagesy($img); $y++) {
-            for ($x = 0; $x < imagesx($img); $x++) {
-                $argb = imagecolorat($img, $x, $y);
-                $rgba .= chr(($argb >> 16) & 0xff) . chr(($argb >> 8) & 0xff) . chr($argb & 0xff) . chr(((~((int)($argb >> 24))) << 1) & 0xff);
-            }
-        }
         $this->setCape($player, $rgba);
     }
     
@@ -97,5 +85,24 @@ class Capes
         
         $player->setSkin($newSkin);
         $player->sendSkin();
+    }
+    
+    /**
+     * getRGBA
+     *
+     * @param  mixed $img
+     * @return string
+     */
+    public function getRGBA($img): string
+    {
+        $rgba = '';
+
+        for ($y = 0; $y < imagesy($img); $y++) {
+            for ($x = 0; $x < imagesx($img); $x++) {
+                $argb = imagecolorat($img, $x, $y);
+                $rgba .= chr(($argb >> 16) & 0xff) . chr(($argb >> 8) & 0xff) . chr($argb & 0xff) . chr(((~((int)($argb >> 24))) << 1) & 0xff);
+            }
+        }
+        return $rgba;
     }
 }

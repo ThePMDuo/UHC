@@ -5,6 +5,8 @@ namespace AGTHARN\uhc\game\team;
 
 use pocketmine\Player;
 
+use AGTHARN\uhc\game\team\type\Team;
+
 class TeamManager
 {
     /** @var Team[] */

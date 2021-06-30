@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\game\scenario;
 
+use AGTHARN\uhc\game\scenario\type\Scenario;
 use AGTHARN\uhc\Main;
 
 use Throwable;

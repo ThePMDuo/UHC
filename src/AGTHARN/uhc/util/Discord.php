@@ -47,7 +47,7 @@ class Discord
         $embed->addField('REPORTED:', $reported, true);
         $embed->addField('REPORT TYPE:', $reportType, true);
         $embed->addField('REASON:', $reason, true);
-        $embed->setFooter(date('Y-m-d') . 'T' . date("H:i:s") . '.' . date("v") . 'Z');
+        $embed->setFooter(date('Y-m-d') . 'T' . date('H:i:s') . '.' . date('v') . 'Z');
         $embed->setColor(0xFF3333);
         $msg->addEmbed($embed);
 
@@ -77,7 +77,7 @@ class Discord
         $embed->addField('SERVER VERSION:', $serverVersion, true);
         $embed->addField('SPOON VERSION:', $spoonVersion, true);
         $embed->addField('IP & PORT:', $ip . ':' . $port, true);
-        $embed->setFooter(date('Y-m-d') . 'T' . date("H:i:s") . '.' . date("v") . 'Z');
+        $embed->setFooter(date('Y-m-d') . 'T' . date('H:i:s') . '.' . date('v') . 'Z');
         $embed->setColor(0xFF3333);
         $msg->addEmbed($embed);
 
@@ -106,7 +106,7 @@ class Discord
         $embed->addField('SERVER VERSION:', $serverVersion, true);
         $embed->addField('UHC BUILD:', $buildNumber, true);
         $embed->addField('NODE:', $node, true);
-        $embed->setFooter(date('Y-m-d') . 'T' . date("H:i:s") . '.' . date("v") . 'Z');
+        $embed->setFooter(date('Y-m-d') . 'T' . date('H:i:s') . '.' . date('v') . 'Z');
         $embed->setColor(0x33FF33);
         $msg->addEmbed($embed);
 

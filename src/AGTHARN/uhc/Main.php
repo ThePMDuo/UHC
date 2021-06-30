@@ -6,9 +6,6 @@ namespace AGTHARN\uhc;
 use pocketmine\entity\utils\Bossbar;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
-use pocketmine\block\Block;
-use pocketmine\item\Item;
-use pocketmine\Player;
 
 use AGTHARN\uhc\game\scenario\ScenarioManager;
 use AGTHARN\uhc\game\reset\ResetStatus;
@@ -17,15 +14,19 @@ use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\command\ReportCommand;
 use AGTHARN\uhc\command\PingCommand;
+use AGTHARN\uhc\command\ModCommand;
 use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\util\ChunkLoader;
+use AGTHARN\uhc\util\Punishments;
 use AGTHARN\uhc\util\UtilPlayer;
 use AGTHARN\uhc\util\Generators;
 use AGTHARN\uhc\util\DeathChest;
+use AGTHARN\uhc\util\Directory;
 use AGTHARN\uhc\util\ChestSort;
 use AGTHARN\uhc\util\Profanity;
 use AGTHARN\uhc\util\Database;
+use AGTHARN\uhc\util\AntiVPN;
 use AGTHARN\uhc\util\Discord;
 use AGTHARN\uhc\util\Handler;
 use AGTHARN\uhc\util\Recipes;
@@ -34,7 +35,6 @@ use AGTHARN\uhc\util\Items;
 use AGTHARN\uhc\util\Capes;
 use AGTHARN\uhc\util\Forms;
 use AGTHARN\uhc\kits\Kits;
-use AGTHARN\uhc\EventListener;
 
 use AGTHARN\uhc\libs\poggit\libasynql\DataConnector;
 use AGTHARN\uhc\libs\poggit\libasynql\libasynql;
@@ -101,6 +101,8 @@ class Main extends PluginBase
     private $chestSort;
     /** @var DeathChest */
     private $deathChest;
+    /** @var KitsManager */
+    private $kitsManager;
     /** @var Kits */
     private $kits;
     /** @var Capes */
@@ -123,6 +125,8 @@ class Main extends PluginBase
     private $resetStatus;
     /** @var ChunkLoader */
     private $chunkLoader;
+    /** @var ListenerManager */
+    private $listenerManager;
 
     /** @var Database */
     private $database;
@@ -136,29 +140,27 @@ class Main extends PluginBase
      */
     public function onEnable(): void
     {   
-        if (!extension_loaded('gd')) {
-            $this->getServer()->getLogger()->error('GD Lib is disabled! Turning on safe mode!');
-            $this->setOperational(false);
-        }
+        $this->runCompatibilityChecks();
+
         @mkdir($this->getDataFolder() . 'scenarios');
-        $this->saveResource("secrets.yml");
         $this->saveResource('capes/normal_cape.png');
         $this->saveResource('capes/potion_cape.png');
-        $this->saveResource("swearwords.yml");
-        $this->getSpoon()->makeTheCheck();
+        $this->saveResource('swearwords.yml');
+        $this->saveResource('secrets.yml');
+        $this->getClass('Spoon')->makeTheCheck();
 
-        $this->getGenerators()->prepareWorld();
-        //$this->getGenerators()->prepareNether();
+        $this->getClass('Generators')->prepareWorld();
+        //$this->getClass('Generators')->prepareNether();
 
-        $this->getRecipes()->registerGoldenHead();
+        $this->getClass('Recipes')->registerGoldenHead();
 
-        $this->secrets = new Config($this->getDataFolder() . "secrets.yml", Config::YAML);
+        $this->secrets = new Config($this->getDataFolder() . 'secrets.yml', Config::YAML);
 
         $this->reportWebhook = $this->secrets->get('reportWebhook');
         $this->serverReportsWebhook = $this->secrets->get('serverReportsWebhook');
         $this->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
 
-        // reason for this would be to supress errors from team adding
+        // reason for this would be to "supress" errors from team adding
         $this->gameManager = new GameManager($this, $this->getBorder());
         $this->scenarioManager = new ScenarioManager($this);
         $this->sessionManager = new SessionManager();
@@ -167,8 +169,9 @@ class Main extends PluginBase
         $this->border = new Border($this->getServer()->getLevelByName($this->map));
         $this->items = new Items($this);
         $this->chestSort = new ChestSort($this);
+        $this->directory = new Directory($this);
         $this->deathChest = new DeathChest($this);
-        $this->kits = new Kits();
+        $this->kitsManager = new KitsManager();
         $this->capes = new Capes($this);
         $this->generators = new Generators($this);
         $this->utilplayer = new UtilPlayer($this);
@@ -180,15 +183,19 @@ class Main extends PluginBase
         $this->resetStatus = new ResetStatus();
         $this->chunkLoader = new ChunkLoader($this);
         $this->database = new Database($this);
+        $this->punishments = new Punishments($this);
+        $this->antiVPN = new AntiVPN($this);
+
+        $this->listenerManager == new ListenerManager($this);
 
         $this->getScheduler()->scheduleRepeatingTask($this->getManager(), 20);
-        $this->getServer()->getPluginManager()->registerEvents(new EventListener($this, $this->getBorder()), $this);
+        $this->getListenerManager()->registerListeners();
         $this->registerCommands();
     
-        $this->getDiscord()->sendStartReport($this->getServer()->getVersion(), $this->buildNumber, $this->node, $this->uhcServer);
+        $this->getClass('Discord')->sendStartReport($this->getServer()->getVersion(), $this->buildNumber, $this->node, $this->uhcServer);
         
-        $this->sql = $this->getDatabase()->initDatabase();
-        $this->sql->executeGeneric("uhc.init");
+        $this->data = $this->getClass('Database')->initDataDatabase();
+        $this->data->executeGeneric('uhc.data.init');
     }
     
     /**
@@ -198,7 +205,26 @@ class Main extends PluginBase
      */
     public function onDisable(): void
     {   
-        if (isset($this->sql)) $this->sql->close();
+        $this->getGenerators()->removeAllWorlds();
+
+        if (isset($this->data)) $this->data->close();
+    }
+    
+    /**
+     * runCompatibilityChecks
+     *
+     * @return void
+     */
+    public function runCompatibilityChecks()
+    {
+        if (!extension_loaded('gd')) {
+            $this->getServer()->getLogger()->error('GD Lib is disabled! Turning on safe mode!');
+            $this->setOperational(false);
+        }
+        if (!in_array($this->getServer()->getApiVersion(), $this->getDescription()->getCompatibleApis())) {
+            $this->getServer()->getLogger()->error('Incompatible version! Turning on safe mode!');
+            $this->setOperational(false);
+        }
     }
     
     /**
@@ -218,83 +244,34 @@ class Main extends PluginBase
             'callmod', 
             'modcall', 
             'admincall', 
-            'calladmin'
+            'calladmin',
+            'saveme',
+            'hacker',
+            'cheater'
         ]));
         $this->getServer()->getCommandMap()->register('ping', new PingCommand($this, 'ping', 'Provides a report on your ping!', [
             'myping',
             'getping'
         ]));
+        $this->getServer()->getCommandMap()->register('moderate', new ModCommand($this, 'moderate', 'Secret stuff!', [
+            'mod',
+            'punish'
+        ]));
     }
     
     /**
-     * veinMine
+     * getClass
      *
-     * @param  Block $block
-     * @param  Item $item
-     * @param  Player $player
-     * @return void
+     * @param  string $namespace
+     * @return mixed
      */
-    public function veinMine(Block $block, Item $item, Player $player): void
+    public function getClass(string $namespace): mixed
     {
-        if ($block->isValid()) {
-            foreach ($block->getAllSides() as $side) {
-                if (($side->getId() === $block->getId())) {
-                    $this->veinMine($side, $item, $player);
-                }
-            }
-            $block->getLevel()->useBreakOn($block, $item, $player, true);
+        if (strpos($namespace, ('SessionManager' || 'TeamManager' || 'KitsManager')) !== false) {
+            return new $namespace();
         }
-    }
-    
-    /**
-     * getManager
-     *
-     * @return GameManager
-     */
-    public function getManager(): GameManager
-    {
-        return $this->gameManager ?? new GameManager($this, $this->getBorder());
-    }
-
-    /**
-     * getScenarioManager
-     *
-     * @return ScenarioManager
-     */
-    public function getScenarioManager(): ScenarioManager
-    {
-        return $this->scenarioManager ?? new ScenarioManager($this);
-    }
-    
-    /**
-     * getSessionManager
-     *
-     * @return SessionManager
-     */
-    public function getSessionManager(): SessionManager
-    {   
-        return $this->sessionManager ?? new SessionManager();
-    }
-    
-
-    /**
-     * getTeamManager
-     *
-     * @return TeamManager
-     */
-    public function getTeamManager(): TeamManager
-    {
-        return $this->teamManager ?? new TeamManager();
-    }
-    
-    /**
-     * getHandler
-     *
-     * @return Handler
-     */
-    public function getHandler(): Handler {
-        return $this->utilHandler ?? new Handler($this, $this->getBorder());
-    }
+        return new $namespace($this);
+    }  
 
     /**
      * getBossBar
@@ -305,175 +282,15 @@ class Main extends PluginBase
     {
         return new Bossbar($text, $float); /** @phpstan-ignore-line */
     }
-    
-    /**
-     * getBorder
-     *
-     * @return Border
-     */
-    public function getBorder(): Border
-    {
-        return $this->border ?? new Border($this->getServer()->getLevelByName($this->map));
-    }
-    
-    /**
-     * getUtilItems
-     *
-     * @return Items
-     */
-    public function getUtilItems(): Items
-    {
-        return $this->items ?? new Items($this);
-    }
 
     /**
-     * getChestSort
+     * getListenerManager
      *
-     * @return ChestSort
+     * @return ListenerManager
      */
-    public function getChestSort(): ChestSort
+    public function getListenerManager(): ListenerManager
     {
-        return $this->chestSort ?? new ChestSort($this);
-    }
-    
-    /**
-     * getDeathChest
-     *
-     * @return DeathChest
-     */
-    public function getDeathChest(): DeathChest
-    {
-        return $this->deathChest ?? new DeathChest($this);
-    }
-    
-    /**
-     * getKits
-     *
-     * @return Kits
-     */
-    public function getKits(): Kits
-    {
-        return $this->kits ?? new Kits();
-    }
-
-    /**
-     * getCapes
-     *
-     * @return Capes
-     */
-    public function getCapes(): Capes
-    {
-        return $this->capes ?? new Capes($this);
-    }
-    
-    /**
-     * getGenerators
-     *
-     * @return Generators
-     */
-    public function getGenerators(): Generators
-    {
-        return $this->generators ?? new Generators($this);
-    }
-
-    /**
-     * getUtilPlayer
-     *
-     * @return UtilPlayer
-     */
-    public function getUtilPlayer(): UtilPlayer
-    {
-        return $this->utilplayer ?? new UtilPlayer($this);
-    }
-    
-    /**
-     * getForms
-     *
-     * @return Forms
-     */
-    public function getForms(): Forms
-    {
-        return $this->forms ?? new Forms($this);
-    }
-
-    /**
-     * getDiscord
-     *
-     * @return Discord
-     */
-    public function getDiscord(): Discord
-    {
-        return $this->discord ?? new Discord($this);
-    }
-
-    /**
-     * getRecipes
-     *
-     * @return Recipes
-     */
-    public function getRecipes(): Recipes
-    {
-        return $this->recipes ?? new Recipes($this);
-    }
-
-    /**
-     * getSpoon
-     *
-     * @return Spoon
-     */
-    public function getSpoon(): Spoon
-    {
-        return $this->spoon ?? new Spoon($this);
-    }
-
-    /**
-     * getProfanity
-     *
-     * @return Profanity
-     */
-    public function getProfanity(): Profanity
-    {
-        return $this->profanity ?? new Profanity($this);
-    }
-
-    /**
-     * getResetStatus
-     *
-     * @return ResetStatus
-     */
-    public function getResetStatus(): ResetStatus
-    {
-        return $this->resetStatus ?? new ResetStatus();
-    }
-
-    /**
-     * getChunkLoader
-     *
-     * @return ChunkLoader
-     */
-    public function getChunkLoader(): ChunkLoader
-    {
-        return $this->chunkLoader ?? new ChunkLoader($this);
-    }
-
-    /**
-     * getDatabase
-     *
-     * @return Database
-     */
-    public function getDatabase(): Database
-    {
-        return $this->database ?? new Database($this);
-    }
-
-    /**
-     * getSQL
-     *
-     * @return DataConnector
-     */
-    public function getSQL(): DataConnector
-    {
-        return $this->sql;
+        return $this->listenerManager ?? new ListenerManager($this);
     }
     
     /**

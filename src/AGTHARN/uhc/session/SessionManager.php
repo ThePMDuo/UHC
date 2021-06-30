@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\session;
 
+use AGTHARN\uhc\session\type\PlayerSession;
 use pocketmine\Player;
 
 class SessionManager

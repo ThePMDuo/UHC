@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AGTHARN\uhc\event;
+namespace AGTHARN\uhc\event\phase;
 
 use pocketmine\event\Event;
 use pocketmine\Player;

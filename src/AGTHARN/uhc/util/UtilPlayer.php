@@ -64,7 +64,7 @@ class UtilPlayer
         $player->setGamemode(Player::SURVIVAL);
         $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
     
-        $this->plugin->getUtilItems()->giveItems($player);
+        $this->plugin->getClass('Items')->giveItems($player);
     }
     
     /**
@@ -75,6 +75,6 @@ class UtilPlayer
      */
     public function toThin(string $str): string
     {
-        return preg_replace("/%*(([a-z0-9_]+\.)+[a-z0-9_]+)/i", "%$1", $str) . TextFormat::ESCAPE . "　";
+        return preg_replace('/%*(([a-z0-9_]+\.)+[a-z0-9_]+)/i', '%$1', $str) . TextFormat::ESCAPE . '　';
     }
 }

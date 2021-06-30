@@ -1,7 +1,8 @@
 -- #!mysql
 -- #{ uhc
 
--- #  { init
+-- #  { data
+-- #    { init
 CREATE TABLE IF NOT EXISTS player_data(
     xuid VARCHAR(36) PRIMARY KEY,
     playername VARCHAR(16) NOT NULL,
@@ -42,5 +43,6 @@ UPDATE player_data
 SET playername=:playername,
     cape=:cape
 WHERE xuid=:xuid;
+-- #   }
 -- #  }
 -- # }

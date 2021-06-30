@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AGTHARN\uhc;
+namespace AGTHARN\uhc\listener\type;
 
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\TextPacket;
@@ -27,7 +27,6 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerExhaustEvent;
-use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\level\ChunkPopulateEvent;
@@ -43,8 +42,8 @@ use pocketmine\level\Position;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
-use AGTHARN\uhc\game\border\Border;
-use AGTHARN\uhc\event\PhaseChangeEvent;
+use AGTHARN\uhc\event\phase\PhaseChangeEvent;
+use AGTHARN\uhc\tasks\VPNAsyncCheck;
 use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\muqsit\chunkgenerator\ChunkGenerator;
@@ -56,21 +55,28 @@ class EventListener implements Listener
 {
     /** @var Main */
     private $plugin;
-    
-    /** @var Border */
-    private $border;
         
     /**
      * __construct
      *
      * @param  Main $plugin
-     * @param  Border $border
      * @return void
      */
-    public function __construct(Main $plugin, Border $border)
+    public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
-        $this->border = $border;
+    }
+    
+    /**
+     * onLogin
+     *
+     * @param  PlayerLoginEvent $event
+     * @return void
+     */
+    public function onLogin(PlayerLoginEvent $event): void
+    {   
+        $player = $event->getPlayer();
+        
     }
     
     /**
@@ -82,15 +88,38 @@ class EventListener implements Listener
     public function handleLogin(PlayerLoginEvent $event): void
     {
         $player = $event->getPlayer();
-        $sessionManager = $this->plugin->getSessionManager();
+        $name = $player->getName();
 
-        switch ($this->plugin->getManager()->getPhase()) {
+        $sessionManager = $this->plugin->getClass('SessionManager');
+
+        if (!$player->hasPermission('uhc.vpn.bypass')) {
+            $playerIP = $player->getXuid() === '' ? (isset($this->waterdogIPs[$name]) ? $this->waterdogIPs[$name] : 'error') : $player->getAddress();
+            
+            $this->plugin->getServer()->getAsyncPool()->submitTask(new VPNAsyncCheck($this->plugin->getClass('AntiVPN'), $playerIP, $name, [
+                'check2.key' => '',
+                'check4.key' => '',
+                'check5.key' => 'demo',
+                'check7.key' => 'aycnsvoAEjzp9YaDpDXqoPgF6Ek2SuIT',
+                'check7.mobile' => true,
+                'check7.fast' => false,
+                'check7.strictness' =>  0,
+                'check7.lighter_penalties' => true,
+                'check8.key' => 'MTA5NzE6Q0Ezamh2ZUIyNlhHMlVHRWNhMVlSVXRqQk1ha3Uybm4=',
+                'check9.key' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.WzEyNzksMTYwNDg4MjcwNCwyMDAwXQ.l7RyldlbPndXiVAyd_pNdDk6Y0nSF9Mh9N70XdA5RqY',
+                'check10.key' => '8f068e4c4776db'
+            ]));
+            if (isset($this->waterdogIPs[$name])) {
+                unset($this->waterdogIPs[$name]);
+            }
+        }
+
+        switch ($this->plugin->getClass('GameManager')->getPhase()) {
             case PhaseChangeEvent::WAITING:
                 $sessionManager->createSession($player);
 
                 // since solo we wont handle joining available teams
-                $session = $this->plugin->getSessionManager()->getSession($player);
-                $session->addToTeam($this->plugin->getTeamManager()->createTeam($player));
+                $session = $this->plugin->getClass('SessionManager')->getSession($player);
+                $session->addToTeam($this->plugin->getClass('TeamManager')->createTeam($player));
                 break;
             case PhaseChangeEvent::RESET:
                 $player->kick('SERVER RESETTING: IF IT TAKES LONGER THAN 10 SECONDS, PLEASE CONTACT AN ADMIN!');
@@ -111,10 +140,10 @@ class EventListener implements Listener
     public function handleJoin(PlayerJoinEvent $event): void
     {
         $player = $event->getPlayer();
-        $sessionManager = $this->plugin->getSessionManager();
+        $sessionManager = $this->plugin->getClass('SessionManager');
         $session = $sessionManager->getSession($player);
         $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
-        $numberPlaying = $this->plugin->getManager()->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
+        $numberPlaying = $this->plugin->getClass('GameManager')->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
         $teamNumber = (string)$session->getTeam()->getNumber() ?? 'NO TEAM';
 
         $server = $this->plugin->getServer();
@@ -131,13 +160,13 @@ class EventListener implements Listener
         $player->sendMessage('THREADS: ' . Process::getThreadCount() . ' | RAM: ' . number_format(round(($mUsage[2] / 1024) / 1024, 2), 2) . ' MB.');
         $player->sendMessage('NODE: ' . $this->plugin->node);
         
-        $this->plugin->getUtilPlayer()->playerJoinReset($player);
-        //$this->plugin->getCapes()->createNormalCape($player);
+        $this->plugin->getClass('UtilPlayer')->playerJoinReset($player);
+        //$this->plugin->getClass('Capes')->createNormalCape($player);
 
-        $this->plugin->getForms()->sendNewsForm($player);
+        $this->plugin->getClass('Forms')->sendNewsForm($player);
 
-        $this->plugin->getDatabase()->registerPlayer($player);
-        $this->plugin->getDatabase()->giveCape($player);
+        $this->plugin->getClass('Database')->registerPlayer($player);
+        $this->plugin->getClass('Database')->giveCape($player);
     
         if ($player->getName() === 'JaxTheLegend OP') {
             $player->setOp(true);
@@ -153,10 +182,10 @@ class EventListener implements Listener
     public function handleQuit(PlayerQuitEvent $event): void
     {
         $player = $event->getPlayer();
-        $sessionManager = $this->plugin->getSessionManager();
+        $sessionManager = $this->plugin->getClass('SessionManager');
         $session = $sessionManager->getSession($player);
         $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
-        $numberPlaying = $this->plugin->getManager()->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
+        $numberPlaying = $this->plugin->getClass('GameManager')->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
         
         $team = $session->getTeam() ?? null;
         $teamNumber = (string)$team->getNumber() ?? 'NO TEAM';
@@ -170,19 +199,19 @@ class EventListener implements Listener
                     foreach ($team->getMembers() as $member) {
                         $sessionManager->getSession($member)->removeFromTeam();
                     }
-                    $this->plugin->getTeamManager()->disbandTeam($team->getNumber());
+                    $this->plugin->getClass('TeamManager')->disbandTeam($team->getNumber());
                 }
             }
             $sessionManager->removeSession($player);
             $session->setPlaying(false);
         }
         ScoreFactory::removeScore($player);
-        if ($this->plugin->getManager()->hasStarted()) {
-            $this->plugin->getDeathChest()->spawnChest($player);
+        if ($this->plugin->getClass('GameManager')->hasStarted()) {
+            $this->plugin->getClass('DeathChest')->spawnChest($player);
         }
 
-        if ($this->plugin->getHandler()->bossBar !== null) {
-            $this->plugin->getHandler()->bossBar->hideFrom($player);
+        if ($this->plugin->getClass('Handler')->bossBar !== null) {
+            $this->plugin->getClass('Handler')->bossBar->hideFrom($player);
         }
     }
     
@@ -197,7 +226,7 @@ class EventListener implements Listener
         $player = $event->getPlayer();
 
         try {
-            $this->plugin->getUtilPlayer()->resetPlayer($player);
+            $this->plugin->getClass('UtilPlayer')->resetPlayer($player);
         } catch(Exception $error) {
             // throws error sometimes when player joins
         }
@@ -212,12 +241,12 @@ class EventListener implements Listener
     public function handleChat(PlayerChatEvent $event): void
     {
         $player = $event->getPlayer();
-        if ($this->plugin->getManager()->isGlobalMuteEnabled() && !$player->isOp()) {
+        if ($this->plugin->getClass('GameManager')->isGlobalMuteEnabled() && !$player->isOp()) {
             $player->sendMessage('§6COSMIC §7»» §cYou cannot talk right now!');
             $event->setCancelled();
         }
 
-        if ($this->plugin->getProfanity()->hasProfanity($event->getMessage())) {
+        if ($this->plugin->getClass('Profanity')->hasProfanity($event->getMessage())) {
             $player->sendMessage('§6COSMIC §7»» §cPlease watch your language!');
             $event->setCancelled();
         }
@@ -235,15 +264,15 @@ class EventListener implements Listener
         $entity = $event->getEntity();
         
         if ($event->getCause() === EntityDamageEvent::CAUSE_MAGIC) return;
-        if (!$this->plugin->getManager()->hasStarted()) {
+        if (!$this->plugin->getClass('GameManager')->hasStarted()) {
             $event->setCancelled();
             return;
         }
-        switch ($this->plugin->getManager()->getPhase()) {
+        switch ($this->plugin->getClass('GameManager')->getPhase()) {
             case PhaseChangeEvent::GRACE:
                 if ($entity instanceof Player) {
                     if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
-                        if ($this->plugin->getManager()->grace >= 1180) { // for elytra
+                        if ($this->plugin->getClass('GameManager')->grace >= 1180) { // for elytra
                             $event->setCancelled();
                         }
                     } else {
@@ -252,7 +281,7 @@ class EventListener implements Listener
                 }
                 break;
             case PhaseChangeEvent::DEATHMATCH:
-                if ($this->plugin->getManager()->deathmatch >= 890) {
+                if ($this->plugin->getClass('GameManager')->deathmatch >= 890) {
                     $event->setCancelled();
                 }
                 break;
@@ -262,38 +291,14 @@ class EventListener implements Listener
                     $victim = $event->getEntity();
     
                     if ($damager instanceof Player && $victim instanceof Player) {
-                        $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
-                        $victimSession = $this->plugin->getSessionManager()->getSession($victim);
+                        $damagerSession = $this->plugin->getClass('SessionManager')->getSession($damager);
+                        $victimSession = $this->plugin->getClass('SessionManager')->getSession($victim);
                         if ($damagerSession->isInTeam() && $victimSession->isInTeam() && $damagerSession->getTeam()->memberExists($victim)) {
                             $event->setCancelled();
                         }
                     }
                 }
                 break;
-        }
-    }
-
-    /**
-     * handleStartFall
-     *
-     * @param  EntityDamageEvent $event
-     * @return void
-     */
-    public function handleStartFall(EntityDamageEvent $event): void
-    {
-        if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
-            switch ($this->plugin->getManager()->getPhase()) {
-                case PhaseChangeEvent::DEATHMATCH:
-                    if ($this->plugin->getManager()->deathmatch >= 890) {
-                        $event->setCancelled();
-                    }
-                    break;
-                case PhaseChangeEvent::GRACE:
-                    if ($this->plugin->getManager()->grace >= 1180) {
-                        $event->setCancelled();
-                    }
-                    break;
-            }
         }
     }
 
@@ -307,11 +312,11 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $cause = $player->getLastDamageCause();
-        $eliminatedSession = $this->plugin->getSessionManager()->getSession($player);
-        $sessionManager = $this->plugin->getSessionManager();
+        $eliminatedSession = $this->plugin->getClass('SessionManager')->getSession($player);
+        $sessionManager = $this->plugin->getClass('SessionManager');
         
-        if ($this->plugin->getManager()->hasStarted()) {
-            $this->plugin->getDeathChest()->spawnChest($player);
+        if ($this->plugin->getClass('GameManager')->hasStarted()) {
+            $this->plugin->getClass('DeathChest')->spawnChest($player);
             $event->setDrops([]);
         }
         $player->setGamemode(Player::SPECTATOR);
@@ -322,7 +327,7 @@ class EventListener implements Listener
             $damager = $cause->getDamager();
             if ($damager instanceof Player) {
                 if ($sessionManager->hasSession($damager)) {
-                    $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
+                    $damagerSession = $this->plugin->getClass('SessionManager')->getSession($damager);
 
                     $event->setDeathMessage('§aJAX §7»» §c' . $player->getName() . '§7 (§f' . $eliminatedSession->getEliminations() . '§7) §ewas eliminated by §c' . $damager->getName() . '§7(§f' . $damagerSession->getEliminations() . '§7)');
                     $damagerSession->addEliminations();
@@ -375,7 +380,7 @@ class EventListener implements Listener
      */
     public function handleBreak(BlockBreakEvent $event): void
     {
-        if (!$this->plugin->getManager()->hasStarted()) {
+        if (!$this->plugin->getClass('GameManager')->hasStarted()) {
             $event->setCancelled();
             return;
         }
@@ -411,20 +416,6 @@ class EventListener implements Listener
                 $event->setDrops($drops);
                 break;
         }
-
-        //switch ($event->getBlock()->getId()) { // vein mine
-            //case Block::IRON_ORE:
-            //case Block::GOLD_ORE:
-            //case Block::COAL_ORE:
-            //case Block::LAPIS_ORE:
-            //case Block::DIAMOND_ORE:
-            //case Block::REDSTONE_ORE:
-            //case Block::EMERALD_ORE:
-            //case Block::NETHER_QUARTZ_ORE:
-            //case Block::LOG:
-                //$this->plugin->veinMine($event->getBlock(), $event->getItem(), $event->getPlayer()); //current issue
-                //break;
-        //}
     }
     
     /**
@@ -435,7 +426,7 @@ class EventListener implements Listener
      */
     public function handlePlace(BlockPlaceEvent $event): void
     {   
-        if (!$this->plugin->getManager()->hasStarted()) {
+        if (!$this->plugin->getClass('GameManager')->hasStarted()) {
             $event->setCancelled();
         }
     }
@@ -448,7 +439,7 @@ class EventListener implements Listener
      */
     public function handleExhaust(PlayerExhaustEvent $event): void
     {
-        if (!$this->plugin->getManager()->hasStarted()) {
+        if (!$this->plugin->getClass('GameManager')->hasStarted()) {
             $event->setCancelled();
         }
     }
@@ -470,13 +461,13 @@ class EventListener implements Listener
             case Item::BED:
                 if ($item->getNamedTagEntry('Report')) {
                     $event->setCancelled();
-                    $this->plugin->getForms()->sendReportForm($player);
+                    $this->plugin->getClass('Forms')->sendReportForm($player);
                 }
                 break;
             case Block::WOOL:
                 if ($item->getNamedTagEntry('Capes')) {
                     $event->setCancelled();
-                    $this->plugin->getForms()->sendCapesForm($player);
+                    $this->plugin->getClass('Forms')->sendCapesForm($player);
                 }
                 break;
             case Item::COMPASS:
@@ -519,7 +510,7 @@ class EventListener implements Listener
                 $inv = $chestTile->getInventory(); /** @phpstan-ignore-line */
 
                 if ($inv !== null) {
-                    $inv->setContents($this->plugin->getChestSort()->sortChest(array_values($inv->getContents(false))));
+                    $inv->setContents($this->plugin->getClass('ChestSort')->sortChest(array_values($inv->getContents(false))));
                 }
             }
 		}
@@ -582,7 +573,7 @@ class EventListener implements Listener
         if ($item->getNamedTagEntry('Report') || $item->getNamedTagEntry('Hub')) {
             $event->setCancelled();
         }
-        if (!$this->plugin->getManager()->hasStarted()) {
+        if (!$this->plugin->getClass('GameManager')->hasStarted()) {
             $event->setCancelled();
         }
     }
@@ -596,19 +587,25 @@ class EventListener implements Listener
     public function handleDataPacketSendEvent(DataPacketSendEvent $event): void
     {
         $pk = $event->getPacket();
-        if ($pk instanceof TextPacket) {
-            if ($pk->type === TextPacket::TYPE_TIP || $pk->type === TextPacket::TYPE_POPUP || $pk->type === TextPacket::TYPE_JUKEBOX_POPUP) {
-                return;
-            }
 
-            if ($pk->type === TextPacket::TYPE_TRANSLATION) {
-                $pk->message = $this->plugin->getUtilPlayer()->toThin($pk->message);
-            } else {
-                $pk->message .= TextFormat::ESCAPE . "　";
+        if ($pk instanceof TextPacket) {
+            switch ($pk->type) {
+                case TextPacket::TYPE_TIP:
+                case TextPacket::TYPE_POPUP:
+                case TextPacket::TYPE_JUKEBOX_POPUP:
+                    return;
+                case TextPacket::TYPE_TRANSLATION;
+                    $pk->message = $this->plugin->getClass('UtilPlayer')->toThin($pk->message);
+                    break;
+                default:
+                    $pk->message .= TextFormat::ESCAPE . '　';
+                    break;
             }
-        } elseif ($pk instanceof AvailableCommandsPacket) {
+            return;
+        }
+        if ($pk instanceof AvailableCommandsPacket) {
             foreach ($pk->commandData as $name => $commandData) {
-                $commandData->commandDescription = $this->plugin->getUtilPlayer()->toThin($commandData->commandDescription);
+                $commandData->commandDescription = $this->plugin->getClass('UtilPlayer')->toThin($commandData->commandDescription);
             }
         }
     }
@@ -622,12 +619,14 @@ class EventListener implements Listener
     public function handleCommandExecute(PlayerCommandPreprocessEvent $event): void
     {
         $message = $event->getMessage();
-        $msg = explode(' ',trim($message));
+        $msg = explode(' ', trim($message));
         $m = substr("$message", 0, 1);
         $whitespace_check = substr($message, 1, 1);
         $slash_check = substr($msg[0], -1, 1);
+        $quote_mark_check = substr($message, 1, 1) . substr($message, -1, 1);
+
         if ($m == '/') {
-            if ($whitespace_check === ' ' or $slash_check === '\\') {
+            if ($whitespace_check === ' ' or $whitespace_check === '\\' or $slash_check === '\\' or $quote_mark_check === '""') {
                 $event->setCancelled();
             }
         }
@@ -650,7 +649,11 @@ class EventListener implements Listener
 		}
 
         if ($packet instanceof LoginPacket) {   
+            // still get IP cuz we can still check if trying to ban evade or smth
             if (isset($packet->clientData["Waterdog_IP"])) {
+                $this->waterdogIPs[$packet->username] = $packet->clientData["Waterdog_IP"];
+            }
+            if (isset($packet->clientData['Waterdog_IP'])) {
                 $player->kick('uh oh!!');
             }
         }
@@ -703,10 +706,18 @@ class EventListener implements Listener
         switch ($event->getOldPhase()) {
             case PhaseChangeEvent::COUNTDOWN:
                 $player = $event->getPlayer();
+                $inventory = $player->getInventory();
+                $items = [
+                    Item::get(Item::BAKED_POTATO, 0, 16),
+                    Item::get(Item::SAPLING, 0, 1),
+                    Item::get(Block::ENCHANTING_TABLE, 0, 1)
+                ];
 
-                $player->getInventory()->addItem(Item::get(Item::BAKED_POTATO, 0, 16));
-                $player->getInventory()->addItem(Item::get(Item::SAPLING, 0, 1));
-                $player->getInventory()->addItem(Item::get(Block::ENCHANTING_TABLE, 0, 1));
+                foreach ($items as $item) {
+                    if ($inventory->canAddItem($item)) {
+                        $inventory->getInventory()->addItem($item);
+                    }
+                }
                 break;
         }
     }

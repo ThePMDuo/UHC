@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AGTHARN\uhc\session;
+namespace AGTHARN\uhc\session\type;
 
 use pocketmine\Player;
 

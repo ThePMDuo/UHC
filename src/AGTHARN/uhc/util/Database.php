@@ -27,14 +27,14 @@ class Database
     }
 
     /**
-     * initDatabase
+     * initDataDatabase
      *
      * @return DataConnector
      */
-    public function initDatabase(): DataConnector
+    public function initDataDatabase(): DataConnector
     {
         return libasynql::create($this->plugin, $this->plugin->secrets->get('database'), [
-            "mysql" => "database_stmts/mysql.sql"
+            'mysql' => 'database_stmts/mysql.sql'
         ]);
     }
     
@@ -46,16 +46,16 @@ class Database
      */
     public function giveCape(Player $player): void
     {   
-        $this->plugin->getSQL()->executeSelect("uhc.loadplayer", ["xuid" => $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers')], function(array $rows): void
+        $this->plugin->getClass('DataConnector')->executeSelect('uhc.data.loadplayer', ['xuid' => $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers')], function(array $rows): void
         {
             foreach ($rows as [
-                "xuid" => $xuid,
-                "playername" => $playername,
-                "cape" => $cape
+                'xuid' => $xuid,
+                'playername' => $playername,
+                'cape' => $cape
             ]) {
                 $player = $this->plugin->getServer()->getPlayerExact($playername);
                 if ($xuid === $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers')) {
-                    $this->plugin->getCapes()->giveCape($player, $cape);
+                    $this->plugin->getClass('Capes')->giveCape($player, $cape);
                 }
             }
         });
@@ -69,10 +69,10 @@ class Database
      */
     public function registerPlayer(Player $player): void
     {
-        $this->plugin->getSQL()->executeInsert("uhc.register", [
-            "xuid" => $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers'),
-            "playername" => $player->getName(),
-            "cape" => "normal_cape"
+        $this->plugin->getClass('DataConnector')->executeInsert('uhc.data.register', [
+            'xuid' => $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers'),
+            'playername' => $player->getName(),
+            'cape' => 'normal_cape'
         ]);
     }
         
@@ -85,10 +85,10 @@ class Database
      */
     public function changeCape(Player $player, string $cape): void
     {
-        $this->plugin->getSQL()->executeChange("uhc.update", [
-            "xuid" => $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers'),
-            "playername" => $player->getName(),
-            "cape" => $cape
+        $this->plugin->getClass('DataConnector')->executeChange('uhc.data.update', [
+            'xuid' => $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers'),
+            'playername' => $player->getName(),
+            'cape' => $cape
         ]);
     }
 }

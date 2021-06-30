@@ -10,7 +10,7 @@ use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\CortexPE\Commando\BaseCommand;
 
-class SpectatorCommand extends BaseCommand
+class ModCommand extends BaseCommand
 {
 
     /**
@@ -59,29 +59,9 @@ class SpectatorCommand extends BaseCommand
             $sender->sendMessage('COSMIC »» You can only use this command in-game!');
             return;
         }
-        if ($sender->getGamemode() !== Player::SPECTATOR) {
-            $sender->sendMessage('§6COSMIC §7»» §cYou must be eliminated to use this command!');
-            return;
+        
+        if ($sender->hasPermission('uhc.mod.command')) {
+            $this->plugin->getClass('Forms')->sendSelectionModForm($sender);
         }
-        if (!isset($args[0])) {
-            $sender->sendMessage('§6COSMIC §7»» §cPlease specify a player to spectate!');
-            return;
-        }
-
-        $player = $this->plugin->getServer()->getPlayer($args[0]) ?? null;
-        if ($player === $sender) {
-            $sender->sendMessage('§6COSMIC §7»» §cYou cant spectate yourself!');
-            return;
-        }
-        if ($player === null) {
-            $sender->sendMessage('§6COSMIC §7»» §cThat player is not in the server!');
-            return;
-        }
-        if (!$this->plugin->getClass('SessionManager')->getSession($player)->isPlaying()) {
-            $sender->sendMessage('§6COSMIC §7»» §cThat player is not in the game!');
-            return;
-        }
-        $sender->teleport($player->getPosition());
-        $sender->sendMessage('§6COSMIC §7»» §aTeleported you to: ' . $player->getName());
     }
 }

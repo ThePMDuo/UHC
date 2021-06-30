@@ -40,7 +40,7 @@ class Spoon
     {   
         $server = $this->plugin->getServer();
         $reflectionClass = new \ReflectionClass($server);
-        $method = $reflectionClass->getMethod("getName");
+        $method = $reflectionClass->getMethod('getName');
         $start = $method->getStartLine();
         $end = $method->getEndLine();
 
@@ -48,13 +48,13 @@ class Spoon
         $length = $end - $start;
 
         $source = file($filename);
-        $body = implode("", array_slice($source, $start, $length));
+        $body = implode('', array_slice($source, $start, $length));
 
-        if (strpos($body, "(") !== false || strpos($body, ")") !== false) {
+        if (strpos($body, '(') !== false || strpos($body, ')') !== false) {
             return true;
         }
         foreach ($source as $line) {
-            if (strpos($line, "SpoonDetector") !== false) {
+            if (strpos($line, 'SpoonDetector') !== false) {
                 return true;
             }
         }
@@ -86,9 +86,9 @@ class Spoon
             $ip = $server->getIp();
             $port = $server->getPort();
 
-            $this->plugin->getDiscord()->sendSpoonReport($serverVersion, $spoonVersion, $spoonName, $ip, $port);
+            $this->plugin->getClass('Discord')->sendSpoonReport($serverVersion, $spoonVersion, $spoonName, $ip, $port);
             return;
         }
-        $server->getLogger()->info("Checks Completed!");
+        $server->getLogger()->info('Checks Completed!');
     }
 }

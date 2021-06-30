@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AGTHARN\uhc\game\team;
+namespace AGTHARN\uhc\game\team\type;
 
 use pocketmine\Player;
 
@@ -33,16 +33,19 @@ class Team
     {
         return $this->members;
     }
-    
+
     /**
-     * memberExists
+     * getMemberNames
      *
-     * @param  Player $player
-     * @return bool
+     * @return array
      */
-    public function memberExists(Player $player): bool
-    {
-        return isset($this->members[$player->getUniqueId()->toString()]);
+    public function getMemberNames(): array
+    {   
+        $memberNames = [];
+        foreach ($this->members as $member) {
+            $memberNames[] = $member->getName();
+        }
+        return $memberNames;
     }
     
     /**

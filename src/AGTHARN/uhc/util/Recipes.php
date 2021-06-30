@@ -34,12 +34,16 @@ class Recipes
     {   
         $playerHead = Item::get(Item::MOB_HEAD, 3, 1);
         $playerHead->setNamedTagEntry(new StringTag('player_head_1'));
-        $this->plugin->getServer()->getCraftingManager()->registerRecipe(
-            new ShapedRecipe(['GGG', 'GHG', 'GGG'], [
+        $this->plugin->getServer()->getCraftingManager()->registerRecipe(new ShapedRecipe(
+        [
+            'GGG',
+            'GHG',
+            'GG'
+        ], [
             "G" => Item::get(Item::GOLD_INGOT, 0, 1),
             "H" => $playerHead
-            ], [
+        ], [
             $this->plugin->getUtilItems()->getGoldenHead()
-            ]));
+        ]));
     }
 }

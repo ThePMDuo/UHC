@@ -32,7 +32,7 @@ class PingCommand extends BaseCommand
     public function __construct(Main $plugin, string $name, string $description, $aliases = [])
     {
         $this->plugin = $plugin;
-        
+
         parent::__construct($plugin, $name, $description, $aliases);
     }
 
@@ -53,7 +53,8 @@ class PingCommand extends BaseCommand
      * @param  array $args
      * @return void
      */
-    public function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
+    public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
+    {
         if (!$sender instanceof Player) {
             $sender->sendMessage('COSMIC »» You can only use this command in-game!');
             return;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AGTHARN\uhc\game\scenario;
+namespace AGTHARN\uhc\game\scenario\type;
 
 use pocketmine\event\HandlerList;
 use pocketmine\event\Listener;
