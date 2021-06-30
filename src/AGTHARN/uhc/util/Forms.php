@@ -213,7 +213,7 @@ class Forms
             if ($data !== null) {
 
                 $player->sendMessage('§aProcessing request. Please wait.');
-                if (empty($player || $data[0] || $data[1] || $data[1])) {
+                if (empty($player) || empty($data[0]) || empty($data[1]) || empty($data[1])) {
                     $player->sendMessage('§cFailed to process request. Error: Empty Variable.');
                 } else {
                     $this->sendConfirmation1ModForm($player, $data[0], $data[1], $data[2]);
