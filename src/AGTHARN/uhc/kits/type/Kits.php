@@ -44,6 +44,6 @@ class Kits
      */
     public function countKits(): int
     {
-        return count($this->getKits());
+        return count($this->getKitsList());
     }
 }

@@ -13,9 +13,9 @@ class KitsManager
      * giveKit
      *
      * @param  Player $player
-     * @return string
+     * @return void
      */
-    public function giveKit(Player $player): string
+    public function giveKit(Player $player): void
     {   
         $array = $this->getKits()->getKitsList();
         $kit = $array[array_rand(array_flip($array))];

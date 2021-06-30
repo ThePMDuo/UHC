@@ -718,7 +718,7 @@ class EventListener implements Listener
 
                 foreach ($items as $item) {
                     if ($inventory->canAddItem($item)) {
-                        $inventory->getInventory()->addItem($item);
+                        $inventory->addItem($item);
                     }
                 }
                 break;

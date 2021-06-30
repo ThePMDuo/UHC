@@ -180,7 +180,7 @@ class Forms
                 $selectedName = $this->playerArray[$player->getName()][$t1];
 
                 $player->sendMessage('§aProcessing request. Please wait.');
-                if (empty($player) || empty($selectedName) || empty($data[1]) || empty($data[2]))) {
+                if (empty($player) || empty($selectedName) || empty($data[1]) || empty($data[2])) {
                     $player->sendMessage('§cFailed to process request. Error: Empty Variable.');
                 } else {
                     $this->sendConfirmation1ModForm($player, $selectedName, $data[1], $data[2]);

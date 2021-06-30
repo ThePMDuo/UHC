@@ -7,36 +7,40 @@ use pocketmine\entity\utils\Bossbar;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
-use AGTHARN\uhc\game\scenario\ScenarioManager;
-use AGTHARN\uhc\game\reset\ResetStatus;
 use AGTHARN\uhc\game\team\TeamManager;
-use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\command\ReportCommand;
 use AGTHARN\uhc\command\PingCommand;
 use AGTHARN\uhc\command\ModCommand;
+use AGTHARN\uhc\util\Generators;
+use AGTHARN\uhc\util\Database;
+use AGTHARN\uhc\util\Discord;
+use AGTHARN\uhc\util\Recipes;
+use AGTHARN\uhc\util\Spoon;
+
+// DONT DELETE
+use AGTHARN\uhc\listener\type\ListenerManager;
+
+use AGTHARN\uhc\game\scenario\ScenarioManager;
+use AGTHARN\uhc\game\reset\ResetStatus;
+use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\GameManager;
 use AGTHARN\uhc\util\ChunkLoader;
 use AGTHARN\uhc\util\Punishments;
 use AGTHARN\uhc\util\UtilPlayer;
-use AGTHARN\uhc\util\Generators;
 use AGTHARN\uhc\util\DeathChest;
 use AGTHARN\uhc\util\Directory;
 use AGTHARN\uhc\util\ChestSort;
 use AGTHARN\uhc\util\Profanity;
-use AGTHARN\uhc\util\Database;
 use AGTHARN\uhc\util\AntiVPN;
-use AGTHARN\uhc\util\Discord;
 use AGTHARN\uhc\util\Handler;
-use AGTHARN\uhc\util\Recipes;
-use AGTHARN\uhc\util\Spoon;
 use AGTHARN\uhc\util\Items;
 use AGTHARN\uhc\util\Capes;
 use AGTHARN\uhc\util\Forms;
 use AGTHARN\uhc\kits\Kits;
+// DONT OK
 
-use AGTHARN\uhc\libs\poggit\libasynql\DataConnector;
 use AGTHARN\uhc\libs\poggit\libasynql\libasynql;
 
 class Main extends PluginBase
@@ -115,7 +119,7 @@ class Main extends PluginBase
 
         $this->listenerManager = new ListenerManager($this);
 
-        $this->getScheduler()->scheduleRepeatingTask($this->getManager(), 20);
+        $this->getScheduler()->scheduleRepeatingTask($this->getClass('GameManager'), 20);
         $this->getListenerManager()->registerListeners();
         $this->registerCommands();
     
@@ -132,7 +136,7 @@ class Main extends PluginBase
      */
     public function onDisable(): void
     {   
-        $this->getGenerators()->removeAllWorlds();
+        $this->getClass('Generators')->removeAllWorlds();
 
         if (isset($this->data)) $this->data->close();
     }
@@ -195,7 +199,7 @@ class Main extends PluginBase
     public function getClass(string $namespace): mixed
     {
         if (
-            strpos($namespace, 'KitsManager') !== false ||
+            strpos($namespace, 'SessionManager') !== false ||
             strpos($namespace, 'TeamManager') !== false ||
             strpos($namespace, 'KitsManager') !== false
         ) {
