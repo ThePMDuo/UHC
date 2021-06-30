@@ -35,7 +35,7 @@ class Punishments
                 $player->sendMessage('§cBan request unsuccessful!');
                 break;
             case 'CREATE_KICK':
-                if ($this->plugin->getServer()->getPlayerByName($selectedName)->kick($reason, false)) {
+                if ($this->plugin->getServer()->getPlayerExact($selectedName)->kick($reason, false)) {
                     $player->sendMessage('§aKick request successfully completed!');
                     return;
                 }

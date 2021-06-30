@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\listener\type;
 
+use AGTHARN\uhc\Main;
+
 class ListenerManager
 {
     /** @var Main */

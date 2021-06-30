@@ -53,6 +53,9 @@ use Exception;
 
 class EventListener implements Listener
 {
+    /** @var array */
+    private $waterdogIPs = [];
+    
     /** @var Main */
     private $plugin;
         

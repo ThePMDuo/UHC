@@ -5,7 +5,7 @@ namespace AGTHARN\uhc\session\type;
 
 use pocketmine\Player;
 
-use AGTHARN\uhc\game\team\Team;
+use AGTHARN\uhc\game\team\type\Team;
 
 class PlayerSession
 {

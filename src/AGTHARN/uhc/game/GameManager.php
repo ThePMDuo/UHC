@@ -9,7 +9,7 @@ use pocketmine\level\Position;
 
 use AGTHARN\uhc\game\timer\GameTimer;
 use AGTHARN\uhc\game\border\Border;
-use AGTHARN\uhc\event\PhaseChangeEvent;
+use AGTHARN\uhc\event\phase\PhaseChangeEvent;
 use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;

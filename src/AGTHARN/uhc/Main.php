@@ -83,55 +83,8 @@ class Main extends PluginBase
     /** @var int */
     public $spawnPosZ = 0;
 
-    /** @var GameManager */
-    private $gameManager;
-    /** @var TeamManager */
-    private $teamManager;
-    /** @var SessionManager */
-    private $sessionManager;
-    /** @var ScenarioManager */
-    private $scenarioManager;
-    /** @var Handler */
-    private $utilHandler;
-    /** @var Border */
-    private $border;
-    /** @var Items */
-    private $items;
-    /** @var ChestSort */
-    private $chestSort;
-    /** @var DeathChest */
-    private $deathChest;
-    /** @var KitsManager */
-    private $kitsManager;
-    /** @var Kits */
-    private $kits;
-    /** @var Capes */
-    private $capes;
-    /** @var Generators */
-    private $generators;
-    /** @var UtilPlayer */
-    private $utilplayer;
-    /** @var Forms */
-    private $forms;
-    /** @var Discord */
-    private $discord;
-    /** @var Recipes */
-    private $recipes;
-    /** @var Spoon */
-    private $spoon;
-    /** @var Profanity */
-    private $profanity;
-    /** @var ResetStatus */
-    private $resetStatus;
-    /** @var ChunkLoader */
-    private $chunkLoader;
     /** @var ListenerManager */
     private $listenerManager;
-
-    /** @var Database */
-    private $database;
-    /** @var DataConnector */
-    private $sql;
     
     /**
      * onEnable
@@ -160,33 +113,7 @@ class Main extends PluginBase
         $this->serverReportsWebhook = $this->secrets->get('serverReportsWebhook');
         $this->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
 
-        // reason for this would be to "supress" errors from team adding
-        $this->gameManager = new GameManager($this, $this->getBorder());
-        $this->scenarioManager = new ScenarioManager($this);
-        $this->sessionManager = new SessionManager();
-        $this->teamManager = new TeamManager();
-        $this->utilHandler = new Handler($this, $this->getBorder());
-        $this->border = new Border($this->getServer()->getLevelByName($this->map));
-        $this->items = new Items($this);
-        $this->chestSort = new ChestSort($this);
-        $this->directory = new Directory($this);
-        $this->deathChest = new DeathChest($this);
-        $this->kitsManager = new KitsManager();
-        $this->capes = new Capes($this);
-        $this->generators = new Generators($this);
-        $this->utilplayer = new UtilPlayer($this);
-        $this->forms = new Forms($this);
-        $this->discord = new Discord($this);
-        $this->recipes = new Recipes($this);
-        $this->spoon = new Spoon($this);
-        $this->profanity = new Profanity($this);
-        $this->resetStatus = new ResetStatus();
-        $this->chunkLoader = new ChunkLoader($this);
-        $this->database = new Database($this);
-        $this->punishments = new Punishments($this);
-        $this->antiVPN = new AntiVPN($this);
-
-        $this->listenerManager == new ListenerManager($this);
+        $this->listenerManager = new ListenerManager($this);
 
         $this->getScheduler()->scheduleRepeatingTask($this->getManager(), 20);
         $this->getListenerManager()->registerListeners();
@@ -267,7 +194,11 @@ class Main extends PluginBase
      */
     public function getClass(string $namespace): mixed
     {
-        if (strpos($namespace, ('SessionManager' || 'TeamManager' || 'KitsManager')) !== false) {
+        if (
+            strpos($namespace, 'KitsManager') !== false ||
+            strpos($namespace, 'TeamManager') !== false ||
+            strpos($namespace, 'KitsManager') !== false
+        ) {
             return new $namespace();
         }
         return new $namespace($this);
@@ -340,5 +271,25 @@ class Main extends PluginBase
             return 'SERVER OPERATIONAL';
         }
         return 'SERVER UNOPERATIONAL: POSSIBLY RESETTING';
+    }
+    
+    /**
+     * isPhar
+     *
+     * @return bool
+     */
+    public function isPhar(): bool
+    {
+        return parent::isPhar();
+    }
+    
+    /**
+     * getFile
+     *
+     * @return string
+     */
+    public function getFile(): string
+    {
+        return parent::getFile();
     }
 }

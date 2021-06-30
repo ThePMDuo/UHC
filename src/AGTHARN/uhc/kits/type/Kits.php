@@ -9,11 +9,11 @@ class Kits
 {    
     
     /**
-     * getKits
+     * getKitsList
      *
      * @return array
      */
-    public function getKits(): array
+    public function getKitsList(): array
     {
         $kits['stoneAge'] = [Item::get(Item::STONE_SWORD, 0, 1), Item::get(Item::CHAINMAIL_CHESTPLATE, 0, 1), Item::get(Item::STONE, 0, 32)];
         $kits['stoneKid'] = [Item::get(Item::STONE_SWORD, 0, 1), Item::get(Item::CHAINMAIL_LEGGINGS, 0, 1), Item::get(Item::COBBLESTONE, 0, 32)];
