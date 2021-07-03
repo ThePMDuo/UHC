@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace AGTHARN\uhc\listener\type;
+namespace AGTHARN\uhc\listener;
 
 use AGTHARN\uhc\Main;
 
@@ -28,9 +28,9 @@ class ListenerManager
      */
     public function registerListeners(): void
     {
-        $this->plugin->getClass('Directory')->callDirectory("listener" . DIRECTORY_SEPARATOR . "types", function (string $namespace): void {
+        $this->plugin->getClass('Directory')->callDirectory("listener" . DIRECTORY_SEPARATOR . "type", function (string $namespace): void {
             if (strpos($namespace, "EventListener") !== false) {
-                $class = new $namespace($this);
+                $class = new $namespace($this->plugin);
             } else {
                 $class = new $namespace();
             }

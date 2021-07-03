@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc;
 
-use pocketmine\entity\utils\Bossbar;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
@@ -12,34 +11,7 @@ use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\command\ReportCommand;
 use AGTHARN\uhc\command\PingCommand;
 use AGTHARN\uhc\command\ModCommand;
-use AGTHARN\uhc\util\Generators;
 use AGTHARN\uhc\util\Database;
-use AGTHARN\uhc\util\Discord;
-use AGTHARN\uhc\util\Recipes;
-use AGTHARN\uhc\util\Spoon;
-
-// DONT DELETE
-use AGTHARN\uhc\listener\type\ListenerManager;
-
-use AGTHARN\uhc\game\scenario\ScenarioManager;
-use AGTHARN\uhc\game\reset\ResetStatus;
-use AGTHARN\uhc\game\border\Border;
-use AGTHARN\uhc\session\SessionManager;
-use AGTHARN\uhc\game\GameManager;
-use AGTHARN\uhc\util\ChunkLoader;
-use AGTHARN\uhc\util\Punishments;
-use AGTHARN\uhc\util\UtilPlayer;
-use AGTHARN\uhc\util\DeathChest;
-use AGTHARN\uhc\util\Directory;
-use AGTHARN\uhc\util\ChestSort;
-use AGTHARN\uhc\util\Profanity;
-use AGTHARN\uhc\util\AntiVPN;
-use AGTHARN\uhc\util\Handler;
-use AGTHARN\uhc\util\Items;
-use AGTHARN\uhc\util\Capes;
-use AGTHARN\uhc\util\Forms;
-use AGTHARN\uhc\kits\Kits;
-// DONT OK
 
 use AGTHARN\uhc\libs\poggit\libasynql\DataConnector;
 use AGTHARN\uhc\libs\poggit\libasynql\libasynql;
@@ -92,6 +64,9 @@ class Main extends PluginBase
     private $listenerManager;
     /** @var DataConnector */
     private $data;
+
+    /** @var string|array */
+    private $contents = '';
     
     /**
      * onEnable
@@ -100,34 +75,34 @@ class Main extends PluginBase
      */
     public function onEnable(): void
     {   
-        $this->runCompatibilityChecks();
-
-        @mkdir($this->getDataFolder() . 'scenarios');
-        $this->saveResource('capes/normal_cape.png');
-        $this->saveResource('capes/potion_cape.png');
-        $this->saveResource('swearwords.yml');
-        $this->saveResource('secrets.yml');
-        $this->getClass('Spoon')->makeTheCheck();
-
-        $this->getClass('Generators')->prepareWorld();
-        //$this->getClass('Generators')->prepareNether();
-
-        $this->getClass('Recipes')->registerGoldenHead();
-
+        $this->contents = $this->getDirContents(str_replace('/', DIRECTORY_SEPARATOR, $this->getServer()->getDataPath() . 'plugins/UHC/src/') . 'AGTHARN/uhc');
         $this->secrets = new Config($this->getDataFolder() . 'secrets.yml', Config::YAML);
 
         $this->reportWebhook = $this->secrets->get('reportWebhook');
         $this->serverReportsWebhook = $this->secrets->get('serverReportsWebhook');
         $this->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
 
-        $this->listenerManager = new ListenerManager($this);
+        $this->listenerManager = $this->getClass('ListenerManager');
+
+        @mkdir($this->getDataFolder() . 'scenarios');
+        $this->saveResource('capes/normal_cape.png');
+        $this->saveResource('capes/potion_cape.png');
+        $this->saveResource('swearwords.yml');
+        $this->saveResource('secrets.yml');
+        
+        $this->getClass('Recipes')->registerGoldenHead();
+        $this->getClass('Spoon')->makeTheCheck();
+
+        $this->getClass('Generators')->prepareWorld();
+        //$this->getClass('Generators')->prepareNether();
 
         $this->getScheduler()->scheduleRepeatingTask($this->getClass('GameManager'), 20);
-        $this->getListenerManager()->registerListeners();
+        $this->getClass('ListenerManager')->registerListeners();
+        $this->runCompatibilityChecks();
         $this->registerCommands();
     
         $this->getClass('Discord')->sendStartReport($this->getServer()->getVersion(), $this->buildNumber, $this->node, $this->uhcServer);
-        
+
         $this->data = $this->getClass('Database')->initDataDatabase();
         $this->data->executeGeneric('uhc.data.init');
     }
@@ -155,10 +130,10 @@ class Main extends PluginBase
             $this->getServer()->getLogger()->error('GD Lib is disabled! Turning on safe mode!');
             $this->setOperational(false);
         }
-        if (!in_array($this->getServer()->getApiVersion(), $this->getDescription()->getCompatibleApis())) {
-            $this->getServer()->getLogger()->error('Incompatible version! Turning on safe mode!');
-            $this->setOperational(false);
-        }
+        //if (!in_array($this->getServer()->getApiVersion(), $this->getDescription()->getCompatibleApis())) {
+            //$this->getServer()->getLogger()->error('Incompatible version! Turning on safe mode!');
+            //$this->setOperational(false);
+        //}
     }
     
     /**
@@ -196,39 +171,56 @@ class Main extends PluginBase
     /**
      * getClass
      *
-     * @param  string $namespace
+     * @param  string $search
      * @return mixed
      */
-    public function getClass(string $namespace): mixed
-    {
-        if (
-            strpos($namespace, 'SessionManager') !== false ||
-            strpos($namespace, 'TeamManager') !== false ||
-            strpos($namespace, 'KitsManager') !== false
-        ) {
+    public function getClass(string $search): mixed
+    {   
+        $pluginMainPath = str_replace('/', DIRECTORY_SEPARATOR, $this->getServer()->getDataPath() . 'plugins/UHC/src/');
+        $namespace = '';
+
+        foreach ($this->contents as $object) {
+            if (strpos((string)$object, $search) !== false) {
+                $namespace = preg_replace("/(.+)\.php$/", "$1", str_replace($pluginMainPath, '', (string)$object));
+            }
+        }
+        
+        if (strpos($namespace, 'SessionManager') !== false || strpos($namespace, 'TeamManager') !== false || strpos($namespace, 'KitsManager') !== false) {
             return new $namespace();
+        } elseif (strpos($namespace, 'GameManager') !== false || strpos($namespace, 'Handler') !== false) {
+            return new $namespace($this, $this->getClass('Border'));
+        } elseif (strpos($namespace, 'Border') !== false) {
+            return new $namespace($this->getServer()->getLevelByName($this->map));
+        } elseif (strpos($namespace, 'DataConnector') !== false) {
+            return $this->data;
+        } elseif (strpos($namespace, 'Database') !== false) {
+            return new Database($this);
         }
         return new $namespace($this);
-    }  
-
-    /**
-     * getBossBar
-     *
-     * @return mixed
-     */
-    public function getBossBar(string $text, float $float)
-    {
-        return new Bossbar($text, $float); /** @phpstan-ignore-line */
     }
 
     /**
-     * getListenerManager
+     * getDirContents
      *
-     * @return ListenerManager
+     * @param  mixed $dir
+     * @param  string $filter
+     * @param  array $results
+     * @return array
      */
-    public function getListenerManager(): ListenerManager
+    public function getDirContents($dir, string $filter = '', array &$results = array()): array 
     {
-        return $this->listenerManager ?? new ListenerManager($this);
+        $files = preg_grep('/^([^.])/', (array)scandir($dir));
+
+        foreach($files as $key => $value){
+            $path = (string)realpath($dir.DIRECTORY_SEPARATOR.$value); 
+
+            if(!is_dir($path)) {
+                if(empty($filter) || preg_match($filter, $path)) $results[] = $path;
+            } elseif($value != "." && $value != "..") {
+                $this->getDirContents($path, $filter, $results);
+            }
+        }
+        return $results;
     }
     
     /**

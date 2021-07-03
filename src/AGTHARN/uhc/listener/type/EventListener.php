@@ -55,6 +55,8 @@ class EventListener implements Listener
 {
     /** @var array */
     private $waterdogIPs = [];
+    /** @var array */
+    private $cacheSessions = [];
     
     /** @var Main */
     private $plugin;
@@ -71,18 +73,6 @@ class EventListener implements Listener
     }
     
     /**
-     * onLogin
-     *
-     * @param  PlayerLoginEvent $event
-     * @return void
-     */
-    public function onLogin(PlayerLoginEvent $event): void
-    {   
-        $player = $event->getPlayer();
-        
-    }
-    
-    /**
      * handleLogin
      *
      * @param  PlayerLoginEvent $event
@@ -92,9 +82,12 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $name = $player->getName();
-
         $sessionManager = $this->plugin->getClass('SessionManager');
 
+        $session = $sessionManager->createSession($player);
+
+        // retarded shit i have to do
+        $this->cacheSessions[$player->getUniqueId()->toString()] = $session;
         if (!$player->hasPermission('uhc.vpn.bypass')) {
             $playerIP = $player->getXuid() === '' ? (isset($this->waterdogIPs[$name]) ? $this->waterdogIPs[$name] : 'error') : $player->getAddress();
             
@@ -118,10 +111,7 @@ class EventListener implements Listener
 
         switch ($this->plugin->getClass('GameManager')->getPhase()) {
             case PhaseChangeEvent::WAITING:
-                $sessionManager->createSession($player);
-
                 // since solo we wont handle joining available teams
-                $session = $this->plugin->getClass('SessionManager')->getSession($player);
                 $session->addToTeam($this->plugin->getClass('TeamManager')->createTeam($player));
                 break;
             case PhaseChangeEvent::RESET:
@@ -144,7 +134,8 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $sessionManager = $this->plugin->getClass('SessionManager');
-        $session = $sessionManager->getSession($player);
+        // part of the retarded shit i have to do too
+        $session = $this->cacheSessions[$player->getUniqueId()->toString()];
         $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
         $numberPlaying = $this->plugin->getClass('GameManager')->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
         $teamNumber = (string)$session->getTeam()->getNumber() ?? 'NO TEAM';
@@ -186,7 +177,7 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $sessionManager = $this->plugin->getClass('SessionManager');
-        $session = $sessionManager->getSession($player);
+        $session = $this->cacheSessions[$player->getUniqueId()->toString()];
         $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
         $numberPlaying = $this->plugin->getClass('GameManager')->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
         
@@ -212,10 +203,7 @@ class EventListener implements Listener
         if ($this->plugin->getClass('GameManager')->hasStarted()) {
             $this->plugin->getClass('DeathChest')->spawnChest($player);
         }
-
-        if ($this->plugin->getClass('Handler')->bossBar !== null) {
-            $this->plugin->getClass('Handler')->bossBar->hideFrom($player);
-        }
+        unset($this->cacheSessions[$player->getUniqueId()->toString()]);
     }
     
     /**

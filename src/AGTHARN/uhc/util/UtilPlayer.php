@@ -40,7 +40,7 @@ class UtilPlayer
         $player->getInventory()->clearAll();
         $player->getArmorInventory()->clearAll();
         $player->getCursorInventory()->clearAll();
-        $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
+        //$player->getOffHandInventory()->clearAll();
 
         if ($fullReset) {
             $player->setGamemode(Player::SURVIVAL);
@@ -60,7 +60,7 @@ class UtilPlayer
         $player->getInventory()->clearAll();
         $player->getArmorInventory()->clearAll();
         $player->getCursorInventory()->clearAll();
-        $player->getOffHandInventory()->clearAll(); /** @phpstan-ignore-line */
+        //$player->getOffHandInventory()->clearAll();
         $player->setGamemode(Player::SURVIVAL);
         $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->plugin->map)));
     

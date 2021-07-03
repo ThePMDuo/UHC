@@ -591,13 +591,10 @@ class Handler
     public function handleBossBar(): void
     {   
         $server = $this->plugin->getServer();
-        $gameManager = $this->plugin->getClass('GameManager');
+        $sessions = $this->plugin->getClass('SessionManager')->getSessions();
 
-        if (isset($this->bossBar)) {
-            foreach ($this->plugin->getClass('SessionManager')->getSessions() as $session) {
-                $this->bossBar->hideFrom($session->getPlayer());
-            }
-        }
+        $gameManager = $this->plugin->getClass('GameManager');
+        $bossBarAPI = $this->plugin->getClass('BossBarAPI');
 
         switch ($gameManager->getPhase()) {
             case PhaseChangeEvent::GRACE:
@@ -605,12 +602,12 @@ class Handler
                 $changedTimePVP = $gameManager->getGraceTimer();
 
                 if ($changedTimeGrace >= 0) {
-                    $this->bossBar = $this->plugin->getBossBar('§fPVP Enables In: §a' . gmdate('i:s', $changedTimePVP) . '\n\n' . '§fFinal Heal In: §a' . gmdate('i:s', $changedTimeGrace), floatval($changedTimeGrace / 599));
+                    $bossBarAPI->sendBossBarSessions($sessions, '§fPVP Enables In: §a' . gmdate('i:s', $changedTimePVP) . '\n\n' . '§fFinal Heal In: §a' . gmdate('i:s', $changedTimeGrace), floatval($changedTimeGrace / 599));
                 } else {
                     if ($gameManager->getGraceTimer() >= 300) {
-                        $this->bossBar = $this->plugin->getBossBar('§fPVP Enables In: §a' . gmdate('i:s', $changedTimePVP), floatval($changedTimePVP / 599));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fPVP Enables In: §a' . gmdate('i:s', $changedTimePVP), floatval($changedTimePVP / 599));
                     } else {
-                        $this->bossBar = $this->plugin->getBossBar('§fPVP Enables In: §c' . gmdate('i:s', $changedTimePVP), floatval($changedTimePVP / 599));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fPVP Enables In: §c' . gmdate('i:s', $changedTimePVP), floatval($changedTimePVP / 599));
                     }
                 }
                 break;
@@ -618,66 +615,60 @@ class Handler
                 if ($this->border->getSize() >= 499) {
                     $changedTime = $gameManager->getPVPTimer() - 900;
                     if ($gameManager->getPVPTimer() - 900 >= 61) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(400): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(400): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     } elseif ($gameManager->getPVPTimer() - 900 <= 60) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(400): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(400): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     }
                 } elseif ($this->border->getSize() >= 399) {
                     $changedTime = $gameManager->getPVPTimer() - 600;
                     if ($gameManager->getPVPTimer() - 600 >= 61) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(300): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(300): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     } elseif ($gameManager->getPVPTimer() - 600 <= 60) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(300): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(300): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     }
                 } elseif ($this->border->getSize() >= 299) {
                     $changedTime = $gameManager->getPVPTimer() - 300;
                     if ($gameManager->getPVPTimer() - 300 >= 61) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(200): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(200): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     } elseif ($gameManager->getPVPTimer() - 300 <= 60) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(200): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(200): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     }
                 } elseif ($this->border->getSize() >= 199) {
                     $changedTime = $gameManager->getPVPTimer() - 0;
                     if ($gameManager->getPVPTimer() - 0 >= 61) { // reason why i leave it as - 0 is to note myself
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(100): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(100): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     } elseif ($gameManager->getPVPTimer() - 0 <= 60) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(100): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(100): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     }
                 }
                 break;
             case PhaseChangeEvent::DEATHMATCH:
                 if ($gameManager->getDeathmatchTimer() >= 900) { // needs testing
                     $changedTime = $gameManager->getDeathmatchTimer() - 900;
-                    $this->bossBar = $this->plugin->getBossBar('§fDeathmatch In: §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                    $bossBarAPI->sendBossBarSessions($sessions, '§fDeathmatch In: §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                 } elseif ($this->border->getSize() >= 99) {
                     $changedTime = $gameManager->getDeathmatchTimer() - 700;
                     if ($gameManager->getDeathmatchTimer() - 700 >= 61) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(50): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(50): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     } elseif ($gameManager->getDeathmatchTimer() - 700 <= 60) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(50): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(50): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     }
                 } elseif ($this->border->getSize() >= 49) {
                     $changedTime = $gameManager->getDeathmatchTimer() - 400;
                     if ($gameManager->getDeathmatchTimer() - 400 >= 61) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(10): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(10): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     } elseif ($gameManager->getDeathmatchTimer() - 400 <= 60) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(10): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(10): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 300));
                     }
                 } elseif ($this->border->getSize() >= 9) {
                     $changedTime = $gameManager->getDeathmatchTimer() - 300;
                      if ($gameManager->getDeathmatchTimer() - 300 >= 61) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(1): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 100));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(1): §a' . gmdate('i:s', $changedTime), floatval($changedTime / 100));
                     } elseif ($gameManager->getDeathmatchTimer() - 300 <= 60) {
-                        $this->bossBar = $this->plugin->getBossBar('§fBorder Shrinks(1): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 100));
+                        $bossBarAPI->sendBossBarSessions($sessions, '§fBorder Shrinks(1): §c' . gmdate('i:s', $changedTime), floatval($changedTime / 100));
                     }
                 }
                 break;
-        }
-
-        if (isset($this->bossBar)) {
-            foreach ($this->plugin->getClass('SessionManager')->getSessions() as $session) {
-                $this->bossBar->showTo($session->getPlayer());
-            }
         }
     }
     

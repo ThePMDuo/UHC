@@ -38,7 +38,7 @@ class Recipes
         [
             'GGG',
             'GHG',
-            'GG'
+            'GGG'
         ], [
             "G" => Item::get(Item::GOLD_INGOT, 0, 1),
             "H" => $playerHead
