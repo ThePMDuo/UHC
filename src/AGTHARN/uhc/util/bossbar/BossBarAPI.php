@@ -118,7 +118,7 @@ class BossBarAPI
         $this->players[$player->getLowerCaseName()] = clone $pk;
     }
 
-    public function sendBossBarSessions(array $session, string $text, float $percentage): void
+    public function sendBossBarSessions(array $sessions, string $text, float $percentage): void
     {
         foreach ($sessions as $session) {
             $player = $session->getPlayer();

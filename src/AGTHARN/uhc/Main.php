@@ -11,6 +11,7 @@ use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\command\ReportCommand;
 use AGTHARN\uhc\command\PingCommand;
 use AGTHARN\uhc\command\ModCommand;
+use AGTHARN\uhc\listener\ListenerManager;
 use AGTHARN\uhc\util\Database;
 
 use AGTHARN\uhc\libs\poggit\libasynql\DataConnector;
