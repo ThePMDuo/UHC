@@ -64,6 +64,8 @@ class Main extends PluginBase
 
     /** @var ListenerManager */
     private $listenerManager;
+    /** @var SessionManager */
+    private $sessionManager;
     /** @var DataConnector */
     private $data;
 

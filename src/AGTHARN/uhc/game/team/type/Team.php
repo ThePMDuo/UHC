@@ -33,6 +33,17 @@ class Team
     {
         return $this->members;
     }
+    
+    /**
+     * memberExists
+     *
+     * @param  Player $player
+     * @return bool
+     */
+    public function memberExists(Player $player): bool
+	{
+		return isset($this->members[$player->getUniqueId()->toString()]);
+	}
 
     /**
      * getMemberNames
