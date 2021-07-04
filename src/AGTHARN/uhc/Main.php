@@ -11,6 +11,7 @@ use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\command\ReportCommand;
 use AGTHARN\uhc\command\PingCommand;
 use AGTHARN\uhc\command\ModCommand;
+use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\listener\ListenerManager;
 use AGTHARN\uhc\util\Database;
 
@@ -84,6 +85,8 @@ class Main extends PluginBase
         $this->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
 
         $this->listenerManager = $this->getClass('ListenerManager');
+        // idot shit
+        $this->sessionManager = new SessionManager();
 
         @mkdir($this->getDataFolder() . 'scenarios');
         $this->saveResource('capes/normal_cape.png');
@@ -202,6 +205,9 @@ class Main extends PluginBase
 
     /**
      * getDirContents
+     * 
+     * had to keep this here due to complications
+     * (try to move it to Directory in util if you want)
      *
      * @param  mixed $dir
      * @param  string $filter
@@ -212,16 +218,26 @@ class Main extends PluginBase
     {
         $files = preg_grep('/^([^.])/', (array)scandir($dir));
 
-        foreach($files as $key => $value){
-            $path = (string)realpath($dir.DIRECTORY_SEPARATOR.$value); 
+        foreach ($files as $key => $value) {
+            $path = (string)realpath($dir . DIRECTORY_SEPARATOR . $value); 
 
-            if(!is_dir($path)) {
-                if(empty($filter) || preg_match($filter, $path)) $results[] = $path;
-            } elseif($value != "." && $value != "..") {
+            if (!is_dir($path)) {
+                if (empty($filter) || preg_match($filter, $path)) $results[] = $path;
+            } elseif ($value != "." && $value != "..") {
                 $this->getDirContents($path, $filter, $results);
             }
         }
         return $results;
+    }
+
+    /**
+     * getSessionManager
+     *
+     * @return SessionManager
+     */
+    public function getSessionManager(): SessionManager
+    {   
+        return $this->sessionManager ?? new SessionManager();
     }
     
     /**

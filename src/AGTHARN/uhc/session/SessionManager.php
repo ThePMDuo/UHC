@@ -15,16 +15,15 @@ class SessionManager
      * createSession
      *
      * @param  Player $player
-     * @return PlayerSession
+     * @return void
      */
-    public function createSession(Player $player): PlayerSession
+    public function createSession(Player $player): void
     {
         if (!$this->hasSession($player)) {
             $this->activeSessions[$player->getUniqueId()->toString()] = new PlayerSession($player);
         } else {
             $this->getSession($player)->update($player);
         }
-        return $this->activeSessions[$player->getUniqueId()->toString()];
     }
     
     /**

@@ -63,8 +63,8 @@ class AntiVPN
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HEADER => false,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 4,
-            CURLOPT_TIMEOUT => 4
+            CURLOPT_CONNECTTIMEOUT => 2,
+            CURLOPT_TIMEOUT => 2
         ]);
 
         foreach ($APIs as $key => $value) {

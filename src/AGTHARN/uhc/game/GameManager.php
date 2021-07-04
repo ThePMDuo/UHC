@@ -114,7 +114,7 @@ class GameManager extends Task
         //$gameRuleUHC->setRuleWithMatching('showcoordinates', 'true');
         //$gameRuleUHC->setRuleWithMatching('doimmediaterespawn', 'true');
         
-        if (count($this->plugin->getClass('SessionManager')->getPlaying()) <= 1) {
+        if (count($this->plugin->getSessionManager()->getPlaying()) <= 1) {
             switch ($this->getPhase()) {
                 case PhaseChangeEvent::WAITING:
                 case PhaseChangeEvent::COUNTDOWN:
@@ -143,7 +143,7 @@ class GameManager extends Task
     public function randomizeCoordinates(int $x1, int $x2, int $y1, int $y2, int $z1, int $z2): void
     {
         $server = $this->plugin->getServer();
-        foreach ($this->plugin->getClass('SessionManager')->getPlaying() as $player) {
+        foreach ($this->plugin->getSessionManager()->getPlaying() as $player) {
             $x = mt_rand($x1, $x2);
             $y = mt_rand($y1, $y2);
             $z = mt_rand($z1, $z2);
@@ -172,7 +172,7 @@ class GameManager extends Task
      */
     public function setPhase(int $phase): void
     {
-        foreach ($this->plugin->getClass('SessionManager')->getPlaying() as $playerSession) {
+        foreach ($this->plugin->getSessionManager()->getPlaying() as $playerSession) {
             $event = new PhaseChangeEvent($playerSession->getPlayer(), $this->phase, $phase);
             $event->call();
         }

@@ -19,6 +19,8 @@ use AGTHARN\uhc\Main;
 
 use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 
+use Exception;
+
 class Handler
 {
     /** @var int */
@@ -54,7 +56,7 @@ class Handler
     public function handlePlayers(): void
     {
         $server = $this->plugin->getServer();
-        foreach ($this->plugin->getClass('SessionManager')->getSessions() as $session) {
+        foreach ($this->plugin->getSessionManager()->getSessions() as $session) {
             $player = $session->getPlayer();
             $playerLevel = $player->getLevel();
             $name = (string)$session->getTeam()->getNumber() ?? 'NO TEAM';
@@ -62,6 +64,14 @@ class Handler
             $gameManager = $this->plugin->getClass('GameManager');
 
             if ($player !== null) {
+                try {
+                    if ($playerLevel->getName() !== $this->plugin->map) {
+                        $level = $server->getLevelByName($this->plugin->map);
+                        $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
+                    }
+                } catch(Exception $e) {
+                    // nothing
+                }
                 if ($player->isSurvival()) {
                     $session->setPlaying(true);
                 } else {
@@ -71,10 +81,6 @@ class Handler
     
                 if (!$player->hasEffect(16)) {
                     $player->addEffect(new EffectInstance(Effect::getEffect(16), 1000000, 1, false));
-                }
-                if ($playerLevel->getName() !== $this->plugin->map) {
-                    $level = $server->getLevelByName($this->plugin->map);
-                    $player->teleport(new Position($this->plugin->spawnPosX, $this->plugin->spawnPosY, $this->plugin->spawnPosZ, $level));
                 }
                 $this->handleScoreboard($player);
                 $player->setNameTag('§7(#' . $name . ') §r' . $player->getDisplayName());
@@ -90,7 +96,7 @@ class Handler
     public function handleWaiting(): void
     {
         $gameManager = $this->plugin->getClass('GameManager');
-        $sessionManager = $this->plugin->getClass('SessionManager');
+        $sessionManager = $this->plugin->getSessionManager();
         $playersRequired = self::MIN_PLAYERS - count($sessionManager->getPlaying());
 
         $this->border->setSize(500);
@@ -118,7 +124,7 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getClass('GameManager');
-        $sessionManager = $this->plugin->getClass('SessionManager');
+        $sessionManager = $this->plugin->getSessionManager();
 
         switch ($gameManager->countdown) {
             case 60:
@@ -170,7 +176,7 @@ class Handler
                 foreach ($sessionManager->getPlaying() as $session) {
                     $session->getPlayer()->setImmobile(false);
                 }
-                $this->plugin->startingPlayers = count($this->plugin->getClass('SessionManager')->getPlaying());
+                $this->plugin->startingPlayers = count($this->plugin->getSessionManager()->getPlaying());
                 $this->plugin->startingTeams = count($this->plugin->getClass('TeamManager')->getTeams());
                 $gameManager->setPhase(PhaseChangeEvent::GRACE);
                 break;
@@ -187,7 +193,7 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getClass('GameManager');
-        $sessionManager = $this->plugin->getClass('SessionManager');
+        $sessionManager = $this->plugin->getSessionManager();
 
         switch ($gameManager->getGraceTimer()) {
             case 1190:
@@ -304,7 +310,7 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getClass('GameManager');
-        $sessionManager = $this->plugin->getClass('SessionManager');
+        $sessionManager = $this->plugin->getSessionManager();
 
         switch ($gameManager->getDeathmatchTimer()) {
             case 960:
@@ -368,13 +374,13 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getClass('GameManager');
-        $sessionManager = $this->plugin->getClass('SessionManager');
+        $sessionManager = $this->plugin->getSessionManager();
         
         switch ($gameManager->getWinnerTimer()) {
             case 60:
                 $this->sendSound(1);
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $session = $this->plugin->getClass('SessionManager')->getSession($player);
+                    $session = $this->plugin->getSessionManager()->getSession($player);
 
                     $player->setImmobile(false);
                     $this->plugin->getClass('UtilPlayer')->resetPlayer($player, true);
@@ -468,7 +474,7 @@ class Handler
                 $this->plugin->getClass('TeamManager')->resetTeams();
 
                 foreach ($server->getOnlinePlayers() as $player) {
-                    $session = $this->plugin->getClass('SessionManager')->getSession($player);
+                    $session = $this->plugin->getSessionManager()->getSession($player);
                     $session->addToTeam($this->plugin->getClass('TeamManager')->createTeam($player));
                 }
 
@@ -510,7 +516,7 @@ class Handler
     {
         $server = $this->plugin->getServer();
         $gameManager = $this->plugin->getClass('GameManager');
-        $sessionManager = $this->plugin->getClass('SessionManager');
+        $sessionManager = $this->plugin->getSessionManager();
         $resetStatus = $this->plugin->getClass('ResetStatus');
 
         $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
@@ -591,7 +597,7 @@ class Handler
     public function handleBossBar(): void
     {   
         $server = $this->plugin->getServer();
-        $sessions = $this->plugin->getClass('SessionManager')->getSessions();
+        $sessions = $this->plugin->getSessionManager()->getSessions();
 
         $gameManager = $this->plugin->getClass('GameManager');
         $bossBarAPI = $this->plugin->getClass('BossBarAPI');
@@ -734,13 +740,13 @@ class Handler
     {      
         switch ($soundType) {
             case 1:
-                foreach ($this->plugin->getClass('SessionManager')->getSessions() as $session) {
+                foreach ($this->plugin->getSessionManager()->getSessions() as $session) {
                     $player = $session->getPlayer();
                     $player->getLevel()->addSound(new ClickSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }
                 break;
             case 2:
-                foreach ($this->plugin->getClass('SessionManager')->getSessions() as $session) {
+                foreach ($this->plugin->getSessionManager()->getSessions() as $session) {
                     $player = $session->getPlayer();
                     $player->getLevel()->addSound(new BlazeShootSound(new Vector3($player->getX(), $player->getY(), $player->getZ())));
                 }

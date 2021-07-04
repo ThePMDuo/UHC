@@ -55,8 +55,6 @@ class EventListener implements Listener
 {
     /** @var array */
     private $waterdogIPs = [];
-    /** @var array */
-    private $cacheSessions = [];
     
     /** @var Main */
     private $plugin;
@@ -82,12 +80,9 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $name = $player->getName();
-        $sessionManager = $this->plugin->getClass('SessionManager');
 
-        $session = $sessionManager->createSession($player);
-
-        // retarded shit i have to do
-        $this->cacheSessions[$player->getUniqueId()->toString()] = $session;
+        $sessionManager = $this->plugin->getSessionManager();
+        $sessionManager->createSession($player);
         if (!$player->hasPermission('uhc.vpn.bypass')) {
             $playerIP = $player->getXuid() === '' ? (isset($this->waterdogIPs[$name]) ? $this->waterdogIPs[$name] : 'error') : $player->getAddress();
             
@@ -112,7 +107,7 @@ class EventListener implements Listener
         switch ($this->plugin->getClass('GameManager')->getPhase()) {
             case PhaseChangeEvent::WAITING:
                 // since solo we wont handle joining available teams
-                $session->addToTeam($this->plugin->getClass('TeamManager')->createTeam($player));
+                $sessionManager->getSession($player)->addToTeam($this->plugin->getClass('TeamManager')->createTeam($player));
                 break;
             case PhaseChangeEvent::RESET:
                 $player->kick('SERVER RESETTING: IF IT TAKES LONGER THAN 10 SECONDS, PLEASE CONTACT AN ADMIN!');
@@ -133,9 +128,8 @@ class EventListener implements Listener
     public function handleJoin(PlayerJoinEvent $event): void
     {
         $player = $event->getPlayer();
-        $sessionManager = $this->plugin->getClass('SessionManager');
-        // part of the retarded shit i have to do too
-        $session = $this->cacheSessions[$player->getUniqueId()->toString()];
+        $sessionManager = $this->plugin->getSessionManager();
+        $session = $sessionManager->getSession($player);
         $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
         $numberPlaying = $this->plugin->getClass('GameManager')->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
         $teamNumber = (string)$session->getTeam()->getNumber() ?? 'NO TEAM';
@@ -176,8 +170,8 @@ class EventListener implements Listener
     public function handleQuit(PlayerQuitEvent $event): void
     {
         $player = $event->getPlayer();
-        $sessionManager = $this->plugin->getClass('SessionManager');
-        $session = $this->cacheSessions[$player->getUniqueId()->toString()];
+        $sessionManager = $this->plugin->getSessionManager();
+        $session = $sessionManager->getSession($player);
         $numberPlayingMax = $this->plugin->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->plugin->startingPlayers;
         $numberPlaying = $this->plugin->getClass('GameManager')->hasStarted() ? count($sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
         
@@ -203,7 +197,6 @@ class EventListener implements Listener
         if ($this->plugin->getClass('GameManager')->hasStarted()) {
             $this->plugin->getClass('DeathChest')->spawnChest($player);
         }
-        unset($this->cacheSessions[$player->getUniqueId()->toString()]);
     }
     
     /**
@@ -282,8 +275,8 @@ class EventListener implements Listener
                     $victim = $event->getEntity();
     
                     if ($damager instanceof Player && $victim instanceof Player) {
-                        $damagerSession = $this->plugin->getClass('SessionManager')->getSession($damager);
-                        $victimSession = $this->plugin->getClass('SessionManager')->getSession($victim);
+                        $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
+                        $victimSession = $this->plugin->getSessionManager()->getSession($victim);
                         if ($damagerSession->isInTeam() && $victimSession->isInTeam() && $damagerSession->getTeam()->memberExists($victim)) {
                             $event->setCancelled();
                         }
@@ -303,8 +296,8 @@ class EventListener implements Listener
     {
         $player = $event->getPlayer();
         $cause = $player->getLastDamageCause();
-        $eliminatedSession = $this->plugin->getClass('SessionManager')->getSession($player);
-        $sessionManager = $this->plugin->getClass('SessionManager');
+        $eliminatedSession = $this->plugin->getSessionManager()->getSession($player);
+        $sessionManager = $this->plugin->getSessionManager();
         
         if ($this->plugin->getClass('GameManager')->hasStarted()) {
             $this->plugin->getClass('DeathChest')->spawnChest($player);
@@ -318,7 +311,7 @@ class EventListener implements Listener
             $damager = $cause->getDamager();
             if ($damager instanceof Player) {
                 if ($sessionManager->hasSession($damager)) {
-                    $damagerSession = $this->plugin->getClass('SessionManager')->getSession($damager);
+                    $damagerSession = $this->plugin->getSessionManager()->getSession($damager);
 
                     $event->setDeathMessage('§aJAX §7»» §c' . $player->getName() . '§7 (§f' . $eliminatedSession->getEliminations() . '§7) §ewas eliminated by §c' . $damager->getName() . '§7(§f' . $damagerSession->getEliminations() . '§7)');
                     $damagerSession->addEliminations();
