@@ -3,16 +3,20 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\util;
 
+use AGTHARN\uhc\game\GameProperties;
 use AGTHARN\uhc\Main;
 
-use AGTHARN\uhc\libs\CortexPE\DiscordWebhookAPI\Message;
-use AGTHARN\uhc\libs\CortexPE\DiscordWebhookAPI\Webhook;
-use AGTHARN\uhc\libs\CortexPE\DiscordWebhookAPI\Embed;
+use CortexPE\DiscordWebhookAPI\Message;
+use CortexPE\DiscordWebhookAPI\Webhook;
+use CortexPE\DiscordWebhookAPI\Embed;
 
 class Discord
 {    
     /** @var Main */
     private $plugin;
+    
+    /** @var GameProperties */
+    private $gameProperties;
 
     /**
      * __construct
@@ -23,6 +27,8 @@ class Discord
     public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
+
+        $this->gameProperties = $plugin->getClass('GameProperties');
     }
     
     /**
@@ -36,14 +42,14 @@ class Discord
      */
     public function sendReport($reporter, $reported, $reportType, $reason): void
     {
-        $webHook = new Webhook($this->plugin->reportWebhook);
+        $webHook = new Webhook($this->gameProperties->reportWebhook);
 
         $msg = new Message();
         $msg->setUsername('JAX REPORTS');
         $msg->setAvatarURL('https://www.yanacomoxvalley.com/wp-content/uploads/2016/11/774408_orig.png');
 
         $embed = new Embed();
-        $embed->setTitle('REPORT FROM ' . $reporter . ' (' . $this->plugin->uhcServer . ')');
+        $embed->setTitle('REPORT FROM ' . $reporter . ' (' . $this->gameProperties->uhcServer . ')');
         $embed->addField('REPORTED:', $reported, true);
         $embed->addField('REPORT TYPE:', $reportType, true);
         $embed->addField('REASON:', $reason, true);
@@ -64,9 +70,9 @@ class Discord
      * @param  int $port
      * @return void
      */
-    public function sendSpoonReport(string $serverVersion, string $spoonVersion, string $spoonName, string $ip, int $port): void
+    public function sendSpoonReport(string $serverVersion, string $spoonVersion = '', string $spoonName, string $ip, int $port): void
     {
-        $webHook = new Webhook($this->plugin->serverReportsWebhook);
+        $webHook = new Webhook($this->gameProperties->serverReportsWebhook);
 
         $msg = new Message();
         $msg->setUsername('JAX REPORTS');
@@ -75,7 +81,7 @@ class Discord
         $embed = new Embed();
         $embed->setTitle('DETECTED POSSIBLE PIRACY (' . $spoonName . ')');
         $embed->addField('SERVER VERSION:', $serverVersion, true);
-        $embed->addField('SPOON VERSION:', $spoonVersion, true);
+        $embed->addField('SPOON VERSION (if any):', $spoonVersion, true);
         $embed->addField('IP & PORT:', $ip . ':' . $port, true);
         $embed->setFooter(date('Y-m-d') . 'T' . date('H:i:s') . '.' . date('v') . 'Z');
         $embed->setColor(0xFF3333);
@@ -95,7 +101,7 @@ class Discord
      */
     public function sendStartReport(string $serverVersion, string $buildNumber, string $node, string $uhcServer): void
     {
-        $webHook = new Webhook($this->plugin->serverPowerWebhook);
+        $webHook = new Webhook($this->gameProperties->serverPowerWebhook);
 
         $msg = new Message();
         $msg->setUsername('JAX REPORTS');

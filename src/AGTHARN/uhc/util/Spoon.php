@@ -28,7 +28,17 @@ class Spoon
      */
     public function simpleCheck(): bool
     {
-        return !in_array($this->plugin->getServer()->getName(), ['Altay']);
+        return !in_array($this->plugin->getServer()->getName(), ['PocketMine-MP']);
+    }
+
+    /**
+     * motdCheck
+     *
+     * @return bool
+     */
+    public function motdCheck(): bool
+    {
+        return $this->plugin->getServer()->getMotd() !== 'MineUHC';
     }
     
     /**
@@ -62,13 +72,32 @@ class Spoon
     }
     
     /**
+     * compatibilityChecks
+     *
+     * @return void
+     */
+    public function compatibilityChecks()
+    {
+        if (!extension_loaded('gd')) {
+            $this->getServer()->getLogger()->error('GD Lib is disabled! Turning on safe mode!');
+            $result = true;
+        }
+
+        if (!in_array($this->getServer()->getApiVersion(), $this->getDescription()->getCompatibleApis())) {
+            $this->getServer()->getLogger()->error('Incompatible version! Turning on safe mode!');
+            $result = true;
+        }
+        return $result;
+    }
+    
+    /**
      * isThisSpoon
      *
      * @return bool
      */
     public function isThisSpoon(): bool
     {
-        return $this->simpleCheck() || $this->contentCheck();
+        return $this->simpleCheck() || $this->contentCheck() || $this->motdCheck() || $this->compatibilityChecks();
     }
     
     /**

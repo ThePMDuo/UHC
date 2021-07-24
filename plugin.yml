@@ -2,7 +2,7 @@ main: AGTHARN\uhc\Main
 name: UHC
 author: AGTHARN
 version: 1 # based off build number
-api: 3.20.1
+api: 3.22.1
 
 permissions:
   uhc.vpn.bypass:

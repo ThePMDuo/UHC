@@ -70,13 +70,9 @@ class Directory
      */
     public function getPath(): string
     {
-        if($this->plugin->isPhar()){
-            $path = $this->removeLastDirectory($this->plugin->getDescription()->getMain());
-            $path = $this->plugin->getFile() . "src" . DIRECTORY_SEPARATOR . $path;
-            return $path;
-        }else{
-            return ($this->removeLastDirectory( __DIR__));
-        }
+        $path = $this->removeLastDirectory($this->plugin->getDescription()->getMain());
+        $path = $this->plugin->getFile() . "src" . DIRECTORY_SEPARATOR . $path;
+        return $path;
     }
     
     /**
@@ -97,4 +93,28 @@ class Directory
         }
         return $str;
     }
+
+    /**
+     * getDirContents
+     *
+     * @param  string $dir
+     * @param  string $filter
+     * @param  array $results
+     * @return array
+     */
+    public function getDirContents(string $dir, string $filter = '', array &$results = array()): array
+    {
+        $files = preg_grep('/^([^.])/', (array)scandir($dir));
+
+        foreach ($files as $key => $value) {
+            $path = (string)realpath($dir.DIRECTORY_SEPARATOR.$value); 
+
+            if (!is_dir($path)) {
+                if (empty($filter) || preg_match($filter, $path)) $results[] = $path;
+            } elseif ($value != "." && $value != "..") {
+                $this->getDirContents($path, $filter, $results);
+            }
+        }
+        return $results;
+    } 
 }

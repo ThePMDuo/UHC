@@ -43,7 +43,7 @@ class Recipes
             "G" => Item::get(Item::GOLD_INGOT, 0, 1),
             "H" => $playerHead
         ], [
-            $this->plugin->getClass('Items')->getGoldenHead()
+            $this->plugin->getClass('UtilPlayer')->getGoldenHead()
         ]));
     }
 }

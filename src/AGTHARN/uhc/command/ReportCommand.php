@@ -6,9 +6,11 @@ namespace AGTHARN\uhc\command;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
 
+use AGTHARN\uhc\util\form\FormManager;
+use AGTHARN\uhc\game\GameProperties;
 use AGTHARN\uhc\Main;
 
-use AGTHARN\uhc\libs\CortexPE\Commando\BaseCommand;
+use CortexPE\Commando\BaseCommand;
 
 class ReportCommand extends BaseCommand
 {
@@ -18,7 +20,7 @@ class ReportCommand extends BaseCommand
      *
      * @var Main
      */
-    private $plugin;
+    protected $plugin;
     
     /**
      * __construct
@@ -56,9 +58,9 @@ class ReportCommand extends BaseCommand
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
     {
         if (!$sender instanceof Player) {
-            $sender->sendMessage('COSMIC »» You can only use this command in-game!');
+            $sender->sendMessage(GameProperties::PREFIX_COSMIC . 'You can only use this command in-game!');
             return;
         }
-        $this->plugin->getClass('Forms')->sendReportForm($sender);
+        $this->plugin->getClass('FormManager')->getForm($sender, FormManager::REPORT_FORM)->sendReportForm($sender);
     }
 }

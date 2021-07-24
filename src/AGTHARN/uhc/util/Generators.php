@@ -5,12 +5,16 @@ namespace AGTHARN\uhc\util;
 
 use pocketmine\level\generator\GeneratorManager;
 
+use AGTHARN\uhc\game\GameProperties;
 use AGTHARN\uhc\Main;
 
 class Generators
 {
     /** @var Main */
     private $plugin;
+
+    /** @var GameProperties */
+    private $gameProperties;
 
     /**
      * __construct
@@ -21,6 +25,8 @@ class Generators
     public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
+
+        $this->gameProperties = $plugin->getClass('GameProperties');
     }
 
     /**
@@ -30,12 +36,15 @@ class Generators
      */
     public function prepareWorld(): void
     {   
-        $uhcName = $this->plugin->map;
+        $uhcName = $this->gameProperties->map;
         $uhcLevel = $this->plugin->getServer()->getLevelByName($uhcName);
 
-        $worldAPI = $this->plugin->getServer()->getPluginManager()->getPlugin('MultiWorld')->getWorldManagementAPI(); /** @phpstan-ignore-line */
+        $worldAPI = $this->plugin->getServer()->getPluginManager()->getPlugin('UHCGenerator')->getWorldManagementAPI(); /** @phpstan-ignore-line */
 
         if ($worldAPI->isLevelGenerated($uhcName)) {
+            $worldLevel = $this->plugin->getServer()->getLevelByName('world');
+            $this->plugin->getServer()->setDefaultLevel($worldLevel);
+
             if ($worldAPI->isLevelLoaded($uhcName)) {  
                 $worldAPI->unloadLevel($uhcLevel);
             }
@@ -52,17 +61,20 @@ class Generators
 
             $uhcLevel = $this->plugin->getServer()->getLevelByName($uhcName); // redefine so its not null
             $uhcLevel->setAutoSave(false);
+            $this->plugin->getServer()->setDefaultLevel($uhcLevel);
         }
     }
 
     /**
      * removeWorld
+     * 
+     * currently unused
      *
      * @return void
      */
     public function removeAllWorlds(): void
     {   
-        $worldAPI = $this->plugin->getServer()->getPluginManager()->getPlugin('MultiWorld')->getWorldManagementAPI(); /** @phpstan-ignore-line */
+        $worldAPI = $this->plugin->getServer()->getPluginManager()->getPlugin('UHCGenerator')->getWorldManagementAPI(); /** @phpstan-ignore-line */
 
         foreach ($worldAPI->getAllLevels() as $levelName) {
             $level = $this->plugin->getServer()->getLevelByName($levelName);
@@ -86,10 +98,10 @@ class Generators
      */
     public function prepareNether(): void
     {
-        $netherName = $this->plugin->nether;
+        $netherName = $this->gameProperties->nether;
         $netherLevel = $this->plugin->getServer()->getLevelByName($netherName);
 
-        $worldAPI = $this->plugin->getServer()->getPluginManager()->getPlugin('MultiWorld')->getWorldManagementAPI(); /** @phpstan-ignore-line */
+        $worldAPI = $this->plugin->getServer()->getPluginManager()->getPlugin('UHCGenerator')->getWorldManagementAPI(); /** @phpstan-ignore-line */
 
         if ($worldAPI->isLevelGenerated($netherName)) {
             if ($worldAPI->isLevelLoaded($netherName)) {  
@@ -108,7 +120,6 @@ class Generators
 
             $netherLevel = $this->plugin->getServer()->getLevelByName($netherName); // redefine so its not null
             $netherLevel->setAutoSave(false);
-            $this->plugin->getServer()->setNetherLevel($netherLevel); /** @phpstan-ignore-line */
         }
     }
     

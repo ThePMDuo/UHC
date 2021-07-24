@@ -26,30 +26,31 @@ class Punishments
 
     public function createPunishment(Player $player, string $selectedName, string $reason, string $duration, string $type): void
     {
+        $playerName = $player->getName();
         switch ($type) {
             case 'CREATE_BAN':
-                if ($this->plugin->getServer()->dispatchCommand(new ConsoleCommandSender(), 'ban "' . $selectedName . '" ' . $duration . ' ' . $reason)) {
+                if ($this->plugin->getServer()->dispatchCommand(new ConsoleCommandSender(), 'ban "' . $selectedName . '" ' . $duration . ' ' . $reason . '[' . $playerName . ']')) {
                     $player->sendMessage('§aBan request successfully completed!');
                     return;
                 }
                 $player->sendMessage('§cBan request unsuccessful!');
                 break;
             case 'CREATE_KICK':
-                if ($this->plugin->getServer()->getPlayerExact($selectedName)->kick($reason, false)) {
+                if ($this->plugin->getServer()->getPlayerExact($selectedName)->kick($reason . '[' . $playerName . ']', false)) {
                     $player->sendMessage('§aKick request successfully completed!');
                     return;
                 }
                 $player->sendMessage('§cKick request unsuccessful!');
                 break;
             case 'CREATE_MUTE':
-                if ($this->plugin->getServer()->dispatchCommand(new ConsoleCommandSender(), 'mute "' . $selectedName . '" ' . $duration . ' ' . $reason)) {
-                    $player->sendMessage('§aBan request successfully completed!');
+                if ($this->plugin->getServer()->dispatchCommand(new ConsoleCommandSender(), 'mute "' . $selectedName . '" ' . $duration . ' ' . $reason . '[' . $playerName . ']')) {
+                    $player->sendMessage('§aMute request successfully completed!');
                     return;
                 }
-                $player->sendMessage('§cBan request unsuccessful!');
+                $player->sendMessage('§aMute request unsuccessful!');
                 break;
             case 'CREATE_WARN':
-                if ($this->plugin->getServer()->dispatchCommand(new ConsoleCommandSender(), 'warn "' . $selectedName . '" ' . $duration . ' ' . $reason)) {
+                if ($this->plugin->getServer()->dispatchCommand(new ConsoleCommandSender(), 'warn "' . $selectedName . '" ' . $duration . ' ' . $reason . '[' . $playerName . ']')) {
                     $player->sendMessage('§aWarn request successfully completed!');
                     return;
                 }

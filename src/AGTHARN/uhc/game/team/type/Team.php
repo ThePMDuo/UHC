@@ -58,6 +58,23 @@ class Team
         }
         return $memberNames;
     }
+
+    /**
+     * getOtherMemberNames
+     *
+     * @param  Player $player
+     * @return array
+     */
+    public function getOtherMemberNames(Player $player): array
+    {   
+        $memberNames = [];
+        foreach ($this->members as $member) {
+            if ($player->getUniqueId()->toString() !== $member->getUniqueId()->toString()) {
+                $memberNames[] = $member->getName();
+            }
+        }
+        return $memberNames;
+    }
     
     /**
      * addMember
@@ -92,9 +109,9 @@ class Team
     /**
      * getName
      *
-     * @return int
+     * @return int|null
      */
-    public function getNumber(): int
+    public function getNumber(): ?int
     {
         return $this->teamNumber;
     }

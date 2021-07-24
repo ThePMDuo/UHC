@@ -55,7 +55,7 @@ class DeathChest
 
         if ($tile instanceof Chest) {
             $tile->getInventory()->setContents($player->getInventory()->getContents()); 
-            $tile->getInventory()->addItem($this->plugin->getClass('Items')->getHead($player));
+            $tile->getInventory()->addItem($this->plugin->getClass('UtilPlayer')->getHead($player));
         }
     }
 }

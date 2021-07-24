@@ -7,57 +7,33 @@ namespace AGTHARN\uhc\game;
 use pocketmine\scheduler\Task;
 use pocketmine\level\Position;
 
-use AGTHARN\uhc\game\timer\GameTimer;
-use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\event\phase\PhaseChangeEvent;
+use AGTHARN\uhc\game\border\Border;
+use AGTHARN\uhc\game\GameProperties;
 use AGTHARN\uhc\Main;
-
-use AGTHARN\uhc\libs\JackMD\ScoreFactory\ScoreFactory;
 
 class GameManager extends Task
 {
-    /** @var int */
-    public $game = 0;
-
-    /** @var int */
-    public $phase = PhaseChangeEvent::WAITING;
-    /** @var int */
-    public $countdown = GameTimer::TIMER_COUNTDOWN;
-    /** @var float|int */
-    public $grace = GameTimer::TIMER_GRACE;
-    /** @var float|int */
-    public $pvp = GameTimer::TIMER_PVP;
-    /** @var float|int */
-    public $deathmatch = GameTimer::TIMER_DEATHMATCH;
-    /** @var int */
-    public $winner = GameTimer::TIMER_WINNER;
-    /** @var int */
-    public $reset = GameTimer::TIMER_RESET;
-    
-    /** @var Border */
-    private $border;
     /** @var Main */
     private $plugin;
 
-    /** @var int */
-    private $playerTimer = 1;
-        
-    /** @var bool */
-    public $shrinking = false;
+    /** @var GameProperties */
+    private $gameProperties;
+    /** @var Border */
+    private $border;
 
-    /** @var bool */
-    private $globalMuteEnabled = false;
-    
     /**
      * __construct
      *
      * @param  Main $plugin
      * @return void
      */
-    public function __construct(Main $plugin, Border $border)
+    public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
-        $this->border = $border;
+
+        $this->gameProperties = $plugin->getClass('GameProperties');
+        $this->border = $plugin->getClass('Border');
     }
     
     /**
@@ -69,38 +45,38 @@ class GameManager extends Task
     public function onRun(int $currentTick): void
     {
         $server = $this->plugin->getServer();
-        $handler = $this->plugin->getClass('Handler');
-        $handler->handlePlayers();
-        $handler->handleBossBar();
-        $handler->handleBorder();
+        $server->getLevelByName($this->gameProperties->map)->setTime(1000);
 
-        $server->getLevelByName($this->plugin->map)->setTime(1000);
-        
+        $gameHandler = $this->plugin->getClass('GameHandler');
+        $gameHandler->handlePlayers();
+        $gameHandler->handleBossBar();
+        $gameHandler->handleBorder();
+
         switch ($this->getPhase()) {
             case PhaseChangeEvent::WAITING:
-                $handler->handleWaiting();
+                $gameHandler->handleWaiting();
                 break;
             case PhaseChangeEvent::COUNTDOWN:
-                $handler->handleCountdown();
+                $gameHandler->handleCountdown();
                 break;
             case PhaseChangeEvent::GRACE:
-                $handler->handleGrace();
+                $gameHandler->handleGrace();
                 break;
             case PhaseChangeEvent::PVP:
-                $handler->handlePvP();
+                $gameHandler->handlePvP();
                 break;
             case PhaseChangeEvent::DEATHMATCH:
-                $handler->handleDeathmatch();
+                $gameHandler->handleDeathmatch();
                 break;
             case PhaseChangeEvent::WINNER:
-                $handler->handleWinner();
+                $gameHandler->handleWinner();
                 break;
             case PhaseChangeEvent::RESET:
-                $handler->handleReset();
+                $gameHandler->handleReset();
                 break;
         }
         if ($this->hasStarted()) {
-            $this->game++;
+            $this->gameProperties->game++;
             $server->getNetwork()->setName('STARTED');
         } else {
             $server->getNetwork()->setName('NOT STARTED');
@@ -110,11 +86,11 @@ class GameManager extends Task
             $server->getNetwork()->setName($this->plugin->getOperationalMessage());
         }
 
-        //$gameRuleUHC = $server->getLevelByName($this->plugin->map)->getGameRules();
+        //$gameRuleUHC = $server->getLevelByName($this->gameProperties->map)->getGameRules();
         //$gameRuleUHC->setRuleWithMatching('showcoordinates', 'true');
         //$gameRuleUHC->setRuleWithMatching('doimmediaterespawn', 'true');
         
-        if (count($this->plugin->getSessionManager()->getPlaying()) <= 1) {
+        if (count($this->plugin->getClass('SessionManager')->getPlaying()) <= 1) {
             switch ($this->getPhase()) {
                 case PhaseChangeEvent::WAITING:
                 case PhaseChangeEvent::COUNTDOWN:
@@ -143,15 +119,14 @@ class GameManager extends Task
     public function randomizeCoordinates(int $x1, int $x2, int $y1, int $y2, int $z1, int $z2): void
     {
         $server = $this->plugin->getServer();
-        foreach ($this->plugin->getSessionManager()->getPlaying() as $player) {
+        foreach ($this->plugin->getClass('SessionManager')->getPlaying() as $player) {
             $x = mt_rand($x1, $x2);
             $y = mt_rand($y1, $y2);
             $z = mt_rand($z1, $z2);
-            $level = $server->getLevelByName($this->plugin->map);
+            $level = $server->getLevelByName($this->gameProperties->map);
             
             $player->getPlayer()->teleport(new Position($x, $y, $z, $level));
         }
-        $this->playerTimer += 5;
     }
 
     /**
@@ -161,7 +136,7 @@ class GameManager extends Task
      */
     public function getPhase(): int
     {
-        return $this->phase;
+        return $this->gameProperties->phase;
     }
     
     /**
@@ -172,11 +147,11 @@ class GameManager extends Task
      */
     public function setPhase(int $phase): void
     {
-        foreach ($this->plugin->getSessionManager()->getPlaying() as $playerSession) {
-            $event = new PhaseChangeEvent($playerSession->getPlayer(), $this->phase, $phase);
+        foreach ($this->plugin->getClass('SessionManager')->getPlaying() as $playerSession) {
+            $event = new PhaseChangeEvent($playerSession->getPlayer(), $this->gameProperties->phase, $phase);
             $event->call();
         }
-        $this->phase = $phase;
+        $this->gameProperties->phase = $phase;
     }
         
     /**
@@ -187,7 +162,7 @@ class GameManager extends Task
      */
     public function setGameTimer(int $time)
     {
-        $this->game = $time;
+        $this->gameProperties->game = $time;
     }
         
     /**
@@ -198,7 +173,17 @@ class GameManager extends Task
      */
     public function setCountdownTimer(int $time): void
     {
-        $this->countdown = $time;
+        $this->gameProperties->countdown = $time;
+    }
+
+    /**
+     * getCountdownTimer
+     *
+     * @return int
+     */
+    public function getCountdownTimer(): int
+    {
+        return (int)$this->gameProperties->countdown;
     }
         
     /**
@@ -209,7 +194,7 @@ class GameManager extends Task
      */
     public function setGraceTimer(int $time): void
     {
-        $this->grace = $time;
+        $this->gameProperties->grace = $time;
     }
     
     /**
@@ -219,7 +204,7 @@ class GameManager extends Task
      */
     public function getGraceTimer(): int
     {
-        return (int)$this->grace;
+        return (int)$this->gameProperties->grace;
     }
         
     /**
@@ -230,7 +215,7 @@ class GameManager extends Task
      */
     public function setPVPTimer(int $time): void
     {
-        $this->pvp = $time;
+        $this->gameProperties->pvp = $time;
     }
 
     /**
@@ -240,7 +225,7 @@ class GameManager extends Task
      */
     public function getPVPTimer(): int
     {
-        return (int)$this->pvp;
+        return (int)$this->gameProperties->pvp;
     }
         
     /**
@@ -251,7 +236,7 @@ class GameManager extends Task
      */
     public function setDeathmatchTimer(int $time): void
     {
-        $this->deathmatch = $time;
+        $this->gameProperties->deathmatch = $time;
     }
 
     /**
@@ -261,7 +246,7 @@ class GameManager extends Task
      */
     public function getDeathmatchTimer(): int
     {
-        return (int)$this->deathmatch;
+        return (int)$this->gameProperties->deathmatch;
     }
         
     /**
@@ -272,7 +257,7 @@ class GameManager extends Task
      */
     public function setWinnerTimer(int $time): void
     {
-        $this->winner = $time;
+        $this->gameProperties->winner = $time;
     }
 
     /**
@@ -282,7 +267,7 @@ class GameManager extends Task
      */
     public function getWinnerTimer(): int
     {
-        return (int)$this->winner;
+        return (int)$this->gameProperties->winner;
     }
         
     /**
@@ -293,7 +278,7 @@ class GameManager extends Task
      */
     public function setResetTimer(int $time): void
     {
-        $this->reset = $time;
+        $this->gameProperties->reset = $time;
     }
 
     /**
@@ -303,7 +288,7 @@ class GameManager extends Task
      */
     public function getResetTimer(): int
     {
-        return (int)$this->reset;
+        return (int)$this->gameProperties->reset;
     }
     
     /**
@@ -324,7 +309,17 @@ class GameManager extends Task
      */
     public function setShrinking(bool $shrinking)
     {
-        $this->shrinking = $shrinking;
+        $this->gameProperties->shrinking = $shrinking;
+    }
+
+    /**
+     * getShrinking
+     *
+     * @return int
+     */
+    public function getShrinking(): bool
+    {
+        return $this->gameProperties->shrinking;
     }
 
     /**
@@ -335,7 +330,7 @@ class GameManager extends Task
      */
     public function setGlobalMute(bool $enabled): void
     {
-        $this->globalMuteEnabled = $enabled;
+        $this->gameProperties->globalMuteEnabled = $enabled;
     }
 
     /**
@@ -345,6 +340,6 @@ class GameManager extends Task
      */
     public function isGlobalMuteEnabled(): bool
     {
-        return $this->globalMuteEnabled;
+        return $this->gameProperties->globalMuteEnabled;
     }
 }

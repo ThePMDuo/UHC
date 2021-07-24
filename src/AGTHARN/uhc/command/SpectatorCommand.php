@@ -6,9 +6,10 @@ namespace AGTHARN\uhc\command;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
 
+use AGTHARN\uhc\game\GameProperties;
 use AGTHARN\uhc\Main;
 
-use AGTHARN\uhc\libs\CortexPE\Commando\BaseCommand;
+use CortexPE\Commando\BaseCommand;
 
 class SpectatorCommand extends BaseCommand
 {
@@ -18,7 +19,7 @@ class SpectatorCommand extends BaseCommand
      *
      * @var Main
      */
-    private $plugin;
+    protected $plugin;
     
     /**
      * __construct
@@ -56,32 +57,32 @@ class SpectatorCommand extends BaseCommand
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
     {
         if (!$sender instanceof Player) {
-            $sender->sendMessage('COSMIC »» You can only use this command in-game!');
+            $sender->sendMessage(GameProperties::PREFIX_COSMIC . 'You can only use this command in-game!');
             return;
         }
         if ($sender->getGamemode() !== Player::SPECTATOR) {
-            $sender->sendMessage('§6COSMIC §7»» §cYou must be eliminated to use this command!');
+            $sender->sendMessage(GameProperties::PREFIX_COSMIC . '§cYou must be eliminated to use this command!');
             return;
         }
         if (!isset($args[0])) {
-            $sender->sendMessage('§6COSMIC §7»» §cPlease specify a player to spectate!');
+            $sender->sendMessage(GameProperties::PREFIX_COSMIC . '§cPlease specify a player to spectate!');
             return;
         }
 
         $player = $this->plugin->getServer()->getPlayer($args[0]) ?? null;
         if ($player === $sender) {
-            $sender->sendMessage('§6COSMIC §7»» §cYou cant spectate yourself!');
+            $sender->sendMessage(GameProperties::PREFIX_COSMIC . '§cYou cant spectate yourself!');
             return;
         }
         if ($player === null) {
-            $sender->sendMessage('§6COSMIC §7»» §cThat player is not in the server!');
+            $sender->sendMessage(GameProperties::PREFIX_COSMIC . '§cThat player is not in the server!');
             return;
         }
         if (!$this->plugin->getClass('SessionManager')->getSession($player)->isPlaying()) {
-            $sender->sendMessage('§6COSMIC §7»» §cThat player is not in the game!');
+            $sender->sendMessage(GameProperties::PREFIX_COSMIC . '§cThat player is not in the game!');
             return;
         }
         $sender->teleport($player->getPosition());
-        $sender->sendMessage('§6COSMIC §7»» §aTeleported you to: ' . $player->getName());
+        $sender->sendMessage(GameProperties::PREFIX_COSMIC . '§aTeleported you to: ' . $player->getName());
     }
 }

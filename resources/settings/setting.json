@@ -1,0 +1,24 @@
+{
+    "type": "custom_form",
+    "title": "About MineUHC",
+    "icon": {
+      "type": "url",
+      "data": "https://static.wikia.nocookie.net/hypixelthepit/images/0/0e/Golden_Apple.png/revision/latest?cb=20201102155047"
+    },
+    "content": [
+        {
+          "type": "label",
+          "text": "Hello There!!"
+        },
+        {
+          "type": "input",
+          "text": "Message",
+          "placeholder": "Msg"
+        },
+        {
+          "type": "toggle",
+          "text": "Send Message",
+          "default": false
+        }
+      ]
+  }

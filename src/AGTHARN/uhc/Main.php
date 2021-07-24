@@ -6,71 +6,105 @@ namespace AGTHARN\uhc;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
+use AGTHARN\uhc\game\scenario\ScenarioManager;
+use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\game\team\TeamManager;
+use AGTHARN\uhc\game\GameProperties;
+use AGTHARN\uhc\game\GameHandler;
+use AGTHARN\uhc\game\GameManager;
+use AGTHARN\uhc\listener\ListenerManager;
+use AGTHARN\uhc\session\SessionManager;
+use AGTHARN\uhc\kit\KitManager;
+use AGTHARN\uhc\util\chunkgen\ChunkLoader;
+use AGTHARN\uhc\util\bossbar\BossBarAPI;
+use AGTHARN\uhc\util\form\FormManager;
+use AGTHARN\uhc\util\virion\DEVirion;
+use AGTHARN\uhc\util\Punishments;
+use AGTHARN\uhc\util\UtilPlayer;
+use AGTHARN\uhc\util\Generators;
+use AGTHARN\uhc\util\Directory;
+use AGTHARN\uhc\util\DeathChest;
+use AGTHARN\uhc\util\ChestSort;
+use AGTHARN\uhc\util\Profanity;
+use AGTHARN\uhc\util\Database;
+use AGTHARN\uhc\util\AntiVPN;
+use AGTHARN\uhc\util\Discord;
+use AGTHARN\uhc\util\Recipes;
+use AGTHARN\uhc\util\Spoon;
+use AGTHARN\uhc\util\Capes;
+
 use AGTHARN\uhc\command\SpectatorCommand;
 use AGTHARN\uhc\command\ReportCommand;
 use AGTHARN\uhc\command\PingCommand;
 use AGTHARN\uhc\command\ModCommand;
-use AGTHARN\uhc\session\SessionManager;
-use AGTHARN\uhc\listener\ListenerManager;
-use AGTHARN\uhc\util\Database;
 
-use AGTHARN\uhc\libs\poggit\libasynql\DataConnector;
-use AGTHARN\uhc\libs\poggit\libasynql\libasynql;
+use poggit\libasynql\DataConnector;
+use poggit\libasynql\libasynql;
 
 class Main extends PluginBase
 {   
-    /** @var string */
-    public $uhcServer = 'GAME-1';
-    /** @var string */
-    public $node = 'NYC-01';
-    /** @var string */
-    public $buildNumber = 'BETA-1';
-    /** @var bool */
-    public $operational = true;
-
-    /** @var int */
-    public $normalSeed;
-    /** @var string */
-    public $map = 'UHC';
-    /** @var int */
-    public $netherSeed;
-    /** @var string */
-    public $nether = 'nether';
-
-    /** @var int */
-    public $startingPlayers = 0;
-    /** @var int */
-    public $startingTeams = 0;
-
-    /** @var array */
-    public $entityRegainNote = [];
-
     /** @var Config */
     public $secrets;
-    /** @var string */
-    public $reportWebhook = '';
-    /** @var string */
-    public $serverReportsWebhook = '';
-    /** @var string */
-    public $serverPowerWebhook = '';
-
-    /** @var int */
-    public $spawnPosX = 0;
-    /** @var int */
-    public $spawnPosY = 125;
-    /** @var int */
-    public $spawnPosZ = 0;
-
-    /** @var ListenerManager */
-    private $listenerManager;
+    
+    /** @var GameManager */
+    private $gamemanager;
+    /** @var ScenarioManager */
+    private $scenariomanager;
     /** @var SessionManager */
-    private $sessionManager;
-    /** @var DataConnector */
-    private $data;
+    private $sessionmanager;
+    /** @var ListenerManager */
+    private $listenermanager;
+    /** @var TeamManager */
+    private $teammanager;
+    /** @var GameHandler */
+    private $gamehandler;
+    /** @var GameProperties */
+    private $gameproperties;
 
-    /** @var string|array */
-    private $contents = '';
+    /** @var Border */
+    private $border;
+    /** @var ChestSort */
+    private $chestsort;
+    /** @var DeathChest */
+    private $deathchest;
+    /** @var KitManager */
+    private $kitmanager;
+    /** @var Capes */
+    private $capes;
+    /** @var Generators */
+    private $generators;
+    /** @var UtilPlayer */
+    private $utilplayer;
+    /** @var FormManager */
+    private $formmanager;
+    /** @var Discord */
+    private $discord;
+    /** @var Recipes */
+    private $recipes;
+    /** @var Spoon */
+    private $spoon;
+    /** @var Profanity */
+    private $profanity;
+    /** @var ChunkLoader */
+    private $chunkloader;
+    /** @var BossBarAPI */
+    private $bossbarapi;
+    /** @var DEVirion */
+    private $devirion;
+
+    /** @var DataConnector */
+    public $data;
+    
+    /**
+     * onLoad
+     *
+     * @return void
+     */
+    public function onLoad(): void
+    {
+		$this->devirion = new DEVirion($this);
+        $this->devirion->virionLoad();
+	}
     
     /**
      * onEnable
@@ -79,37 +113,71 @@ class Main extends PluginBase
      */
     public function onEnable(): void
     {   
-        $this->contents = $this->getDirContents(str_replace('/', DIRECTORY_SEPARATOR, $this->getServer()->getDataPath() . 'plugins/UHC/src/') . 'AGTHARN/uhc');
-        $this->secrets = new Config($this->getDataFolder() . 'secrets.yml', Config::YAML);
-
-        $this->reportWebhook = $this->secrets->get('reportWebhook');
-        $this->serverReportsWebhook = $this->secrets->get('serverReportsWebhook');
-        $this->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
-
-        $this->listenerManager = $this->getClass('ListenerManager');
-        // idot shit
-        $this->sessionManager = new SessionManager();
-
+        $this->devirion->virionEnable();
+        
+        // everything in order dont mess it up
         @mkdir($this->getDataFolder() . 'scenarios');
-        $this->saveResource('capes/normal_cape.png');
-        $this->saveResource('capes/potion_cape.png');
+        @mkdir($this->getDataFolder() . 'capes');
+
+        $this->saveResource("settings/setting.json");
         $this->saveResource('swearwords.yml');
         $this->saveResource('secrets.yml');
+
+        $this->gameproperties = new GameProperties();
+        $this->directory = new Directory($this);
+
+        $this->gameproperties->allCapes = $this->directory->getDirContents($this->getServer()->getDataPath() . 'plugins/UHC/resources/capes', '/\.png$/');
+        foreach ($this->gameproperties->allCapes as $cape) {
+            $this->saveResource('capes/' . basename($cape));
+        }
+
+        $this->utilplayer = new UtilPlayer($this);
+
+        $this->generators = new Generators($this);
+        $this->generators->prepareWorld();
+        $this->generators->prepareNether();
         
-        $this->getClass('Recipes')->registerGoldenHead();
-        $this->getClass('Spoon')->makeTheCheck();
+        $this->border = new Border($this->getServer()->getLevelByName($this->gameproperties->map));
+        
+        $this->gamemanager = new GameManager($this);
+        $this->scenariomanager = new ScenarioManager($this);
+        $this->sessionmanager = new SessionManager();
+        $this->listenermanager = new ListenerManager($this);
+        $this->teammanager = new TeamManager();
+        $this->gamehandler = new GameHandler($this);
 
-        $this->getClass('Generators')->prepareWorld();
-        //$this->getClass('Generators')->prepareNether();
+        $this->chestsort = new ChestSort($this);
+        $this->deathchest = new DeathChest($this);
+        $this->kitmanager = new KitManager();
+        $this->capes = new Capes($this);
+        $this->formmanager = new FormManager($this);
+        $this->discord = new Discord($this);
+        $this->recipes = new Recipes($this);
+        $this->spoon = new Spoon($this);
+        $this->profanity = new Profanity($this);
+        $this->chunkloader = new ChunkLoader($this);
+        $this->database = new Database($this);
+        $this->punishments = new Punishments($this);
+        $this->antivpn = new AntiVPN($this);
+        $this->bossbarapi = new BossBarAPI();
 
-        $this->getScheduler()->scheduleRepeatingTask($this->getClass('GameManager'), 20);
-        $this->getClass('ListenerManager')->registerListeners();
-        $this->runCompatibilityChecks();
+        $this->secrets = new Config($this->getDataFolder() . 'secrets.yml', Config::YAML);
+
+        $this->gameproperties->reportWebhook = $this->secrets->get('reportWebhook');
+        $this->gameproperties->serverReportsWebhook = $this->secrets->get('serverReportsWebhook');
+        $this->gameproperties->serverPowerWebhook = $this->secrets->get('serverPowerWebhook');
+        ////////////////////////////////////////
+        
+        $this->recipes->registerGoldenHead();
+        $this->spoon->makeTheCheck();
+
+        $this->getScheduler()->scheduleRepeatingTask($this->gamemanager, 20);
+        $this->listenermanager->registerListeners();
         $this->registerCommands();
     
-        $this->getClass('Discord')->sendStartReport($this->getServer()->getVersion(), $this->buildNumber, $this->node, $this->uhcServer);
+        $this->discord->sendStartReport($this->getServer()->getVersion(), $this->gameproperties->buildNumber, $this->gameproperties->node, $this->gameproperties->uhcServer);
 
-        $this->data = $this->getClass('Database')->initDataDatabase();
+        $this->data = $this->database->initDataDatabase();
         $this->data->executeGeneric('uhc.data.init');
     }
     
@@ -120,26 +188,20 @@ class Main extends PluginBase
      */
     public function onDisable(): void
     {   
-        $this->getClass('Generators')->removeAllWorlds();
-
         if (isset($this->data)) $this->data->close();
     }
-    
+
     /**
-     * runCompatibilityChecks
+     * getClass
      *
-     * @return void
+     * @param  string $class
+     * @return mixed
      */
-    public function runCompatibilityChecks()
-    {
-        if (!extension_loaded('gd')) {
-            $this->getServer()->getLogger()->error('GD Lib is disabled! Turning on safe mode!');
-            $this->setOperational(false);
-        }
-        //if (!in_array($this->getServer()->getApiVersion(), $this->getDescription()->getCompatibleApis())) {
-            //$this->getServer()->getLogger()->error('Incompatible version! Turning on safe mode!');
-            //$this->setOperational(false);
-        //}
+    public function getClass(string $class)
+    {   
+        // no camelcase sorry pmmp :")
+        // should improve how this works btw
+        return $this->{strtolower($class)};
     }
     
     /**
@@ -175,74 +237,6 @@ class Main extends PluginBase
     }
     
     /**
-     * getClass
-     *
-     * @param  string $search
-     * @return mixed
-     */
-    public function getClass(string $search): mixed
-    {   
-        $pluginMainPath = str_replace('/', DIRECTORY_SEPARATOR, $this->getServer()->getDataPath() . 'plugins/UHC/src/');
-        $namespace = '';
-
-        foreach ($this->contents as $object) {
-            if (strpos((string)$object, $search) !== false) {
-                $namespace = preg_replace("/(.+)\.php$/", "$1", str_replace($pluginMainPath, '', (string)$object));
-            }
-        }
-        
-        if (strpos($namespace, 'SessionManager') !== false || strpos($namespace, 'TeamManager') !== false || strpos($namespace, 'KitsManager') !== false) {
-            return new $namespace();
-        } elseif (strpos($namespace, 'GameManager') !== false || strpos($namespace, 'Handler') !== false) {
-            return new $namespace($this, $this->getClass('Border'));
-        } elseif (strpos($namespace, 'Border') !== false) {
-            return new $namespace($this->getServer()->getLevelByName($this->map));
-        } elseif (strpos($namespace, 'DataConnector') !== false) {
-            return $this->data;
-        } elseif (strpos($namespace, 'Database') !== false) {
-            return new Database($this);
-        }
-        return new $namespace($this);
-    }
-
-    /**
-     * getDirContents
-     * 
-     * had to keep this here due to complications
-     * (try to move it to Directory in util if you want)
-     *
-     * @param  mixed $dir
-     * @param  string $filter
-     * @param  array $results
-     * @return array
-     */
-    public function getDirContents($dir, string $filter = '', array &$results = array()): array 
-    {
-        $files = preg_grep('/^([^.])/', (array)scandir($dir));
-
-        foreach ($files as $key => $value) {
-            $path = (string)realpath($dir . DIRECTORY_SEPARATOR . $value); 
-
-            if (!is_dir($path)) {
-                if (empty($filter) || preg_match($filter, $path)) $results[] = $path;
-            } elseif ($value != "." && $value != "..") {
-                $this->getDirContents($path, $filter, $results);
-            }
-        }
-        return $results;
-    }
-
-    /**
-     * getSessionManager
-     *
-     * @return SessionManager
-     */
-    public function getSessionManager(): SessionManager
-    {   
-        return $this->sessionManager ?? new SessionManager();
-    }
-    
-    /**
      * setOperational
      *
      * @param  bool $operational
@@ -251,7 +245,7 @@ class Main extends PluginBase
     public function setOperational(bool $operational): void
     {
         if ($this->getOperational()) {
-            $this->operational = $operational;
+            $this->gameproperties->operational = $operational;
         }
     }
     
@@ -262,7 +256,7 @@ class Main extends PluginBase
      */
     public function getOperational(): bool
     {
-        return $this->operational;
+        return $this->gameproperties->operational;
     }
     
     /**

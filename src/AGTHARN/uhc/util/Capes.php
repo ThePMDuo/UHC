@@ -23,52 +23,25 @@ class Capes
     {
         $this->plugin = $plugin;
     }
-    
+        
     /**
      * giveCape
      *
      * @param  Player $player
+     * @param  string $cape
      * @return void
      */
-    public function giveCape(Player $player, string $value = 'normal_cape'): void
+    public function giveCape(Player $player, string $cape = 'normal_cape.png'): void
     {
-        switch ($value) {
-            case 'normal_cape':
-            default:
-                $this->createNormalCape($player);
-                break;
-            case 'potion_cape':
-                $this->createPotionCape($player);
-                break;
+        if (preg_match('/\.png$/', $cape)) {
+            $img = imagecreatefrompng($this->plugin->getDataFolder() . 'capes/' . $cape);
+        } else {
+            $img = imagecreatefrompng($this->plugin->getDataFolder() . 'capes/' . $cape . '.png');
         }
-    }
-
-    /**
-     * createNormalCape
-     *
-     * @param  Player $player
-     * @return void
-     */
-    public function createNormalCape(Player $player): void
-    {
-        $img = imagecreatefrompng($this->plugin->getDataFolder() . 'capes' . DIRECTORY_SEPARATOR . 'normal_cape.png');
         $rgba = $this->getRGBA($img);
 
         $this->setCape($player, $rgba);
-    }
-
-    /**
-     * createPotionCape
-     *
-     * @param  Player $player
-     * @return void
-     */
-    public function createPotionCape(Player $player): void
-    {
-        $img = imagecreatefrompng($this->plugin->getDataFolder() . 'capes' . DIRECTORY_SEPARATOR . 'potion_cape.png');
-        $rgba = $this->getRGBA($img);
-
-        $this->setCape($player, $rgba);
+        $this->plugin->getClass('Database')->changeCape($player, basename($cape, '.png'));
     }
     
     /**

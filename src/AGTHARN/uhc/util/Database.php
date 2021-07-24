@@ -7,8 +7,8 @@ use pocketmine\Player;
 
 use AGTHARN\uhc\Main;
 
-use AGTHARN\uhc\libs\poggit\libasynql\DataConnector;
-use AGTHARN\uhc\libs\poggit\libasynql\libasynql;
+use poggit\libasynql\DataConnector;
+use poggit\libasynql\libasynql;
 
 class Database
 {    
@@ -37,6 +37,21 @@ class Database
             'mysql' => 'database_stmts/mysql.sql'
         ]);
     }
+
+    /**
+     * registerPlayer
+     *
+     * @param  Player $player
+     * @return void
+     */
+    public function registerPlayer(Player $player): void
+    {
+        $this->plugin->data->executeInsert('uhc.data.register', [
+            'uuid' => $player->getUniqueId()->toString(),
+            'playername' => $player->getName(),
+            'cape' => 'normal_cape'
+        ]);
+    }
     
     /**
      * giveCape
@@ -46,34 +61,19 @@ class Database
      */
     public function giveCape(Player $player): void
     {   
-        $this->plugin->getClass('DataConnector')->executeSelect('uhc.data.loadplayer', ['xuid' => $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers')], function(array $rows): void
+        $this->plugin->data->executeSelect('uhc.data.loadplayer', ['uuid' => $player->getUniqueId()->toString()], function(array $rows): void
         {
             foreach ($rows as [
-                'xuid' => $xuid,
+                'uuid' => $uuid,
                 'playername' => $playername,
                 'cape' => $cape
             ]) {
                 $player = $this->plugin->getServer()->getPlayerExact($playername);
-                if ($xuid === $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers')) {
+                if ($uuid === $player->getUniqueId()->toString()) {
                     $this->plugin->getClass('Capes')->giveCape($player, $cape);
                 }
             }
         });
-    }
-    
-    /**
-     * registerPlayer
-     *
-     * @param  Player $player
-     * @return void
-     */
-    public function registerPlayer(Player $player): void
-    {
-        $this->plugin->getClass('DataConnector')->executeInsert('uhc.data.register', [
-            'xuid' => $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers'),
-            'playername' => $player->getName(),
-            'cape' => 'normal_cape'
-        ]);
     }
         
     /**
@@ -85,10 +85,34 @@ class Database
      */
     public function changeCape(Player $player, string $cape): void
     {
-        $this->plugin->getClass('DataConnector')->executeChange('uhc.data.update', [
-            'xuid' => $player->getXuid() . $this->plugin->secrets->get('secret-xuid-numbers'),
+        $this->plugin->data->executeChange('uhc.data.update', [
+            'uuid' => $player->getUniqueId()->toString(),
             'playername' => $player->getName(),
             'cape' => $cape
         ]);
+    }
+
+    /**
+     * checkNameTally
+     *
+     * @param  Player $player
+     * @return void
+     */
+    public function checkNameTally(Player $player): void
+    {   
+        $this->plugin->data->executeSelect('uhc.data.loadplayer', ['uuid' => $player->getUniqueId()->toString()], function(array $rows): void
+        {
+            foreach ($rows as [
+                'uuid' => $uuid,
+                'playername' => $playername,
+                'cape' => $cape
+            ]) {
+                $player = $this->plugin->getServer()->getPlayerExact($playername);
+                $playerUUID = $this->plugin->getServer()->getPlayerByUUID($uuid);
+                if ($playerUUID === null || $uuid !== $player->getUniqueId()->toString() || $playername !== $player->getName()) {
+                    if ($player->isOnline()) $player->kick("UUID does not match (possible impersonation attempt)", false);
+                }
+            }
+        });
     }
 }

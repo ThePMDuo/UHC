@@ -6,9 +6,10 @@ namespace AGTHARN\uhc\command;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
 
+use AGTHARN\uhc\game\GameProperties;
 use AGTHARN\uhc\Main;
 
-use AGTHARN\uhc\libs\CortexPE\Commando\BaseCommand;
+use CortexPE\Commando\BaseCommand;
 
 class PingCommand extends BaseCommand
 {
@@ -18,7 +19,7 @@ class PingCommand extends BaseCommand
      *
      * @var Main
      */
-    private $plugin;
+    protected $plugin;
     
     /**
      * __construct
@@ -56,19 +57,19 @@ class PingCommand extends BaseCommand
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
     {
         if (!$sender instanceof Player) {
-            $sender->sendMessage('COSMIC »» You can only use this command in-game!');
+            $sender->sendMessage(GameProperties::PREFIX_COSMIC . 'You can only use this command in-game!');
             return;
         }
         
         $ping = $sender->getPing();
         if ($ping <= 70) {
-			$sender->sendMessage("§6COSMIC §7»» §rPing: §a" . $ping . "ms");
+			$sender->sendMessage(GameProperties::PREFIX_COSMIC . '§rPing: §a' . $ping . 'ms');
 		} elseif ($ping <= 150) {
-			$sender->sendMessage("§6COSMIC §7»» §rPing: §e" . $ping . "ms");
+			$sender->sendMessage(GameProperties::PREFIX_COSMIC . '§rPing: §e' . $ping . 'ms');
 		} elseif ($ping <= 250) {
-			$sender->sendMessage("§6COSMIC §7»» §rPing: §6" . $ping . "ms");
+			$sender->sendMessage(GameProperties::PREFIX_COSMIC . '§rPing: §6' . $ping . 'ms');
 		} else {
-			$sender->sendMessage("§6COSMIC §7»» §rPing: §c" . $ping . "ms");
+			$sender->sendMessage(GameProperties::PREFIX_COSMIC . '§rPing: §c' . $ping . 'ms');
 		}
     }
 }

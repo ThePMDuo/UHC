@@ -89,7 +89,7 @@ class PlayerSession
      */
     public function getTeam(): ?Team
     {
-        return $this->team ?? 'null';
+        return $this->team ?? null;
     }
     
     /**
