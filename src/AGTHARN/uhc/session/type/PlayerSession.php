@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\session\type;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 
 use AGTHARN\uhc\game\team\type\Team;
 

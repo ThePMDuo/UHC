@@ -1,6 +1,28 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * ███╗░░░███╗██╗███╗░░██╗███████╗██╗░░░██╗██╗░░██╗░█████╗░
+ * ████╗░████║██║████╗░██║██╔════╝██║░░░██║██║░░██║██╔══██╗
+ * ██╔████╔██║██║██╔██╗██║█████╗░░██║░░░██║███████║██║░░╚═╝
+ * ██║╚██╔╝██║██║██║╚████║██╔══╝░░██║░░░██║██╔══██║██║░░██╗
+ * ██║░╚═╝░██║██║██║░╚███║███████╗╚██████╔╝██║░░██║╚█████╔╝
+ * ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚══╝╚══════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░
+ * 
+ * Copyright (C) 2020-2021 AGTHARN
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace AGTHARN\uhc\util;
 
 use AGTHARN\uhc\Main;
@@ -8,7 +30,7 @@ use AGTHARN\uhc\Main;
 class Directory
 {
     /** @var Main */
-    private $plugin;
+    private Main $plugin;
 
     /**
      * __construct
@@ -23,75 +45,77 @@ class Directory
         
     /**
      * callDirectory
+     * 
+     * (Code extracted from VanillaX)
      *
      * @param  string $directory
+     * @param  bool $addPluginPath
      * @param  callable $callable
      * @return void
      */
-    public function callDirectory(string $directory, callable $callable): void
+    public function callDirectory(string $directory, bool $addPluginPath, callable $callable): void
     {
-        $dirname = $this->getPath();
-        $path = $dirname . DIRECTORY_SEPARATOR . $directory;
-        $path = str_replace(["phar:///", "phar://", "//", "phar:\\\\", "\\"], ["phar:\\\\/", "phar:\\\\", "/", "phar://", "/"], $path);
-        $phar = $this->plugin->isPhar();
+        $main = explode("\\", $this->plugin->getDescription()->getMain());
+        unset($main[array_key_last($main)]);
+        $main = implode("/", $main);
+        $directory = rtrim(str_replace(DIRECTORY_SEPARATOR, "/", $directory), "/");
+        $dir = $addPluginPath ? $this->plugin->getFile() . "src/$main/" . $directory : $directory;
 
-        foreach(array_diff(scandir($path), [".", ".."]) as $file){
-            if(is_dir($path . DIRECTORY_SEPARATOR . $file)){
-                $this->callDirectory($directory . DIRECTORY_SEPARATOR . $file, $callable);
-            }else{
-                $i = explode(".", $file);
-                $extension = $i[count($i) - 1];
+        foreach (array_diff(scandir($dir), [".", ".."]) as $file) {
+            $path = $dir . "/$file";
+            $extension = pathinfo($path)["extension"] ?? null;
 
-                if($extension === "php"){
-                    $name = $i[0];
-                    $namespace = "";
-                    $i = explode(DIRECTORY_SEPARATOR, str_replace(getcwd() . DIRECTORY_SEPARATOR, "", $dirname));
-                    for($v = 0; $v <= ($phar ? 1 : 2); $v++){
-                        unset($i[$v]);
-                    }
-                    foreach($i as $key => $string){
-                        $namespace .= $string . DIRECTORY_SEPARATOR;
-                    }
-                    $namespace .= $directory . DIRECTORY_SEPARATOR . $name;
-                    $namespace = str_replace("/", "\\", $namespace);
-                    if(($pos = strpos($namespace, "src\\")) !== false){
-                        $namespace = substr($namespace, $pos + 4);
-                    }
-                    $callable($namespace);
-                }
+            if ($extension === null) {
+                $this->callDirectory($directory . "/" . $file, true, $callable);
+            } elseif ($extension === "php") {
+                $namespaceDirectory = str_replace("/", "\\", $directory);
+                $namespaceMain = str_replace("/", "\\", $main);
+                $namespace = $namespaceMain . "\\$namespaceDirectory\\" . basename($file, ".php");
+                $callable($namespace, $directory);
             }
         }
     }
     
     /**
-     * getPath
+     * removeDir
+     * 
+     * (Code extracted from VanillaX)
      *
-     * @return string
+     * @param  string $dirPath
+     * @return int
      */
-    public function getPath(): string
+    public function removeDir(string $dirPath): int 
     {
-        $path = $this->removeLastDirectory($this->plugin->getDescription()->getMain());
-        $path = $this->plugin->getFile() . "src" . DIRECTORY_SEPARATOR . $path;
-        return $path;
-    }
-    
-    /**
-     * removeLastDirectory
-     *
-     * @param  string $str
-     * @param  int $loop
-     * @return string
-     */
-    public function removeLastDirectory(string $str, int $loop = 1): string
-    {
-        $delimiter = strpos($str, DIRECTORY_SEPARATOR) ? DIRECTORY_SEPARATOR : "\\";
-
-        for($i = 0; $i < $loop; $i++){
-            $exp = explode($delimiter, $str);
-            unset($exp[array_key_last($exp)]);
-            $str = implode($delimiter, $exp);
+        $files = 1;
+        if (basename($dirPath) == '.' || basename($dirPath) == '..' || !is_dir($dirPath)) {
+            return 0;
         }
-        return $str;
+        foreach (scandir($dirPath) as $item) {
+            if ($item != '.' || $item != '..') {
+                if (is_dir($dirPath . DIRECTORY_SEPARATOR . $item)) {
+                    $files += $this->removeDir($dirPath . DIRECTORY_SEPARATOR . $item);
+                }
+                if (is_file($dirPath . DIRECTORY_SEPARATOR . $item)) {
+                    $files += $this->removeFile($dirPath . DIRECTORY_SEPARATOR . $item);
+                }
+            }
+        }
+        rmdir($dirPath);
+        return $files;
+    }
+
+    /**
+     * removeFile
+     * 
+     * (Code extracted from VanillaX)
+     *
+     * @param  string $path
+     * @return int
+     */
+    public function removeFile(string $path): int
+    {
+        unlink($path);
+        return 1;
     }
 
     /**
@@ -111,7 +135,7 @@ class Directory
 
             if (!is_dir($path)) {
                 if (empty($filter) || preg_match($filter, $path)) $results[] = $path;
-            } elseif ($value != "." && $value != "..") {
+            } elseif ($value != '.' && $value != '..') {
                 $this->getDirContents($path, $filter, $results);
             }
         }

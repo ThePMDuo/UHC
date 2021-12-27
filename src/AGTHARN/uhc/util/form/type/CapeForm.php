@@ -1,9 +1,31 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * ███╗░░░███╗██╗███╗░░██╗███████╗██╗░░░██╗██╗░░██╗░█████╗░
+ * ████╗░████║██║████╗░██║██╔════╝██║░░░██║██║░░██║██╔══██╗
+ * ██╔████╔██║██║██╔██╗██║█████╗░░██║░░░██║███████║██║░░╚═╝
+ * ██║╚██╔╝██║██║██║╚████║██╔══╝░░██║░░░██║██╔══██║██║░░██╗
+ * ██║░╚═╝░██║██║██║░╚███║███████╗╚██████╔╝██║░░██║╚█████╔╝
+ * ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚══╝╚══════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░
+ * 
+ * Copyright (C) 2020-2021 AGTHARN
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace AGTHARN\uhc\util\form\type;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 
 use AGTHARN\uhc\Main;
 
@@ -13,10 +35,10 @@ use jojoe77777\FormAPI\SimpleForm;
 class CapeForm
 {    
     /** @var Main */
-    private $plugin;
+    private Main $plugin;
 
     /** @var array */
-    public $capesButtons = [];
+    public array $capesButtons = [];
 
     /**
      * __construct
@@ -76,15 +98,19 @@ class CapeForm
     {   
         $form = new CustomForm(function (Player $player, $data) use ($allCapes) {
             if ($data !== null) {
+                $result = $data[0];
                 $capesFound = [];
 
+                if ($result === '') {
+                    $this->sendAllCapesForm($player, $allCapes, $result);
+                    return;
+                }
                 foreach ($allCapes as $capeDir) {
-                    if (strpos($capeDir, $data[0]) !== false) {
-                        //$this->plugin->getClass('Capes')->giveCape($player, basename($capeDir));
+                    if (strpos($capeDir, $result) !== false) {
                         $capesFound[] = basename($capeDir);
                     }
                 }
-                $this->sendAllCapesForm($player, $capesFound, $data[0]);
+                $this->sendAllCapesForm($player, $capesFound, $result);
             }
         });
         
@@ -180,7 +206,8 @@ class CapeForm
             if ($i >= 5) {
                 $form->addButton('Next Page (' . ($page + 1) . ')');
                 break;
-            } elseif ($i <= 5) {
+            }
+            if ($i <= 5) {
                 $capeName = basename($capeDir, '.png');
                 $capeNameFormatted = basename($capeDir);
 

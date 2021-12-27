@@ -1,13 +1,16 @@
-main: AGTHARN\uhc\Main
 name: UHC
-author: AGTHARN
-version: 1 # based off build number
-api: 3.22.1
+main: AGTHARN\uhc\Main
+author: ThePMDuo
+authors: [AGTHARN, CosmicNebula200]
+version: 1.0.0
+api: 4.0.0
+extensions:
+  Core: '>=8.0'
 
 permissions:
   uhc.vpn.bypass:
-    default: op
+    default: false
     description: VPN Checks would not be run on players with this permission
   uhc.mod.command:
-    default: op
+    default: false
     description: VPN Checks would not be run on players with this permission

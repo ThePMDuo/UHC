@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace AGTHARN\uhc\command;
 
 use pocketmine\command\CommandSender;
-use pocketmine\Player;
+use pocketmine\player\Player;
 
 use AGTHARN\uhc\game\GameProperties;
 use AGTHARN\uhc\Main;
@@ -13,13 +13,8 @@ use CortexPE\Commando\BaseCommand;
 
 class PingCommand extends BaseCommand
 {
-
-    /**
-     * plugin
-     *
-     * @var Main
-     */
-    protected $plugin;
+    /** @var Main */
+    protected Main $plugin;
     
     /**
      * __construct
@@ -44,6 +39,7 @@ class PingCommand extends BaseCommand
      */
     public function prepare(): void
     {
+        // nothing
     }
     
     /**
@@ -61,7 +57,7 @@ class PingCommand extends BaseCommand
             return;
         }
         
-        $ping = $sender->getPing();
+        $ping = $sender->getNetworkSession()->getPing();
         if ($ping <= 70) {
 			$sender->sendMessage(GameProperties::PREFIX_COSMIC . '§rPing: §a' . $ping . 'ms');
 		} elseif ($ping <= 150) {

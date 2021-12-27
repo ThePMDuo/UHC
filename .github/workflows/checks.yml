@@ -11,18 +11,6 @@ jobs:
         - name: "Checkout"
           uses: actions/checkout@v2
         - name: phpstan
-          uses: Paroxity/pmmp-phpstan-action@master
+          uses: larryTheCoder/pmmp-phpstan-action@master
           with:
             phpstan-config: phpstan.neon.dist
-        - name: PHP Copy Paste Detector
-          uses: StephaneBour/actions-php-cpd@1.0
-          with:
-            dir: './src'
-        - name: PHP Syntax Checker
-          uses: StephaneBour/actions-php-lint@7.4
-          with:
-            dir: './src'
-        - name: VarDump Check
-          uses: umutphp/php-var-dump-check-action@v1
-          with:
-            extensions: 'php7'

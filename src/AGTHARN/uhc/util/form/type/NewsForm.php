@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\util\form\type;
 
-use pocketmine\Player;
+use pocketmine\player\Player;
 
 use jojoe77777\FormAPI\SimpleForm;
 

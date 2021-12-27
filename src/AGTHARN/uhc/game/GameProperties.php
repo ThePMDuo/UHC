@@ -1,7 +1,28 @@
 <?php
-
 declare(strict_types=1);
 
+/**
+ * ███╗░░░███╗██╗███╗░░██╗███████╗██╗░░░██╗██╗░░██╗░█████╗░
+ * ████╗░████║██║████╗░██║██╔════╝██║░░░██║██║░░██║██╔══██╗
+ * ██╔████╔██║██║██╔██╗██║█████╗░░██║░░░██║███████║██║░░╚═╝
+ * ██║╚██╔╝██║██║██║╚████║██╔══╝░░██║░░░██║██╔══██║██║░░██╗
+ * ██║░╚═╝░██║██║██║░╚███║███████╗╚██████╔╝██║░░██║╚█████╔╝
+ * ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚══╝╚══════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░
+ * 
+ * Copyright (C) 2020-2021 AGTHARN
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace AGTHARN\uhc\game;
 
 use AGTHARN\uhc\game\timer\GameTimer;
@@ -33,46 +54,46 @@ class GameProperties
      */
 
     /** @var int */
-    public $game = 0;
+    public int $game = 0;
 
     /** @var int */
-    public $phase = PhaseChangeEvent::WAITING;
+    public int $phase = PhaseChangeEvent::WAITING;
     /** @var int */
-    public $countdown = GameTimer::TIMER_COUNTDOWN;
+    public int $countdown = GameTimer::TIMER_COUNTDOWN;
     /** @var int */
-    public $grace = GameTimer::TIMER_GRACE;
+    public int $grace = GameTimer::TIMER_GRACE;
     /** @var int */
-    public $pvp = GameTimer::TIMER_PVP;
+    public int $pvp = GameTimer::TIMER_PVP;
     /** @var int */
-    public $deathmatch = GameTimer::TIMER_DEATHMATCH;
+    public int $deathmatch = GameTimer::TIMER_DEATHMATCH;
     /** @var int */
-    public $winner = GameTimer::TIMER_WINNER;
+    public int $winner = GameTimer::TIMER_WINNER;
     /** @var int */
-    public $reset = GameTimer::TIMER_RESET;
+    public int $reset = GameTimer::TIMER_RESET;
 
     /** @var int */
-    public $playersJoiningTime = 0;
+    public int $playersJoiningTime = 0;
 
     /** @var int */
-    public $startingPlayers = 0;
+    public int $startingPlayers = 0;
     /** @var int */
-    public $startingTeams = 0;
+    public int $startingTeams = 0;
 
     /** @var array */
-    public $winnerNames = [];
+    public array $winnerNames = [];
         
     /** @var bool */
-    public $shrinking = false;
+    public bool $shrinking = false;
     /** @var bool */
-    public $globalMuteEnabled = false;
+    public bool $globalMuteEnabled = false;
 
     /** @var array */
-    public $waterdogIPs = [];
+    public array $waterdogIPs = [];
 
     /** @var int */
-    public $normalSeed;
+    public int $normalSeed;
     /** @var int */
-    public $netherSeed;
+    public int $netherSeed;
 
     /**
      * 
@@ -82,35 +103,40 @@ class GameProperties
      */
 
     /** @var string */
-    public $uhcServer = 'GAME-1';
+    public string $uhcServer = 'GAME-1';
     /** @var string */
-    public $node = 'NYC-01';
+    public string $node = 'NYC-01';
     /** @var string */
-    public $buildNumber = 'BETA-1';
+    public string $buildNumber = 'BETA-1';
     /** @var bool */
-    public $operational = true;
+    public bool $operational = true;
 
     /** @var string */
-    public $reportWebhook = '';
+    public string $reportWebhook = '';
     /** @var string */
-    public $serverReportsWebhook = '';
+    public string $serverReportsWebhook = '';
     /** @var string */
-    public $serverPowerWebhook = '';
+    public string $serverPowerWebhook = '';
 
     /** @var string */
-    public $map = 'UHC';
+    public string $map = 'UHC';
     /** @var string */
-    public $nether = 'nether';
+    public string $nether = 'nether';
     
     /** @var int */
-    public $spawnPosX = 0;
+    public int $spawnPosX = 0;
     /** @var int */
-    public $spawnPosY = 150;
+    public int $spawnPosY = 150;
     /** @var int */
-    public $spawnPosZ = 0;
+    public int $spawnPosZ = 0;
 
     /** @var int */
     public const MIN_PLAYERS = 2;
+
+    /** @var array */
+    public array $allVirions = [];
+    /** @var array */
+    public array $allPlugins = [];
 
     /**
      * 
@@ -121,15 +147,18 @@ class GameProperties
      */
 
     /** @var bool */
-    public $entitiesReset = false;
+    public bool $hasUpdate = false;
+
     /** @var bool */
-    public $worldReset = false;
+    public bool $entitiesReset = false;
     /** @var bool */
-    public $timerReset = false;
+    public bool $worldReset = false;
     /** @var bool */
-    public $teamReset = false;
+    public bool $timerReset = false;
     /** @var bool */
-    public $othersReset = false;
+    public bool $teamReset = false;
+    /** @var bool */
+    public bool $othersReset = false;
 
     /**
      * 
@@ -139,12 +168,12 @@ class GameProperties
      */
 
     /** @var array */
-    public $allPlayers = [];
+    public array $allPlayers = [];
     /** @var array */
-    public $allPlayersForm = [];
+    public array $allPlayersForm = [];
     
     /** @var array */
-    public $allCapes = [];
+    public array $allCapes = [];
 
     /**
      * 
@@ -155,5 +184,15 @@ class GameProperties
      */
 
     /** @var array */
-    public $reportTypes = ['Bug', 'Exploits', 'Disrespectful', 'Inappropriate', 'Griefing/Stealing', 'Impersonation', 'Unobtainable Items', 'Advertising', 'Spamming'];
+    public array $reportTypes = [
+        'Bug',
+        'Exploits',
+        'Disrespectful',
+        'Inappropriate',
+        'Griefing/Stealing',
+        'Impersonation',
+        'Unobtainable Items',
+        'Advertising',
+        'Spamming'
+    ];
 }

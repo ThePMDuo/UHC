@@ -4,7 +4,8 @@ declare(strict_types=1);
 namespace AGTHARN\uhc\command;
 
 use pocketmine\command\CommandSender;
-use pocketmine\Player;
+use pocketmine\player\GameMode;
+use pocketmine\player\Player;
 
 use AGTHARN\uhc\game\GameProperties;
 use AGTHARN\uhc\Main;
@@ -13,13 +14,8 @@ use CortexPE\Commando\BaseCommand;
 
 class SpectatorCommand extends BaseCommand
 {
-
-    /**
-     * plugin
-     *
-     * @var Main
-     */
-    protected $plugin;
+    /** @var Main */
+    protected Main $plugin;
     
     /**
      * __construct
@@ -44,6 +40,7 @@ class SpectatorCommand extends BaseCommand
      */
     public function prepare(): void
     {
+        // nothing
     }
     
     /**
@@ -60,7 +57,7 @@ class SpectatorCommand extends BaseCommand
             $sender->sendMessage(GameProperties::PREFIX_COSMIC . 'You can only use this command in-game!');
             return;
         }
-        if ($sender->getGamemode() !== Player::SPECTATOR) {
+        if ($sender->getGamemode() !== GameMode::SPECTATOR()) {
             $sender->sendMessage(GameProperties::PREFIX_COSMIC . '§cYou must be eliminated to use this command!');
             return;
         }
@@ -69,7 +66,7 @@ class SpectatorCommand extends BaseCommand
             return;
         }
 
-        $player = $this->plugin->getServer()->getPlayer($args[0]) ?? null;
+        $player = $this->plugin->getServer()->getPlayerExact($args[0]) ?? null;
         if ($player === $sender) {
             $sender->sendMessage(GameProperties::PREFIX_COSMIC . '§cYou cant spectate yourself!');
             return;

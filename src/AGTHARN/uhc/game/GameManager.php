@@ -1,13 +1,35 @@
 <?php
-
 declare(strict_types=1);
 
+/**
+ * ███╗░░░███╗██╗███╗░░██╗███████╗██╗░░░██╗██╗░░██╗░█████╗░
+ * ████╗░████║██║████╗░██║██╔════╝██║░░░██║██║░░██║██╔══██╗
+ * ██╔████╔██║██║██╔██╗██║█████╗░░██║░░░██║███████║██║░░╚═╝
+ * ██║╚██╔╝██║██║██║╚████║██╔══╝░░██║░░░██║██╔══██║██║░░██╗
+ * ██║░╚═╝░██║██║██║░╚███║███████╗╚██████╔╝██║░░██║╚█████╔╝
+ * ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚══╝╚══════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░
+ * 
+ * Copyright (C) 2020-2021 AGTHARN
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace AGTHARN\uhc\game;
 
 use pocketmine\scheduler\Task;
-use pocketmine\level\Position;
+use pocketmine\world\Position;
 
 use AGTHARN\uhc\event\phase\PhaseChangeEvent;
+use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\border\Border;
 use AGTHARN\uhc\game\GameProperties;
 use AGTHARN\uhc\Main;
@@ -15,12 +37,14 @@ use AGTHARN\uhc\Main;
 class GameManager extends Task
 {
     /** @var Main */
-    private $plugin;
+    private Main $plugin;
 
     /** @var GameProperties */
-    private $gameProperties;
+    private GameProperties $gameProperties;
+    /** @var SessionManager */
+    private SessionManager $sessionManager;
     /** @var Border */
-    private $border;
+    private Border $border;
 
     /**
      * __construct
@@ -33,19 +57,21 @@ class GameManager extends Task
         $this->plugin = $plugin;
 
         $this->gameProperties = $plugin->getClass('GameProperties');
+        $this->sessionManager = $plugin->getClass('SessionManager');
         $this->border = $plugin->getClass('Border');
     }
     
     /**
      * onRun
+     * 
+     * Runs every 1 second.
      *
-     * @param  int $currentTick
      * @return void
      */
-    public function onRun(int $currentTick): void
+    public function onRun(): void
     {
         $server = $this->plugin->getServer();
-        $server->getLevelByName($this->gameProperties->map)->setTime(1000);
+        $server->getWorldManager()->getWorldByName($this->gameProperties->map)->setTime(1000);
 
         $gameHandler = $this->plugin->getClass('GameHandler');
         $gameHandler->handlePlayers();
@@ -86,11 +112,11 @@ class GameManager extends Task
             $server->getNetwork()->setName($this->plugin->getOperationalMessage());
         }
 
-        //$gameRuleUHC = $server->getLevelByName($this->gameProperties->map)->getGameRules();
+        //$gameRuleUHC = $server->getWorldManager()->getWorldByName($this->gameProperties->map)->getGameRules();
         //$gameRuleUHC->setRuleWithMatching('showcoordinates', 'true');
         //$gameRuleUHC->setRuleWithMatching('doimmediaterespawn', 'true');
         
-        if (count($this->plugin->getClass('SessionManager')->getPlaying()) <= 1) {
+        if (count($this->sessionManager->getPlaying()) <= 1) {
             switch ($this->getPhase()) {
                 case PhaseChangeEvent::WAITING:
                 case PhaseChangeEvent::COUNTDOWN:
@@ -119,13 +145,13 @@ class GameManager extends Task
     public function randomizeCoordinates(int $x1, int $x2, int $y1, int $y2, int $z1, int $z2): void
     {
         $server = $this->plugin->getServer();
-        foreach ($this->plugin->getClass('SessionManager')->getPlaying() as $player) {
+        foreach ($this->sessionManager->getPlaying() as $player) {
             $x = mt_rand($x1, $x2);
             $y = mt_rand($y1, $y2);
             $z = mt_rand($z1, $z2);
-            $level = $server->getLevelByName($this->gameProperties->map);
+            $world = $server->getWorldManager()->getWorldByName($this->gameProperties->map);
             
-            $player->getPlayer()->teleport(new Position($x, $y, $z, $level));
+            $player->getPlayer()->teleport(new Position($x, $y, $z, $world));
         }
     }
 
@@ -147,7 +173,7 @@ class GameManager extends Task
      */
     public function setPhase(int $phase): void
     {
-        foreach ($this->plugin->getClass('SessionManager')->getPlaying() as $playerSession) {
+        foreach ($this->sessionManager->getPlaying() as $playerSession) {
             $event = new PhaseChangeEvent($playerSession->getPlayer(), $this->gameProperties->phase, $phase);
             $event->call();
         }
@@ -315,7 +341,7 @@ class GameManager extends Task
     /**
      * getShrinking
      *
-     * @return int
+     * @return bool
      */
     public function getShrinking(): bool
     {

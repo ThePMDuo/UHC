@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace AGTHARN\uhc\game\scenario\type;
 
-use pocketmine\event\HandlerList;
+use pocketmine\event\HandlerListManager;
 use pocketmine\event\Listener;
 
 use AGTHARN\uhc\Main;
 
 class Scenario implements Listener
 {
-    /** @var string */
-    private $name;
     /** @var Main */
     protected $plugin;
+
+    /** @var string */
+    private $name;
     /** @var bool */
     private $activeScenario = false;
     
@@ -53,7 +54,7 @@ class Scenario implements Listener
         if ($active) {
             $this->plugin->getServer()->getPluginManager()->registerEvents($this, $this->plugin);
         } else {
-            HandlerList::unregisterAll($this);
+            HandlerListManager::global()->unregisterAll($this);
         }
     }
     

@@ -1,6 +1,28 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * ███╗░░░███╗██╗███╗░░██╗███████╗██╗░░░██╗██╗░░██╗░█████╗░
+ * ████╗░████║██║████╗░██║██╔════╝██║░░░██║██║░░██║██╔══██╗
+ * ██╔████╔██║██║██╔██╗██║█████╗░░██║░░░██║███████║██║░░╚═╝
+ * ██║╚██╔╝██║██║██║╚████║██╔══╝░░██║░░░██║██╔══██║██║░░██╗
+ * ██║░╚═╝░██║██║██║░╚███║███████╗╚██████╔╝██║░░██║╚█████╔╝
+ * ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚══╝╚══════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░
+ * 
+ * Copyright (C) 2020-2021 AGTHARN
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace AGTHARN\uhc\util;
 
 use AGTHARN\uhc\game\GameProperties;
@@ -13,10 +35,10 @@ use CortexPE\DiscordWebhookAPI\Embed;
 class Discord
 {    
     /** @var Main */
-    private $plugin;
+    private Main $plugin;
     
     /** @var GameProperties */
-    private $gameProperties;
+    private GameProperties $gameProperties;
 
     /**
      * __construct
@@ -34,13 +56,13 @@ class Discord
     /**
      * sendReport
      *
-     * @param  mixed $reporter
-     * @param  mixed $reported
-     * @param  mixed $reportType
-     * @param  mixed $reason
+     * @param  string $reporter
+     * @param  string $reported
+     * @param  string $reportType
+     * @param  string $reason
      * @return void
      */
-    public function sendReport($reporter, $reported, $reportType, $reason): void
+    public function sendReport(string $reporter, string $reported, string $reportType, string $reason): void
     {
         $webHook = new Webhook($this->gameProperties->reportWebhook);
 
@@ -53,7 +75,7 @@ class Discord
         $embed->addField('REPORTED:', $reported, true);
         $embed->addField('REPORT TYPE:', $reportType, true);
         $embed->addField('REASON:', $reason, true);
-        $embed->setFooter(date('Y-m-d') . 'T' . date('H:i:s') . '.' . date('v') . 'Z');
+        $embed->setFooter(date("F j, Y, g:i a"));
         $embed->setColor(0xFF3333);
         $msg->addEmbed($embed);
 
@@ -70,7 +92,7 @@ class Discord
      * @param  int $port
      * @return void
      */
-    public function sendSpoonReport(string $serverVersion, string $spoonVersion = '', string $spoonName, string $ip, int $port): void
+    public function sendSpoonReport(string $serverVersion, string $spoonVersion, string $spoonName, string $ip, int $port): void
     {
         $webHook = new Webhook($this->gameProperties->serverReportsWebhook);
 
@@ -83,7 +105,7 @@ class Discord
         $embed->addField('SERVER VERSION:', $serverVersion, true);
         $embed->addField('SPOON VERSION (if any):', $spoonVersion, true);
         $embed->addField('IP & PORT:', $ip . ':' . $port, true);
-        $embed->setFooter(date('Y-m-d') . 'T' . date('H:i:s') . '.' . date('v') . 'Z');
+        $embed->setFooter(date("F j, Y, g:i a"));
         $embed->setColor(0xFF3333);
         $msg->addEmbed($embed);
 
@@ -112,7 +134,7 @@ class Discord
         $embed->addField('SERVER VERSION:', $serverVersion, true);
         $embed->addField('UHC BUILD:', $buildNumber, true);
         $embed->addField('NODE:', $node, true);
-        $embed->setFooter(date('Y-m-d') . 'T' . date('H:i:s') . '.' . date('v') . 'Z');
+        $embed->setFooter(date("F j, Y, g:i a"));
         $embed->setColor(0x33FF33);
         $msg->addEmbed($embed);
 

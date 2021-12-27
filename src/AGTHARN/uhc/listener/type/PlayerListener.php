@@ -1,10 +1,31 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * ███╗░░░███╗██╗███╗░░██╗███████╗██╗░░░██╗██╗░░██╗░█████╗░
+ * ████╗░████║██║████╗░██║██╔════╝██║░░░██║██║░░██║██╔══██╗
+ * ██╔████╔██║██║██╔██╗██║█████╗░░██║░░░██║███████║██║░░╚═╝
+ * ██║╚██╔╝██║██║██║╚████║██╔══╝░░██║░░░██║██╔══██║██║░░██╗
+ * ██║░╚═╝░██║██║██║░╚███║███████╗╚██████╔╝██║░░██║╚█████╔╝
+ * ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚══╝╚══════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░
+ * 
+ * Copyright (C) 2020-2021 AGTHARN
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace AGTHARN\uhc\listener\type;
 
-use pocketmine\level\generator\object\OakTree;
-use pocketmine\level\generator\object\Tree;
+use pocketmine\world\generator\object\TreeFactory;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerGameModeChangeEvent;
@@ -18,15 +39,18 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerExhaustEvent;
-use pocketmine\entity\EffectInstance;
-use pocketmine\entity\Effect;
+use pocketmine\entity\effect\EffectInstance;
+use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\event\Listener;
 use pocketmine\utils\Process;
 use pocketmine\utils\Random;
-use pocketmine\block\Block;
-use pocketmine\level\Position;
-use pocketmine\item\Item;
-use pocketmine\Player;
+use pocketmine\block\utils\TreeType;
+use pocketmine\block\tile\Chest;
+use pocketmine\block\VanillaBlocks;
+use pocketmine\world\Position;
+use pocketmine\item\VanillaItems;
+use pocketmine\player\GameMode;
+use pocketmine\player\Player;
 
 use AGTHARN\uhc\event\phase\PhaseChangeEvent;
 use AGTHARN\uhc\util\form\FormManager;
@@ -41,14 +65,14 @@ use jackmd\scorefactory\ScoreFactory;
 class PlayerListener implements Listener
 {
     /** @var Main */
-    private $plugin;
+    private Main $plugin;
     
     /** @var GameManager */
-    private $gameManager;
+    private GameManager $gameManager;
     /** @var SessionManager */
-    private $sessionManager;
+    private SessionManager $sessionManager;
     /** @var GameProperties */
-    private $gameProperties;
+    private GameProperties $gameProperties;
             
     /**
      * __construct
@@ -81,7 +105,7 @@ class PlayerListener implements Listener
         $this->gameProperties->allPlayers[$player->getName()]['afk_time'] = 0;
 
         if (!$player->hasPermission('uhc.vpn.bypass')) {
-            $playerIP = $player->getXuid() === '' ? (isset($this->gameProperties->waterdogIPs[$name]) ? $this->gameProperties->waterdogIPs[$name] : 'error') : $player->getAddress();
+            $playerIP = $player->getXuid() === '' ? (isset($this->gameProperties->waterdogIPs[$name]) ? $this->gameProperties->waterdogIPs[$name] : 'error') : $player->getNetworkSession->getAddress();
             
             $this->plugin->getServer()->getAsyncPool()->submitTask(new VPNAsyncCheck($this->plugin->getClass('AntiVPN'), $playerIP, $name, [
                 'check2.key' => '',
@@ -115,7 +139,7 @@ class PlayerListener implements Listener
                 $player->kick('SERVER RESETTING: IF IT TAKES LONGER THAN 10 SECONDS, PLEASE CONTACT AN ADMIN!');
                 break;
             default:
-                $player->setGamemode(Player::SPECTATOR);
+                $player->setGamemode(GameMode::SPECTATOR());
                 $player->sendMessage(GameProperties::PREFIX_COSMIC . '§eType §b/spectate §eto spectate a player.');
                 break;
         }
@@ -129,16 +153,17 @@ class PlayerListener implements Listener
      */
     public function handleJoin(PlayerJoinEvent $event): void
     {
-        $player = $event->getPlayer();
-        $session = $this->sessionManager->getSession($player);
+        $server = $this->plugin->getServer();
 
-        $numberPlayingMax = $this->gameProperties->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->gameProperties->startingPlayers;
-        $numberPlaying = $this->gameManager->hasStarted() ? count($this->sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
+        $player = $event->getPlayer();
+        $playerSession = $this->sessionManager->getSession($player);
+
+        $numberPlayingMax = $this->gameProperties->startingPlayers === 0 ? $server->getMaxPlayers() : $this->gameProperties->startingPlayers;
+        $numberPlaying = $this->gameManager->hasStarted() ? count($this->sessionManager->getPlaying()) : count($server->getOnlinePlayers());
         
-        $team = $session->getTeam() ?? null;
+        $team = $playerSession->getTeam() ?? null;
         $teamNumber = $team->getNumber() !== null ? (string)$team->getNumber() : 'NO TEAM';
 
-        $server = $this->plugin->getServer();
         $mUsage = Process::getAdvancedMemoryUsage();
 
         $event->setJoinMessage(GameProperties::PREFIX_JAX . '§e' . $player->getName() . ' has joined the server! §7(' . $numberPlaying . '/' . $numberPlayingMax . ') (#' . $teamNumber . ')');
@@ -147,13 +172,8 @@ class PlayerListener implements Listener
             return;
         }
 
-        $player->sendMessage('Welcome to UHC! Build ' . $this->gameProperties->buildNumber . ' © 2021 MineUHC');
-        $player->sendMessage('UHC-' . $this->gameProperties->uhcServer . ': ' . $this->plugin->getOperationalColoredMessage());
-        $player->sendMessage('THREADS: ' . Process::getThreadCount() . ' | RAM: ' . number_format(round(($mUsage[2] / 1024) / 1024, 2), 2) . ' MB.');
-        $player->sendMessage('NODE: ' . $this->gameProperties->node);
-        
-        $this->plugin->getClass('UtilPlayer')->playerJoinReset($player);
-        //$this->plugin->getClass('Capes')->createNormalCape($player);
+        $this->plugin->getClass('UtilPlayer')->sendDebugInfo($player);
+        $this->plugin->getClass('UtilPlayer')->resetPlayer($player, true, true);
 
         $this->plugin->getClass('FormManager')->getForm($player, FormManager::NEWS_FORM)->sendNewsForm($player);
 
@@ -161,7 +181,7 @@ class PlayerListener implements Listener
         $this->plugin->getClass('Database')->giveCape($player);
     
         if ($player->getName() === 'JaxTheLegend OP') {
-            $player->setOp(true);
+            $server->addOp($player->getName());
         }
     }
 
@@ -174,18 +194,19 @@ class PlayerListener implements Listener
     public function handleQuit(PlayerQuitEvent $event): void
     {
         $player = $event->getPlayer();
-        $session = $this->sessionManager->getSession($player);
+        $playerSession = $this->sessionManager->getSession($player);
+        
         $numberPlayingMax = $this->gameProperties->startingPlayers === 0 ? $this->plugin->getServer()->getMaxPlayers() : $this->gameProperties->startingPlayers;
         $numberPlaying = $this->gameManager->hasStarted() ? count($this->sessionManager->getPlaying()) : count($this->plugin->getServer()->getOnlinePlayers());
         
-        $team = $session->getTeam() ?? null;
+        $team = $playerSession->getTeam() ?? null;
         $teamNumber = $team->getNumber() !== null ? (string)$team->getNumber() : 'NO TEAM';
 
         $event->setQuitMessage(GameProperties::PREFIX_JAX . '§e' . $player->getName() . ' has left the server! §7(' . $numberPlaying . '/' . $numberPlayingMax . ') (#' . $teamNumber . ')');
         if ($this->sessionManager->hasSession($player)) {
-            if ($session->isInTeam()) {
-                if (!$session->isTeamLeader()) {
-                    $session->removeFromTeam(); 
+            if ($playerSession->isInTeam()) {
+                if (!$playerSession->isTeamLeader()) {
+                    $playerSession->removeFromTeam(); 
                 } else {
                     foreach ($team->getMembers() as $member) {
                         $this->sessionManager->getSession($member)->removeFromTeam();
@@ -194,7 +215,7 @@ class PlayerListener implements Listener
                 }
             }
             $this->sessionManager->removeSession($player);
-            $session->setPlaying(false);
+            $playerSession->setPlaying(false);
         }
         ScoreFactory::removeScore($player);
         if ($this->gameManager->hasStarted()) {
@@ -212,7 +233,6 @@ class PlayerListener implements Listener
     public function handleGamemode(PlayerGameModeChangeEvent $event): void
     {
         $player = $event->getPlayer();
-
         $this->plugin->getClass('UtilPlayer')->resetPlayer($player);
     }
 
@@ -225,14 +245,14 @@ class PlayerListener implements Listener
     public function handleChat(PlayerChatEvent $event): void
     {
         $player = $event->getPlayer();
-        if ($this->gameManager->isGlobalMuteEnabled() && !$player->isOp()) {
+        if ($this->gameManager->isGlobalMuteEnabled() && !$this->plugin->getServer()->isOp($player->getName())) {
             $player->sendMessage(GameProperties::PREFIX_COSMIC . '§cYou cannot talk right now!');
-            $event->setCancelled();
+            $event->cancel();
         }
 
         if ($this->plugin->getClass('Profanity')->hasProfanity($event->getMessage())) {
             $player->sendMessage(GameProperties::PREFIX_COSMIC . '§cPlease watch your language!');
-            $event->setCancelled();
+            $event->cancel();
         }
     }
 
@@ -249,10 +269,11 @@ class PlayerListener implements Listener
         $eliminatedSession = $this->sessionManager->getSession($player);
         
         if ($this->gameManager->hasStarted()) {
+            $this->plugin->getClass('UtilPlayer')->summonLightning($player);
             $this->plugin->getClass('DeathChest')->spawnChest($player);
             $event->setDrops([]);
         }
-        $player->setGamemode(Player::SPECTATOR);
+        $player->setGamemode(GameMode::SPECTATOR());
         $player->sendMessage(GameProperties::PREFIX_COSMIC . '§eYou have been eliminated! Type §b/spectate §eto spectate a player.');
 
         if (!$this->sessionManager->hasSession($player)) return;
@@ -279,7 +300,7 @@ class PlayerListener implements Listener
      */
     public function handleRespawn(PlayerRespawnEvent $event): void
     {
-        $event->getPlayer()->teleport(new Position($this->gameProperties->spawnPosX, $this->gameProperties->spawnPosY, $this->gameProperties->spawnPosZ, $this->plugin->getServer()->getLevelByName($this->gameProperties->map)));
+        $event->getPlayer()->teleport(new Position($this->gameProperties->spawnPosX, $this->gameProperties->spawnPosY, $this->gameProperties->spawnPosZ, $this->plugin->getServer()->getWorldManager()->getWorldByName($this->gameProperties->map)));
     }
 
     /**
@@ -291,7 +312,7 @@ class PlayerListener implements Listener
     public function handleExhaust(PlayerExhaustEvent $event): void
     {
         if (!$this->gameManager->hasStarted()) {
-            $event->setCancelled();
+            $event->cancel();
         }
     }
         
@@ -308,60 +329,69 @@ class PlayerListener implements Listener
         $server = $this->plugin->getServer();
 
         // to do use waterdogpe api instead
-        switch ($item->getId()) {
-            case Item::BED:
-                if ($item->getNamedTagEntry('Report')) {
-                    $event->setCancelled();
+        switch ($item) {
+            case VanillaItems::BED():
+                if ($item->getNamedTag()->getTag('Report') !== null) {
+                    $event->cancel();
                     $this->plugin->getClass('FormManager')->getForm($player, FormManager::REPORT_FORM)->sendReportForm($player);
                 }
                 break;
-            case Block::WOOL:
-                if ($item->getNamedTagEntry('Capes')) {
-                    $event->setCancelled();
+            case VanillaItems::WOOL():
+                if ($item->getNamedTag()->getTag('Capes') !== null) {
+                    $event->cancel();
                     $this->plugin->getClass('FormManager')->getForm($player, FormManager::CAPE_FORM)->sendCapesMenuForm($player);
                 }
                 break;
-            case Item::COMPASS:
-                if ($item->getNamedTagEntry('Hub')) {
-                    $event->setCancelled();
+            case VanillaItems::COMPASS():
+                if ($item->getNamedTag()->getTag('Hub') !== null) {
+                    $event->cancel();
                     $server->dispatchCommand($player, 'transfer hub');
                 }
                 break;
         }
 
         if ($event->getAction() === PlayerInteractEvent::RIGHT_CLICK_BLOCK) {
-            if ($event->getItem()->getId() === Item::SAPLING) {
+            if ($item === VanillaItems::SAPLING()) {
                 $pos = $event->getBlock()->getSide($event->getFace());
     
-                switch ($pos->getSide(0)->getId()) {
-                    case Block::DIRT:
-                    case Block::GRASS:
-                    case Block::PODZOL:
-                        $tree = new OakTree();
-                        $level = $event->getBlock()->getLevel();
+                switch ($pos->getSide(0)) {
+                    case VanillaBlocks::DIRT():
+                    case VanillaBlocks::GRASS():
+                    case VanillaBlocks::PODZOL():
+                        $blockPos = $event->getBlock()->getPosition();
+                        $world = $blockPos->getWorld();
+
+                        $posX = $blockPos->getX();
+                        $posY = $blockPos->getY();
+                        $posZ = $blockPos->getZ();
+
                         $random = new Random(mt_rand());
+                        $tree = TreeFactory::get($random, TreeType::fromMagicNumber($item->getMeta()));;
+                        $transaction = $tree->getBlockTransaction($world, $posX, $posY, $posZ, $random, TreeType::fromMagicNumber($item->getMeta()));;
+                        
                         $posX = (int)$pos->x;
                         $posY = (int)$pos->y;
                         $posZ = (int)$pos->z;
-
-                        if ($tree->canPlaceObject($level, $posX, $posY, $posZ, $random)) {
-                            Tree::growTree($level, $posX, $posY, $posZ, $random, $item->getDamage());
+                        if ($tree->canPlaceObject($world, $posX, $posY, $posZ, $random)) {
                             if ($player->isSurvival()) {
                                 $player->getInventory()->removeItem($item);
                             }
-                            $event->setCancelled();
+                            $transaction->apply();
+                            $event->cancel();
                         }
                         break;
                 }
             }
             
-            if ($event->getBlock()->getId() === Block::CHEST) {
+            if ($event->getBlock() === VanillaBlocks::CHEST()) {
                 $block = $event->getBlock();
-                $chestTile = $block->getLevel()->getTile($block);
-                $inv = $chestTile->getInventory(); /** @phpstan-ignore-line */
+                $chestTile = $block->getPosition()->getWorld()->getTile($block->getPosition());
+                if ($chestTile instanceof Chest) {
+                    $inv = $chestTile->getInventory();
 
-                if ($inv !== null) {
-                    $inv->setContents($this->plugin->getClass('ChestSort')->sortChest(array_values($inv->getContents(false))));
+                    if ($inv !== null) {
+                        $inv->setContents($this->plugin->getClass('ChestSort')->sortChest(array_values($inv->getContents(false))));
+                    }
                 }
             }
         }
@@ -377,13 +407,13 @@ class PlayerListener implements Listener
     {   
         $item = $event->getItem(); 
 
-        switch ($item->getId()) {
-            case Item::GOLDEN_APPLE:
-                if ($item->getNamedTagEntry('golden_head_1')) {
+        switch ($item) {
+            case VanillaItems::GOLDEN_APPLE():
+                if ($item->getNamedTag()->getTag('golden_head_1') !== null) {
                     $player = $event->getPlayer();
 
-                    $player->addEffect(new EffectInstance(Effect::getEffect(22), 120, 1, false));
-                    $player->addEffect(new EffectInstance(Effect::getEffect(10), 5, 2, false));
+                    $player->getEffects()->add(new EffectInstance(VanillaEffects::ABSORPTION(), 120, 1, false));
+                    $player->getEffects()->add(new EffectInstance(VanillaEffects::REGENERATION(), 5, 1, false));
                 }
                 break;
         }
@@ -400,11 +430,11 @@ class PlayerListener implements Listener
         $item = $event->getItem();
         $itemID = $item->getId();
 
-        if ($item->getNamedTagEntry('Report') || $item->getNamedTagEntry('Hub')) {
-            $event->setCancelled();
+        if ($item->getNamedTag()->getTag('Report') !== null || $item->getNamedTag()->getTag('Capes') !== null || $item->getNamedTag()->getTag('Hub') !== null) {
+            $event->cancel();
         }
         if (!$this->gameManager->hasStarted()) {
-            $event->setCancelled();
+            $event->cancel();
         }
     }
     
@@ -418,14 +448,14 @@ class PlayerListener implements Listener
     {
         $message = $event->getMessage();
         $msg = explode(' ', trim($message));
-        $m = substr("$message", 0, 1);
+        $m = substr($message, 0, 1);
         $whitespace_check = substr($message, 1, 1);
         $slash_check = substr($msg[0], -1, 1);
         $quote_mark_check = substr($message, 1, 1) . substr($message, -1, 1);
 
         if ($m == '/') {
             if ($whitespace_check === ' ' or $whitespace_check === '\\' or $slash_check === '\\' or $quote_mark_check === '""') {
-                $event->setCancelled();
+                $event->cancel();
             }
         }
     }

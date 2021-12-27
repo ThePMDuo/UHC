@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace AGTHARN\uhc\command;
 
 use pocketmine\command\CommandSender;
-use pocketmine\Player;
+use pocketmine\player\Player;
 
 use AGTHARN\uhc\util\form\FormManager;
 use AGTHARN\uhc\game\GameProperties;
@@ -14,13 +14,8 @@ use CortexPE\Commando\BaseCommand;
 
 class ReportCommand extends BaseCommand
 {
-
-    /**
-     * plugin
-     *
-     * @var Main
-     */
-    protected $plugin;
+    /** @var Main */
+    protected Main $plugin;
     
     /**
      * __construct
@@ -45,6 +40,7 @@ class ReportCommand extends BaseCommand
      */
     public function prepare(): void
     {
+        // nothing
     }
     
     /**

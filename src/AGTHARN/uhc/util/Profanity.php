@@ -1,5 +1,28 @@
 <?php
+declare(strict_types=1);
 
+/**
+ * ███╗░░░███╗██╗███╗░░██╗███████╗██╗░░░██╗██╗░░██╗░█████╗░
+ * ████╗░████║██║████╗░██║██╔════╝██║░░░██║██║░░██║██╔══██╗
+ * ██╔████╔██║██║██╔██╗██║█████╗░░██║░░░██║███████║██║░░╚═╝
+ * ██║╚██╔╝██║██║██║╚████║██╔══╝░░██║░░░██║██╔══██║██║░░██╗
+ * ██║░╚═╝░██║██║██║░╚███║███████╗╚██████╔╝██║░░██║╚█████╔╝
+ * ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚══╝╚══════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░
+ * 
+ * Copyright (C) 2020-2021 AGTHARN
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace AGTHARN\uhc\util;
 
 use pocketmine\utils\Config;
@@ -9,26 +32,18 @@ use AGTHARN\uhc\Main;
 class Profanity
 {
     /** @var Main */
-    public $plugin;
+    public Main $plugin;
 
     /** @var string */
-    private const SEPARATOR_PLACEHOLDER = '{!!}';
+    private string $seperatorPlaceholder = '{!!}';
     
-    /**
-     * escapedSeparatorCharacters
-     *
-     * @var array
-     */
-    protected $escapedSeparatorCharacters = [
+    /** @var array */
+    protected array $escapedSeparatorCharacters = [
         '\s',
     ];
     
-    /**
-     * separatorCharacters
-     *
-     * @var array
-     */
-    protected $separatorCharacters = [
+    /** @var array */
+    protected array $separatorCharacters = [
         '@',
         '#',
         '%',
@@ -62,12 +77,8 @@ class Profanity
         '/',
         ];
     
-    /**
-     * characterSubstitutions
-     *
-     * @var array
-     */
-    protected $characterSubstitutions = [
+    /** @var array */
+    protected array $characterSubstitutions = [
         '/a/' => [
             'a',
             '4',
@@ -145,11 +156,11 @@ class Profanity
     ];
     
     /** @var array */
-    protected $profanities = [];
+    protected array $profanities = [];
     /** @var mixed */
-    protected $separatorExpression;
+    protected mixed $separatorExpression;
     /** @var mixed */
-    protected $characterExpressions;
+    protected mixed $characterExpressions;
     
     /**
      * __construct
@@ -160,7 +171,7 @@ class Profanity
     public function __construct(Main $plugin)
     {
         $this->plugin = $plugin;
-        $this->profanities = (new Config($this->plugin->getDataFolder() . "swearwords.yml"))->getAll()["swearwords"];
+        $this->profanities = (new Config($this->plugin->getDataFolder() . 'swearwords.yml'))->getAll()['swearwords'];
 
         $this->separatorExpression = $this->generateSeparatorExpression();
         $this->characterExpressions = $this->generateCharacterExpressions();
@@ -203,7 +214,7 @@ class Profanity
     public function obfuscateIfProfane($string): string
     {
         if ($this->hasProfanity($string)) {
-            $string = str_repeat("*", strlen($string));
+            $string = str_repeat('*', strlen($string));
         }
 
         return $string;
@@ -221,7 +232,7 @@ class Profanity
     {
         $expression = '/' . preg_replace(array_keys($characterExpressions), array_values($characterExpressions), $word) . '/i';
 
-        return str_replace(self::SEPARATOR_PLACEHOLDER, $separatorExpression, $expression);
+        return str_replace($this->seperatorPlaceholder, $separatorExpression, $expression);
     }
     
     /**
@@ -273,7 +284,7 @@ class Profanity
     {
         $characterExpressions = [];
         foreach ($this->characterSubstitutions as $character => $substitutions) {
-            $characterExpressions[$character] = $this->generateEscapedExpression($substitutions, [], '+?') . self::SEPARATOR_PLACEHOLDER;
+            $characterExpressions[$character] = $this->generateEscapedExpression($substitutions, [], '+?') . $this->seperatorPlaceholder;
         }
 
         return $characterExpressions;

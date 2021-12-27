@@ -1,13 +1,35 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * ███╗░░░███╗██╗███╗░░██╗███████╗██╗░░░██╗██╗░░██╗░█████╗░
+ * ████╗░████║██║████╗░██║██╔════╝██║░░░██║██║░░██║██╔══██╗
+ * ██╔████╔██║██║██╔██╗██║█████╗░░██║░░░██║███████║██║░░╚═╝
+ * ██║╚██╔╝██║██║██║╚████║██╔══╝░░██║░░░██║██╔══██║██║░░██╗
+ * ██║░╚═╝░██║██║██║░╚███║███████╗╚██████╔╝██║░░██║╚█████╔╝
+ * ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚══╝╚══════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░
+ * 
+ * Copyright (C) 2020-2021 AGTHARN
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace AGTHARN\uhc\listener\type;
 
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
-use pocketmine\block\Block;
-use pocketmine\item\Item;
+use pocketmine\block\VanillaBlocks;
+use pocketmine\item\VanillaItems;
 
 use AGTHARN\uhc\session\SessionManager;
 use AGTHARN\uhc\game\GameProperties;
@@ -17,14 +39,14 @@ use AGTHARN\uhc\Main;
 class BlockListener implements Listener
 {
     /** @var Main */
-    private $plugin;
+    private Main $plugin;
     
     /** @var GameManager */
-    private $gameManager;
+    private GameManager $gameManager;
     /** @var SessionManager */
-    private $sessionManager;
+    private SessionManager $sessionManager;
     /** @var GameProperties */
-    private $gameProperties;
+    private GameProperties $gameProperties;
             
     /**
      * __construct
@@ -50,45 +72,41 @@ class BlockListener implements Listener
     public function handleBreak(BlockBreakEvent $event): void
     {
         if (!$this->gameManager->hasStarted()) {
-            $event->setCancelled();
+            $event->cancel();
             return;
         }
-
-        switch ($event->getBlock()->getId()) { // drops
-            case Block::LEAVES:
-            case Block::LEAVES2:
+        switch ($event->getBlock()) { // drops
+            case VanillaBlocks::LEAVES():
+            case VanillaBlocks::LEAVES2():
                 $rand = mt_rand(0, 100);
-                if ($event->getItem()->equals(Item::get(Item::SHEARS, 0, 1), false, false)) {
+                if ($event->getItem()->equals(VanillaItems::SHEARS(), false, false)) {
                     if ($rand <= 6) {
-                        $event->setDrops([Item::get(Item::APPLE, 0, 1)]);
+                        $event->setDrops([VanillaItems::APPLE()]);
                     }
-                } else {
-                    if ($rand <= 3) {
-                        $event->setDrops([Item::get(Item::APPLE, 0, 1)]);
-                    }
+                } elseif ($rand <= 3) {
+                    $event->setDrops([VanillaItems::APPLE()]);
                 }
                 break;
-            case Block::LOG:
-            case Block::LOG2:
-                $drops[] = Item::get(Item::PLANKS, 0, 4);
+            case VanillaBlocks::LOG():
+            case VanillaBlocks::LOG2():
+                $drops[] = VanillaItems::PLANKS()->setCount(4);
                 $event->setDrops($drops);
                 break;
-            case Block::IRON_ORE:
-                $drops[] = Item::get(Item::IRON_INGOT, 0, mt_rand(1, 2));
+            case VanillaBlocks::IRON_ORE():
+                $drops[] = VanillaItems::IRON_INGOT()->setCount(mt_rand(1, 2));
                 $event->setDrops($drops);
                 break;
-            case Block::GOLD_ORE:
-                $drops[] = Item::get(Item::GOLD_INGOT, 0, mt_rand(2, 4));
+            case VanillaBlocks::GOLD_ORE():
+                $drops[] = VanillaItems::GOLD_INGOT()->setCount(mt_rand(2, 4));
                 $event->setDrops($drops);
                 break;
-            case Block::DIAMOND_ORE:
-                $drops[] = Item::get(Item::DIAMOND, 0, mt_rand(1, 2));
+            case VanillaBlocks::DIAMOND_ORE():
+                $drops[] = VanillaItems::DIAMOND()->setCount(mt_rand(1, 2));
                 $event->setDrops($drops);
                 break;
         }
-
         if ($this->plugin->getClass('UtilPlayer')->playerTreeChop($event->getPlayer(), $event->getBlock(), $event->getItem())) {
-            $event->setCancelled();
+            $event->cancel();
         }
     }
     
@@ -101,7 +119,7 @@ class BlockListener implements Listener
     public function handlePlace(BlockPlaceEvent $event): void
     {   
         if (!$this->gameManager->hasStarted()) {
-            $event->setCancelled();
+            $event->cancel();
         }
     }
 }

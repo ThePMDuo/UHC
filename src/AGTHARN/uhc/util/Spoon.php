@@ -1,6 +1,28 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * ███╗░░░███╗██╗███╗░░██╗███████╗██╗░░░██╗██╗░░██╗░█████╗░
+ * ████╗░████║██║████╗░██║██╔════╝██║░░░██║██║░░██║██╔══██╗
+ * ██╔████╔██║██║██╔██╗██║█████╗░░██║░░░██║███████║██║░░╚═╝
+ * ██║╚██╔╝██║██║██║╚████║██╔══╝░░██║░░░██║██╔══██║██║░░██╗
+ * ██║░╚═╝░██║██║██║░╚███║███████╗╚██████╔╝██║░░██║╚█████╔╝
+ * ╚═╝░░░░░╚═╝╚═╝╚═╝░░╚══╝╚══════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░
+ * 
+ * Copyright (C) 2020-2021 AGTHARN
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace AGTHARN\uhc\util;
 
 use AGTHARN\uhc\Main;
@@ -8,7 +30,7 @@ use AGTHARN\uhc\Main;
 class Spoon
 {    
     /** @var Main */
-    private $plugin;
+    private Main $plugin;
 
     /**
      * __construct
@@ -74,17 +96,18 @@ class Spoon
     /**
      * compatibilityChecks
      *
-     * @return void
+     * @return bool
      */
-    public function compatibilityChecks()
+    public function compatibilityChecks(): bool
     {
+        $result = false;
         if (!extension_loaded('gd')) {
-            $this->getServer()->getLogger()->error('GD Lib is disabled! Turning on safe mode!');
+            $this->plugin->getServer()->getLogger()->error('GD Lib is disabled! Turning on safe mode!');
             $result = true;
         }
 
-        if (!in_array($this->getServer()->getApiVersion(), $this->getDescription()->getCompatibleApis())) {
-            $this->getServer()->getLogger()->error('Incompatible version! Turning on safe mode!');
+        if (!in_array($this->plugin->getServer()->getApiVersion(), $this->plugin->getDescription()->getCompatibleApis())) {
+            $this->plugin->getServer()->getLogger()->error('Incompatible version! Turning on safe mode!');
             $result = true;
         }
         return $result;
